@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	_ "embed"
 
@@ -41,10 +42,22 @@ func NewRepository(dbPath string) (*Repository, error) {
 		return nil, err
 	}
 
-	return &Repository{
+	if err := migrateSchema(db); err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	repo := &Repository{
 		db:      db,
 		queries: New(db),
-	}, nil
+	}
+
+	if err := repo.SeedDefaultPrompts(context.Background()); err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	return repo, nil
 }
 
 func (r *Repository) Close() error {

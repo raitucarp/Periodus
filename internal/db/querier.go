@@ -11,21 +11,27 @@ import (
 type Querier interface {
 	DeleteBook(ctx context.Context, id string) error
 	DeleteEmbeddingsByBookID(ctx context.Context, bookID string) error
+	DeletePrompt(ctx context.Context, id string) error
 	GetBookByID(ctx context.Context, id string) (GetBookByIDRow, error)
 	GetParagraphByID(ctx context.Context, id string) (Paragraph, error)
 	GetParagraphEmbedding(ctx context.Context, paragraphID string) (ParagraphEmbedding, error)
 	GetProgress(ctx context.Context, bookID string) (ReadingProgress, error)
+	GetPromptByID(ctx context.Context, id string) (Prompt, error)
 	GetSetting(ctx context.Context, key string) (string, error)
 	ListBooks(ctx context.Context) ([]ListBooksRow, error)
 	ListChaptersByBookID(ctx context.Context, bookID string) ([]Chapter, error)
 	ListParagraphEmbeddingsByBook(ctx context.Context, bookID string) ([]ParagraphEmbedding, error)
 	ListParagraphsByChapter(ctx context.Context, arg ListParagraphsByChapterParams) ([]Paragraph, error)
+	ListPrompts(ctx context.Context, bookID string) ([]Prompt, error)
+	ResetDefaultPrompts(ctx context.Context) error
+	SeedDefaultPrompts(ctx context.Context) error
 	SetSetting(ctx context.Context, arg SetSettingParams) error
 	UpsertBook(ctx context.Context, arg UpsertBookParams) error
 	UpsertChapter(ctx context.Context, arg UpsertChapterParams) error
 	UpsertParagraph(ctx context.Context, arg UpsertParagraphParams) error
 	UpsertParagraphEmbedding(ctx context.Context, arg UpsertParagraphEmbeddingParams) error
 	UpsertProgress(ctx context.Context, arg UpsertProgressParams) error
+	UpsertPrompt(ctx context.Context, arg UpsertPromptParams) error
 }
 
 var _ Querier = (*Queries)(nil)

@@ -28,6 +28,16 @@ func (q *Queries) DeleteEmbeddingsByBookID(ctx context.Context, bookID string) e
 	return err
 }
 
+const deletePrompt = `-- name: DeletePrompt :exec
+DELETE FROM prompts 
+WHERE id = ? AND is_builtin = 0
+`
+
+func (q *Queries) DeletePrompt(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deletePrompt, id)
+	return err
+}
+
 const getBookByID = `-- name: GetBookByID :one
 SELECT 
     b.id, b.title, b.author, b.description, b.publisher, b.language, 
@@ -142,6 +152,42 @@ func (q *Queries) GetProgress(ctx context.Context, bookID string) (ReadingProgre
 		&i.CurrentParagraphIndex,
 		&i.PercentComplete,
 		&i.LastReadAt,
+	)
+	return i, err
+}
+
+const getPromptByID = `-- name: GetPromptByID :one
+SELECT 
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+FROM prompts
+WHERE id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetPromptByID(ctx context.Context, id string) (Prompt, error) {
+	row := q.db.QueryRowContext(ctx, getPromptByID, id)
+	var i Prompt
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Icon,
+		&i.ColorPalette,
+		&i.SystemPrompt,
+		&i.UserPrompt,
+		&i.Provider,
+		&i.Model,
+		&i.Temperature,
+		&i.MaxTokens,
+		&i.IsBuiltin,
+		&i.IsEnabled,
+		&i.SortOrder,
+		&i.Scope,
+		&i.BookID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -348,6 +394,164 @@ func (q *Queries) ListParagraphsByChapter(ctx context.Context, arg ListParagraph
 	return items, nil
 }
 
+const listPrompts = `-- name: ListPrompts :many
+SELECT 
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+FROM prompts
+WHERE scope = 'global' OR (scope = 'book' AND book_id = ?)
+ORDER BY sort_order ASC, name ASC
+`
+
+func (q *Queries) ListPrompts(ctx context.Context, bookID string) ([]Prompt, error) {
+	rows, err := q.db.QueryContext(ctx, listPrompts, bookID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Prompt
+	for rows.Next() {
+		var i Prompt
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Icon,
+			&i.ColorPalette,
+			&i.SystemPrompt,
+			&i.UserPrompt,
+			&i.Provider,
+			&i.Model,
+			&i.Temperature,
+			&i.MaxTokens,
+			&i.IsBuiltin,
+			&i.IsEnabled,
+			&i.SortOrder,
+			&i.Scope,
+			&i.BookID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const resetDefaultPrompts = `-- name: ResetDefaultPrompts :exec
+INSERT OR REPLACE INTO prompts (
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+) VALUES 
+(
+    'prompt-explain',
+    'Explain Nuance',
+    'Explain literary nuances, historical/cultural context, and subtext of the selected paragraph',
+    'Sparkles',
+    'ruby',
+    'You are a thoughtful reading companion and literary scholar. Analyze the selected text, illuminating subtext, historical/cultural context, metaphorical depth, and emotional resonance in clean, accessible markdown.',
+    'Analyze and explain the context, subtext, and literary nuances of the following passage:\n\n{{text}}',
+    '', '', 0.7, 2048, 1, 1, 1, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-summarize',
+    'Quick Summary',
+    'Summarize key ideas and narrative events in 1-2 punchy, concise sentences',
+    'FileText',
+    'amber',
+    'You are an expert reading assistant. Distill the essence of the selected text into a punchy, accurate 1-2 sentence summary.',
+    'Provide a concise 1-2 sentence summary capturing the essence of the following passage:\n\n{{text}}',
+    '', '', 0.5, 1024, 1, 1, 2, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-vocabulary',
+    'Vocabulary & Idioms',
+    'Identify notable vocabulary words, archaic phrases, idioms, and literary expressions',
+    'Languages',
+    'teal',
+    'You are a multilingual etymologist and linguist. Identify notable vocabulary words, archaic phrases, literary terms, or idioms from the text, explaining their definitions and nuances concisely.',
+    'Identify key vocabulary, rare terms, or idioms in the following passage and explain their meanings:\n\n{{text}}',
+    '', '', 0.3, 2048, 1, 1, 3, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-critic',
+    'Literary Critique',
+    'Critique prose style, pacing, tone, and author techniques',
+    'Brain',
+    'purple',
+    'You are a perceptive literary critic. Critique the prose style, pacing, tone, and literary techniques employed by the author in this passage.',
+    'Provide a critical review of the prose style, voice, tone, and narrative techniques in the following excerpt:\n\n{{text}}',
+    '', '', 0.7, 2048, 1, 1, 4, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+)
+`
+
+func (q *Queries) ResetDefaultPrompts(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, resetDefaultPrompts)
+	return err
+}
+
+const seedDefaultPrompts = `-- name: SeedDefaultPrompts :exec
+INSERT OR IGNORE INTO prompts (
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+) VALUES 
+(
+    'prompt-explain',
+    'Explain Nuance',
+    'Explain literary nuances, historical/cultural context, and subtext of the selected paragraph',
+    'Sparkles',
+    'ruby',
+    'You are a thoughtful reading companion and literary scholar. Analyze the selected text, illuminating subtext, historical/cultural context, metaphorical depth, and emotional resonance in clean, accessible markdown.',
+    'Analyze and explain the context, subtext, and literary nuances of the following passage:\n\n{{text}}',
+    '', '', 0.7, 2048, 1, 1, 1, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-summarize',
+    'Quick Summary',
+    'Summarize key ideas and narrative events in 1-2 punchy, concise sentences',
+    'FileText',
+    'amber',
+    'You are an expert reading assistant. Distill the essence of the selected text into a punchy, accurate 1-2 sentence summary.',
+    'Provide a concise 1-2 sentence summary capturing the essence of the following passage:\n\n{{text}}',
+    '', '', 0.5, 1024, 1, 1, 2, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-vocabulary',
+    'Vocabulary & Idioms',
+    'Identify notable vocabulary words, archaic phrases, idioms, and literary expressions',
+    'Languages',
+    'teal',
+    'You are a multilingual etymologist and linguist. Identify notable vocabulary words, archaic phrases, literary terms, or idioms from the text, explaining their definitions and nuances concisely.',
+    'Identify key vocabulary, rare terms, or idioms in the following passage and explain their meanings:\n\n{{text}}',
+    '', '', 0.3, 2048, 1, 1, 3, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-critic',
+    'Literary Critique',
+    'Critique prose style, pacing, tone, and author techniques',
+    'Brain',
+    'purple',
+    'You are a perceptive literary critic. Critique the prose style, pacing, tone, and literary techniques employed by the author in this passage.',
+    'Provide a critical review of the prose style, voice, tone, and narrative techniques in the following excerpt:\n\n{{text}}',
+    '', '', 0.7, 2048, 1, 1, 4, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+)
+`
+
+func (q *Queries) SeedDefaultPrompts(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, seedDefaultPrompts)
+	return err
+}
+
 const setSetting = `-- name: SetSetting :exec
 INSERT INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
 ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
@@ -522,6 +726,71 @@ func (q *Queries) UpsertProgress(ctx context.Context, arg UpsertProgressParams) 
 		arg.CurrentChapterIndex,
 		arg.CurrentParagraphIndex,
 		arg.PercentComplete,
+	)
+	return err
+}
+
+const upsertPrompt = `-- name: UpsertPrompt :exec
+INSERT INTO prompts (
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT(id) DO UPDATE SET
+    name = excluded.name,
+    description = excluded.description,
+    icon = excluded.icon,
+    color_palette = excluded.color_palette,
+    system_prompt = excluded.system_prompt,
+    user_prompt = excluded.user_prompt,
+    provider = excluded.provider,
+    model = excluded.model,
+    temperature = excluded.temperature,
+    max_tokens = excluded.max_tokens,
+    is_enabled = excluded.is_enabled,
+    sort_order = excluded.sort_order,
+    scope = excluded.scope,
+    book_id = excluded.book_id,
+    updated_at = CURRENT_TIMESTAMP
+`
+
+type UpsertPromptParams struct {
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	Description  string  `json:"description"`
+	Icon         string  `json:"icon"`
+	ColorPalette string  `json:"color_palette"`
+	SystemPrompt string  `json:"system_prompt"`
+	UserPrompt   string  `json:"user_prompt"`
+	Provider     string  `json:"provider"`
+	Model        string  `json:"model"`
+	Temperature  float64 `json:"temperature"`
+	MaxTokens    int64   `json:"max_tokens"`
+	IsBuiltin    int64   `json:"is_builtin"`
+	IsEnabled    int64   `json:"is_enabled"`
+	SortOrder    int64   `json:"sort_order"`
+	Scope        string  `json:"scope"`
+	BookID       string  `json:"book_id"`
+}
+
+func (q *Queries) UpsertPrompt(ctx context.Context, arg UpsertPromptParams) error {
+	_, err := q.db.ExecContext(ctx, upsertPrompt,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.Icon,
+		arg.ColorPalette,
+		arg.SystemPrompt,
+		arg.UserPrompt,
+		arg.Provider,
+		arg.Model,
+		arg.Temperature,
+		arg.MaxTokens,
+		arg.IsBuiltin,
+		arg.IsEnabled,
+		arg.SortOrder,
+		arg.Scope,
+		arg.BookID,
 	)
 	return err
 }

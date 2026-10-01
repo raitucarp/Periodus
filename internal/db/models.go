@@ -53,6 +53,27 @@ type ParagraphEmbedding struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+type Prompt struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	Icon         string    `json:"icon"`
+	ColorPalette string    `json:"color_palette"`
+	SystemPrompt string    `json:"system_prompt"`
+	UserPrompt   string    `json:"user_prompt"`
+	Provider     string    `json:"provider"`
+	Model        string    `json:"model"`
+	Temperature  float64   `json:"temperature"`
+	MaxTokens    int64     `json:"max_tokens"`
+	IsBuiltin    int64     `json:"is_builtin"`
+	IsEnabled    int64     `json:"is_enabled"`
+	SortOrder    int64     `json:"sort_order"`
+	Scope        string    `json:"scope"`
+	BookID       string    `json:"book_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
 type ReadingProgress struct {
 	BookID                string    `json:"book_id"`
 	CurrentChapterIndex   int64     `json:"current_chapter_index"`

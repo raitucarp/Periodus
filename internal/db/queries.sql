@@ -117,3 +117,142 @@ WHERE book_id = ?;
 
 -- name: DeleteEmbeddingsByBookID :exec
 DELETE FROM paragraph_embeddings WHERE book_id = ?;
+
+-- name: SeedDefaultPrompts :exec
+INSERT OR IGNORE INTO prompts (
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+) VALUES 
+(
+    'prompt-explain',
+    'Explain Nuance',
+    'Explain literary nuances, historical/cultural context, and subtext of the selected paragraph',
+    'Sparkles',
+    'ruby',
+    'You are a thoughtful reading companion and literary scholar. Analyze the selected text, illuminating subtext, historical/cultural context, metaphorical depth, and emotional resonance in clean, accessible markdown.',
+    'Analyze and explain the context, subtext, and literary nuances of the following passage:\n\n{{text}}',
+    '', '', 0.7, 2048, 1, 1, 1, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-summarize',
+    'Quick Summary',
+    'Summarize key ideas and narrative events in 1-2 punchy, concise sentences',
+    'FileText',
+    'amber',
+    'You are an expert reading assistant. Distill the essence of the selected text into a punchy, accurate 1-2 sentence summary.',
+    'Provide a concise 1-2 sentence summary capturing the essence of the following passage:\n\n{{text}}',
+    '', '', 0.5, 1024, 1, 1, 2, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-vocabulary',
+    'Vocabulary & Idioms',
+    'Identify notable vocabulary words, archaic phrases, idioms, and literary expressions',
+    'Languages',
+    'teal',
+    'You are a multilingual etymologist and linguist. Identify notable vocabulary words, archaic phrases, literary terms, or idioms from the text, explaining their definitions and nuances concisely.',
+    'Identify key vocabulary, rare terms, or idioms in the following passage and explain their meanings:\n\n{{text}}',
+    '', '', 0.3, 2048, 1, 1, 3, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-critic',
+    'Literary Critique',
+    'Critique prose style, pacing, tone, and author techniques',
+    'Brain',
+    'purple',
+    'You are a perceptive literary critic. Critique the prose style, pacing, tone, and literary techniques employed by the author in this passage.',
+    'Provide a critical review of the prose style, voice, tone, and narrative techniques in the following excerpt:\n\n{{text}}',
+    '', '', 0.7, 2048, 1, 1, 4, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+);
+
+-- name: ResetDefaultPrompts :exec
+INSERT OR REPLACE INTO prompts (
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+) VALUES 
+(
+    'prompt-explain',
+    'Explain Nuance',
+    'Explain literary nuances, historical/cultural context, and subtext of the selected paragraph',
+    'Sparkles',
+    'ruby',
+    'You are a thoughtful reading companion and literary scholar. Analyze the selected text, illuminating subtext, historical/cultural context, metaphorical depth, and emotional resonance in clean, accessible markdown.',
+    'Analyze and explain the context, subtext, and literary nuances of the following passage:\n\n{{text}}',
+    '', '', 0.7, 2048, 1, 1, 1, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-summarize',
+    'Quick Summary',
+    'Summarize key ideas and narrative events in 1-2 punchy, concise sentences',
+    'FileText',
+    'amber',
+    'You are an expert reading assistant. Distill the essence of the selected text into a punchy, accurate 1-2 sentence summary.',
+    'Provide a concise 1-2 sentence summary capturing the essence of the following passage:\n\n{{text}}',
+    '', '', 0.5, 1024, 1, 1, 2, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-vocabulary',
+    'Vocabulary & Idioms',
+    'Identify notable vocabulary words, archaic phrases, idioms, and literary expressions',
+    'Languages',
+    'teal',
+    'You are a multilingual etymologist and linguist. Identify notable vocabulary words, archaic phrases, literary terms, or idioms from the text, explaining their definitions and nuances concisely.',
+    'Identify key vocabulary, rare terms, or idioms in the following passage and explain their meanings:\n\n{{text}}',
+    '', '', 0.3, 2048, 1, 1, 3, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+),
+(
+    'prompt-critic',
+    'Literary Critique',
+    'Critique prose style, pacing, tone, and author techniques',
+    'Brain',
+    'purple',
+    'You are a perceptive literary critic. Critique the prose style, pacing, tone, and literary techniques employed by the author in this passage.',
+    'Provide a critical review of the prose style, voice, tone, and narrative techniques in the following excerpt:\n\n{{text}}',
+    '', '', 0.7, 2048, 1, 1, 4, 'global', '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+);
+
+-- name: ListPrompts :many
+SELECT 
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+FROM prompts
+WHERE scope = 'global' OR (scope = 'book' AND book_id = ?)
+ORDER BY sort_order ASC, name ASC;
+
+-- name: GetPromptByID :one
+SELECT 
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+FROM prompts
+WHERE id = ?
+LIMIT 1;
+
+-- name: UpsertPrompt :exec
+INSERT INTO prompts (
+    id, name, description, icon, color_palette, system_prompt, user_prompt,
+    provider, model, temperature, max_tokens, is_builtin, is_enabled, sort_order,
+    scope, book_id, created_at, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT(id) DO UPDATE SET
+    name = excluded.name,
+    description = excluded.description,
+    icon = excluded.icon,
+    color_palette = excluded.color_palette,
+    system_prompt = excluded.system_prompt,
+    user_prompt = excluded.user_prompt,
+    provider = excluded.provider,
+    model = excluded.model,
+    temperature = excluded.temperature,
+    max_tokens = excluded.max_tokens,
+    is_enabled = excluded.is_enabled,
+    sort_order = excluded.sort_order,
+    scope = excluded.scope,
+    book_id = excluded.book_id,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- name: DeletePrompt :exec
+DELETE FROM prompts 
+WHERE id = ? AND is_builtin = 0;
