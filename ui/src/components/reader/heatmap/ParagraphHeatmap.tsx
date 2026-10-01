@@ -28,7 +28,7 @@ export function ParagraphHeatmap({
       display="grid"
       gridTemplateRows="repeat(3, 10px)"
       gridAutoFlow="column"
-      gap="3px"
+      gap="1.5px"
       alignItems="center"
       p="1"
       maxW="full"

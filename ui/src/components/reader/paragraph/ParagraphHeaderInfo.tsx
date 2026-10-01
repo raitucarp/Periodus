@@ -36,25 +36,25 @@ export function ParagraphHeaderInfo({
     >
       <Flex align="center" justify="space-between" gap="4">
         {/* Left Side: 2-line Chapter Info with tight left padding */}
-        <HStack gap="2.5" align="start" flexShrink={0} maxW="38%">
+        <HStack gap="2.5" align="start" flexShrink={0} maxW="40%">
           <Box mt="0.5" color="ruby.solid">
-            <Bookmark size={15} />
+            <Bookmark size={16} />
           </Box>
-          <VStack align="start" gap="0">
-            <Text textStyle="2xs" fontWeight="medium" color="fg.subtle">
+          <VStack align="start" gap="0.5">
+            <Text textStyle="xs" fontWeight="medium" color="fg.subtle">
               Chapter {chapterIndex} of {totalChapters}
             </Text>
-            <Text textStyle="sm" fontWeight="semibold" color="fg" lineClamp={1}>
+            <Text textStyle="md" fontWeight="bold" color="fg" lineClamp={1}>
               {chapterTitle || `Chapter ${chapterIndex}`}
             </Text>
           </VStack>
         </HStack>
 
-        {/* Center: 3-row Paragraph Calendar Heatmap */}
+        {/* Right-aligned: 3-row Paragraph Calendar Heatmap */}
         <Box
           flex="1"
           display="flex"
-          justifyContent="center"
+          justifyContent="flex-end"
           alignItems="center"
           overflowX="auto"
           className="no-scrollbar"

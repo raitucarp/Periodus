@@ -44,35 +44,35 @@ export function ReaderTopNav({
       style={{ '--wails-draggable': 'drag' } as React.CSSProperties}
     >
       {/* Left Area: Catalog Button & 2-Line Author/Title */}
-      <HStack gap="3" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+      <HStack gap="3" flexShrink={1} maxW="45%" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
         <Button
           variant="outline"
           colorPalette="gray"
           size="sm"
           onClick={onBack}
+          flexShrink={0}
         >
           <ArrowLeft size={16} />
           {backLabel}
         </Button>
 
-        <HStack gap="2.5" ml="1">
-          <Square color="ruby.solid" size="1.75rem" rounded="md" bg="ruby.subtle">
+        <HStack gap="2.5" ml="1" minW="0" flex="1">
+          <Square color="ruby.solid" size="1.75rem" rounded="md" bg="ruby.subtle" flexShrink={0}>
             <BookOpen size={15} />
           </Square>
-          <VStack align="start" gap="0">
+          <VStack align="start" gap="0.5" minW="0" flex="1">
             {author && (
-              <Text textStyle="2xs" color="fg.subtle" fontWeight="medium" lineHeight="1.2">
+              <Text textStyle="xs" color="fg.subtle" fontWeight="medium" lineHeight="1.2">
                 {author}
               </Text>
             )}
             <Text
-              textStyle="sm"
+              textStyle="md"
               fontWeight="bold"
               color="fg"
-              maxW="18rem"
-              truncate
+              lineClamp={2}
               title={bookTitle}
-              lineHeight="1.2"
+              lineHeight="1.25"
             >
               {bookTitle}
             </Text>

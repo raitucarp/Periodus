@@ -34,33 +34,36 @@ export function ParagraphNavigationControls({
       direction="column"
       flexShrink={0}
       mt="auto"
-      px="8"
-      pt="3"
-      pb="4"
+      px="6"
+      pt="2.5"
+      pb="3.5"
       borderTopWidth="1px"
       borderTopColor="border.subtle"
       bg="bg.panel"
       w="full"
       zIndex="base"
-      gap="3"
+      gap="2.5"
     >
-      {/* Cyan Line Area: Paragraph Utility Toolbar */}
-      {utilityToolbar && (
-        <Box w="full">
+      {/* Progress Bar with Percentage beside it */}
+      <HStack gap="3" w="full" align="center">
+        <Box flex="1">
+          <ParagraphProgressBar percent={percent} />
+        </Box>
+        <Text textStyle="xs" fontWeight="bold" color="fg.muted" flexShrink={0} minW="2.5rem" textAlign="right">
+          {percent}%
+        </Text>
+      </HStack>
+
+      {/* Status Bar (Left) and Navigation Buttons (Right) */}
+      <Flex align="center" justify="space-between" gap="4" w="full">
+        {/* Left Side: Word count, chars, paragraph actions, bionic toggle, style, skip */}
+        <Box flex="1" minW="0" overflowX="auto" className="no-scrollbar">
           {utilityToolbar}
         </Box>
-      )}
 
-      {/* Progress Bar */}
-      <ParagraphProgressBar percent={percent} />
-
-      {/* Navigation Buttons and Right-Aligned Hint */}
-      <Flex align="center" justify="space-between" mt="1">
-        <Box flex="1" />
-
-        {/* Right-aligned Navigation & Hint (hint placed under Previous/Next buttons) */}
-        <VStack align="end" gap="1.5">
-          <HStack gap="3">
+        {/* Right Side: Navigation Buttons & Keyboard Shortcut Hint */}
+        <VStack align="end" gap="1" flexShrink={0}>
+          <HStack gap="2.5">
             <Button
               variant="outline"
               colorPalette="gray"
@@ -84,10 +87,7 @@ export function ParagraphNavigationControls({
             </Button>
           </HStack>
 
-          <HStack gap="1.5">
-            <Text textStyle="2xs" color="fg.subtle">
-              {percentCompletedText} • {keyboardHint}
-            </Text>
+          <HStack gap="1" title={`${percentCompletedText} • ${keyboardHint}`}>
             <Kbd size="sm" fontFamily="mono">←</Kbd>
             <Text textStyle="2xs" color="fg.subtle">/</Text>
             <Kbd size="sm" fontFamily="mono">→</Kbd>

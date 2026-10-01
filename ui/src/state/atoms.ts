@@ -80,6 +80,21 @@ export const settingsScopeAtom = atom<string>('global')
 export const activeSettingsTabAtom = atom<string>('general')
 export const activeAISubTabAtom = atom<string>('chat')
 
+const storedBionic = typeof window !== 'undefined' ? localStorage.getItem('periodus_bionic_enabled') : null
+export const isBionicEnabledAtom = atom<boolean>(
+  storedBionic !== null ? storedBionic === 'true' : true
+)
+export const toggleBionicAtom = atom(
+  (get) => get(isBionicEnabledAtom),
+  (get, set) => {
+    const next = !get(isBionicEnabledAtom)
+    set(isBionicEnabledAtom, next)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('periodus_bionic_enabled', String(next))
+    }
+  }
+)
+
 // --- Derived Atoms ---
 
 export const selectedBookAtom = atom<Book | null>(function computeSelectedBook(get) {

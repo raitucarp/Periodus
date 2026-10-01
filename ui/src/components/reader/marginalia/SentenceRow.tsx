@@ -129,19 +129,19 @@ export function SentenceRow({
                 return (
                   <Button
                     key={r.emoji}
-                    size="2xs"
+                    size="xs"
                     variant="surface"
                     colorPalette="gray"
                     rounded="full"
-                    px="2"
-                    py="0.5"
+                    px="2.5"
+                    py="1"
                     h="auto"
                     onClick={function incrementReaction() {
                       onAddReaction(sentenceHash, r.emoji)
                     }}
                   >
                     <span>{r.emoji}</span>
-                    <Text as="span" textStyle="2xs" fontWeight="semibold" ml="1">
+                    <Text as="span" textStyle="xs" fontWeight="semibold" ml="1">
                       {r.count}
                     </Text>
                   </Button>
@@ -152,15 +152,15 @@ export function SentenceRow({
 
           {/* Action Toolbar (Visible on hover or if annotated) */}
           <HStack
-            gap="1"
+            gap="1.5"
             opacity={isHovered || isBookmarked || upvotes > 0 ? 1 : 0}
             transition="opacity 0.2s ease"
-            mt="1"
+            mt="1.5"
             position="relative"
           >
             {/* Bookmark Toggle */}
             <IconButton
-              size="2xs"
+              size="xs"
               variant={isBookmarked ? 'solid' : 'ghost'}
               colorPalette={isBookmarked ? 'ruby' : 'gray'}
               aria-label="Bookmark"
@@ -169,25 +169,25 @@ export function SentenceRow({
                 onToggleBookmark(sentenceHash, isBookmarked)
               }}
             >
-              <Bookmark size={13} fill={isBookmarked ? 'currentColor' : 'none'} />
+              <Bookmark size={15} fill={isBookmarked ? 'currentColor' : 'none'} />
             </IconButton>
 
             {/* Upvote Button (Repeatable) */}
             <Button
-              size="2xs"
+              size="xs"
               variant={upvotes > 0 ? 'subtle' : 'ghost'}
               colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
-              px="2"
-              h="6"
+              px="2.5"
+              h="7"
               rounded="md"
               title="Applaud / Upvote sentence"
               onClick={function handleUpvote() {
                 onIncrementUpvote(sentenceHash)
               }}
             >
-              <ArrowBigUp size={14} fill={upvotes > 0 ? 'currentColor' : 'none'} />
+              <ArrowBigUp size={16} fill={upvotes > 0 ? 'currentColor' : 'none'} />
               {upvotes > 0 && (
-                <Text textStyle="2xs" fontWeight="bold">
+                <Text textStyle="xs" fontWeight="bold">
                   {upvotes}
                 </Text>
               )}
@@ -195,7 +195,7 @@ export function SentenceRow({
 
             {/* Highlight Color Picker */}
             <IconButton
-              size="2xs"
+              size="xs"
               variant={highlightColor ? 'solid' : 'ghost'}
               colorPalette={highlightColor ? (highlightColor as any) : 'gray'}
               aria-label="Highlight"
@@ -204,13 +204,13 @@ export function SentenceRow({
                 setShowHighlightPicker(!showHighlightPicker)
               }}
             >
-              <Highlighter size={13} />
+              <Highlighter size={15} />
             </IconButton>
 
             {showHighlightPicker && (
               <HStack
                 position="absolute"
-                top="-8"
+                top="-9"
                 left="20"
                 bg="bg.panel"
                 borderWidth="1px"
@@ -225,7 +225,7 @@ export function SentenceRow({
                   return (
                     <Button
                       key={hc.name}
-                      size="2xs"
+                      size="xs"
                       variant={highlightColor === hc.color ? 'solid' : 'ghost'}
                       colorPalette={hc.color ? (hc.color as any) : 'gray'}
                       onClick={function selectColor() {
@@ -241,16 +241,17 @@ export function SentenceRow({
             )}
 
             {/* Quick Emoji Bar */}
-            <HStack gap="0.5" ml="1">
+            <HStack gap="1" ml="1">
               {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
                 return (
                   <Button
                     key={em}
-                    size="2xs"
+                    size="xs"
                     variant="ghost"
-                    px="1"
-                    py="0.5"
-                    h="6"
+                    px="2"
+                    py="1"
+                    h="7"
+                    fontSize="sm"
                     onClick={function sendQuickEmoji() {
                       onAddReaction(sentenceHash, em)
                     }}
@@ -260,7 +261,7 @@ export function SentenceRow({
                 )
               })}
               <IconButton
-                size="2xs"
+                size="xs"
                 variant="ghost"
                 colorPalette="gray"
                 aria-label="More Emojis"
@@ -269,7 +270,7 @@ export function SentenceRow({
                   setShowFullPicker(!showFullPicker)
                 }}
               >
-                <Plus size={12} />
+                <Plus size={14} />
               </IconButton>
             </HStack>
           </HStack>

@@ -10,6 +10,7 @@ import { calculateParagraphStats } from '@/lib/sentence'
 import {
   useParagraphStatsQuery,
   useUpdateParagraphStatsMutation,
+  useIncrementParagraphUpvoteMutation,
   useSentenceAnnotationsQuery,
   useSaveSentenceAnnotationMutation,
   useIncrementSentenceUpvoteMutation,
@@ -83,6 +84,8 @@ export function ActiveParagraph({
     [content]
   )
 
+  const { mutate: incrementParagraphUpvote } = useIncrementParagraphUpvoteMutation()
+
   function handleToggleSkip(isSkipped: boolean) {
     updateParagraphStats({
       bookId,
@@ -91,6 +94,9 @@ export function ActiveParagraph({
       isSkipped,
       customFontFamily: paragraphStat?.custom_font_family || '',
       customFontSize: paragraphStat?.custom_font_size || 0,
+      isBookmarked: paragraphStat?.is_bookmarked === 1,
+      upvotesCount: paragraphStat?.upvotes_count || 0,
+      emojiReactions: paragraphStat?.emoji_reactions || '[]',
     })
   }
 
@@ -102,6 +108,61 @@ export function ActiveParagraph({
       isSkipped: paragraphStat?.is_skipped === 1,
       customFontFamily,
       customFontSize,
+      isBookmarked: paragraphStat?.is_bookmarked === 1,
+      upvotesCount: paragraphStat?.upvotes_count || 0,
+      emojiReactions: paragraphStat?.emoji_reactions || '[]',
+    })
+  }
+
+  function handleToggleParagraphBookmark(currentVal: boolean) {
+    updateParagraphStats({
+      bookId,
+      chapterIndex,
+      paragraphIndex,
+      isSkipped: paragraphStat?.is_skipped === 1,
+      customFontFamily: paragraphStat?.custom_font_family || '',
+      customFontSize: paragraphStat?.custom_font_size || 0,
+      isBookmarked: !currentVal,
+      upvotesCount: paragraphStat?.upvotes_count || 0,
+      emojiReactions: paragraphStat?.emoji_reactions || '[]',
+    })
+  }
+
+  function handleIncrementParagraphUpvote() {
+    incrementParagraphUpvote({
+      bookId,
+      chapterIndex,
+      paragraphIndex,
+    })
+  }
+
+  function handleAddParagraphReaction(emoji: string) {
+    let reactions: Array<{ emoji: string; count: number }> = []
+    try {
+      if (paragraphStat?.emoji_reactions) {
+        reactions = JSON.parse(paragraphStat.emoji_reactions)
+      }
+    } catch {
+      reactions = []
+    }
+
+    const idx = reactions.findIndex((r) => r.emoji === emoji)
+    if (idx >= 0) {
+      reactions[idx].count += 1
+    } else {
+      reactions.push({ emoji, count: 1 })
+    }
+
+    updateParagraphStats({
+      bookId,
+      chapterIndex,
+      paragraphIndex,
+      isSkipped: paragraphStat?.is_skipped === 1,
+      customFontFamily: paragraphStat?.custom_font_family || '',
+      customFontSize: paragraphStat?.custom_font_size || 0,
+      isBookmarked: paragraphStat?.is_bookmarked === 1,
+      upvotesCount: paragraphStat?.upvotes_count || 0,
+      emojiReactions: JSON.stringify(reactions),
     })
   }
 
@@ -250,6 +311,9 @@ export function ActiveParagraph({
           <ParagraphUtilityToolbar
             stats={readingStats}
             paragraphStat={paragraphStat}
+            onToggleBookmark={handleToggleParagraphBookmark}
+            onIncrementUpvote={handleIncrementParagraphUpvote}
+            onAddReaction={handleAddParagraphReaction}
             onToggleSkip={handleToggleSkip}
             onUpdateStyle={handleUpdateStyle}
           />

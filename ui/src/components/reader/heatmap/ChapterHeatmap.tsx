@@ -1,5 +1,5 @@
 import React from 'react'
-import { HStack, Box, Text } from '@chakra-ui/react'
+import { HStack, Box } from '@chakra-ui/react'
 import type { ChapterHeatmapItem } from '@/lib/types'
 
 export interface ChapterHeatmapProps {
@@ -37,7 +37,7 @@ export function ChapterHeatmap({
         // 4-10 visits -> medium grass
         // >10 visits -> bright grass
         let bg = 'color-mix(in srgb, var(--chakra-colors-gray-subtle, #1f1f1f) 85%, var(--chakra-colors-tomato-muted, #e54d2e) 15%)'
-        let borderColor = 'border.subtle'
+        let borderColor = 'var(--chakra-colors-border-subtle, rgba(255, 255, 255, 0.12))'
 
         if (visits > 10) {
           bg = 'var(--chakra-colors-grass-solid, #30a46c)'
@@ -62,6 +62,7 @@ export function ChapterHeatmap({
             title={tooltipText}
             style={{
               backgroundColor: bg,
+              border: '1px solid ' + borderColor,
               boxShadow: isCurrent ? '0 0 0 1.5px var(--chakra-colors-grass-solid, #46a758)' : 'none',
               transition: 'transform 0.15s ease, opacity 0.15s ease',
             }}
