@@ -38,6 +38,30 @@ All database structures are created via pure SQL. The system uses WAL mode (`PRA
      * `book_id TEXT NOT NULL DEFAULT ''`
      * `created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`
      * `updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`
+8. **`paragraph_stats`**:
+   * Reader engagement analytics and per-paragraph customization:
+     * `book_id TEXT`, `chapter_index INTEGER`, `paragraph_index INTEGER` (Composite PK)
+     * `visit_count INTEGER NOT NULL DEFAULT 0` (hit counter)
+     * `is_skipped INTEGER NOT NULL DEFAULT 0` (skip flag during navigation)
+     * `custom_font_family TEXT NOT NULL DEFAULT ''` (per-paragraph font override)
+     * `custom_font_size REAL NOT NULL DEFAULT 0` (per-paragraph size override)
+     * `updated_at DATETIME`
+9. **`sentence_annotations`**:
+   * Sentence-level interactive annotations:
+     * `sentence_hash TEXT PRIMARY KEY` (Deterministic SHA-256 of sentence text)
+     * `book_id TEXT NOT NULL`, `chapter_index INTEGER NOT NULL`, `paragraph_index INTEGER NOT NULL`
+     * `is_bookmarked INTEGER NOT NULL DEFAULT 0`
+     * `highlight_color TEXT NOT NULL DEFAULT ''` (Radix color scale name)
+     * `upvotes_count INTEGER NOT NULL DEFAULT 0` (repeatable applause counter)
+     * `emoji_reactions TEXT NOT NULL DEFAULT '[]'` (JSON array: `[{ emoji: "❤️", count: 3 }]`)
+     * `updated_at DATETIME`
+10. **`sentence_comments`**:
+    * Sentence marginalia comments:
+      * `id TEXT PRIMARY KEY`
+      * `sentence_hash TEXT NOT NULL`
+      * `book_id TEXT NOT NULL`
+      * `content TEXT NOT NULL`
+      * `created_at DATETIME`
 
 ---
 
