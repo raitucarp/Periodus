@@ -1,6 +1,6 @@
 import React from 'react'
 import { match } from 'ts-pattern'
-import { useTranslation } from '@/i18n'
+import { useTranslation, type Locale } from '@/i18n'
 import { HeaderLayout } from './HeaderLayout'
 import { HeaderLeftSection } from './HeaderLeftSection'
 import { HeaderRightSection } from './HeaderRightSection'
@@ -22,17 +22,8 @@ export function Header({ onImport, onOpenSettings, isImporting = false }: Header
     onOpenSettings()
   }
 
-  function handleLanguageToggle() {
-    const nextLocale = match(locale)
-      .with('id', function toEn() {
-        return 'en' as const
-      })
-      .with('en', function toId() {
-        return 'id' as const
-      })
-      .exhaustive()
-
-    changeLocale(nextLocale)
+  function handleSelectLocale(selectedLocale: Locale) {
+    changeLocale(selectedLocale)
   }
 
   const importLabel = match(Boolean(isImporting))
@@ -54,7 +45,7 @@ export function Header({ onImport, onOpenSettings, isImporting = false }: Header
         isImporting={Boolean(isImporting)}
         importLabel={importLabel}
         settingsLabel={t.header.settingsTitle}
-        onLanguageToggle={handleLanguageToggle}
+        onSelectLocale={handleSelectLocale}
         onImport={handleImportClick}
         onSettings={handleSettingsClick}
       />

@@ -8,21 +8,17 @@ export interface AIResultStateProps {
 
 export function AIResultState({ badgeText, resultText }: AIResultStateProps) {
   return (
-    <Flex direction="column" color="fg" gap="0.75rem">
+    <Flex direction="column" color="fg" gap="3">
       <Badge
         colorPalette="ruby"
         variant="subtle"
-        textTransform="uppercase"
-        letterSpacing="wider"
-        textStyle="2xs"
+        textStyle="analysis.badge"
         alignSelf="flex-start"
       >
         {badgeText}
       </Badge>
       <Text
-        fontFamily="analysis"
-        textStyle="sm"
-        lineHeight="1.8"
+        textStyle="analysis.body"
         whiteSpace="pre-wrap"
       >
         {resultText}

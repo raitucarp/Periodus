@@ -31,18 +31,18 @@ export function ContinueReadingShelf({
   const cards = map(books, renderBookCard)
 
   return (
-    <Stack as="section" gap="1rem" mb="2.5rem">
-      <HStack gap="0.5rem" align="center">
-        <Square w="0.25rem" h="1.125rem" bg="ruby.solid" rounded="full" />
-        <Heading as="h2" fontFamily="heading" size="md" color="fg" fontWeight="bold">
+    <Stack as="section" gap="4" mb="10">
+      <HStack gap="2" align="center">
+        <Square w="shelfIndicatorWidth" h="shelfIndicatorHeight" bg="ruby.solid" rounded="full" />
+        <Heading as="h2" textStyle="shelf.title">
           {heading}
         </Heading>
       </HStack>
 
       <HStack
-        gap="1.25rem"
+        gap="5"
         overflowX="auto"
-        pb="1rem"
+        pb="4"
       >
         {cards}
       </HStack>

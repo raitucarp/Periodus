@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card } from '@chakra-ui/react'
+import { Card, Box } from '@chakra-ui/react'
 import { motion } from 'motion/react'
 
 export interface BookCardLayoutProps {
@@ -22,33 +22,35 @@ export function BookCardLayout({
   caption,
 }: BookCardLayoutProps) {
   return (
-    <motion.div
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      whileHover={{ scale: 1.05, y: -6 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-      style={{
-        width: '11.25rem',
-        flexShrink: 0,
-        cursor: 'pointer',
-        position: 'relative',
-        zIndex: isHovered ? 10 : 1,
-      }}
+    <Box
+      asChild
+      w="bookCardWidth"
+      flexShrink={0}
+      cursor="pointer"
+      position="relative"
+      zIndex={isHovered ? 'docked' : 'base'}
     >
-      <Card.Root
-        w="11.25rem"
-        h="16.25rem"
-        rounded="xl"
-        overflow="hidden"
-        layerStyle="cardInteractive"
-        borderColor={borderColor}
-        position="relative"
+      <motion.div
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        whileHover={{ scale: 1.05, y: -6 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       >
-        {children}
-      </Card.Root>
-      {caption}
-    </motion.div>
+        <Card.Root
+          w="bookCardWidth"
+          h="bookCardHeight"
+          rounded="xl"
+          overflow="hidden"
+          layerStyle="cardInteractive"
+          borderColor={borderColor}
+          position="relative"
+        >
+          {children}
+        </Card.Root>
+        {caption}
+      </motion.div>
+    </Box>
   )
 }

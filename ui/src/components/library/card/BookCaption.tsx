@@ -19,18 +19,16 @@ export function BookCaption({ title, subtitle, isHovered }: BookCaptionProps) {
     .exhaustive()
 
   return (
-    <Stack gap="0.125rem" mt="0.5rem">
+    <Stack gap="0.5" mt="2">
       <Heading
         as="h6"
-        fontFamily="heading"
-        size="xs"
+        textStyle="card.title"
         color={titleColor}
-        fontWeight="semibold"
         truncate
       >
         {title}
       </Heading>
-      <Text textStyle="xs" color="fg.muted" truncate>
+      <Text textStyle="card.author" truncate>
         {subtitle}
       </Text>
     </Stack>

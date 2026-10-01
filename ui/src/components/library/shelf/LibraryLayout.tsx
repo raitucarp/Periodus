@@ -7,7 +7,7 @@ export interface LibraryLayoutProps {
 
 export function LibraryLayout({ children }: LibraryLayoutProps) {
   return (
-    <Container maxW="85rem" px="2.25rem" py="1.5rem" pb="4rem">
+    <Container maxW="containerMax" px="9" py="6" pb="16">
       {children}
     </Container>
   )

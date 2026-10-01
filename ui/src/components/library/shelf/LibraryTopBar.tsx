@@ -17,7 +17,7 @@ export function LibraryTopBar({
   onSearchChange,
 }: LibraryTopBarProps) {
   return (
-    <Flex align="center" justify="space-between" mb="2rem" w="full">
+    <Flex align="center" justify="space-between" mb="8" w="full">
       <LibrarySearchBar
         placeholder={placeholder}
         query={query}

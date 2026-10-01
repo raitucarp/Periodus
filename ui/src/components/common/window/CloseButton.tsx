@@ -22,9 +22,9 @@ export function CloseButton({ label = 'Close' }: CloseButtonProps) {
       size="xs"
       rounded="md"
       color="fg.muted"
-      h="1.75rem"
-      w="1.75rem"
-      minW="1.75rem"
+      h="windowControl"
+      w="windowControl"
+      minW="windowControl"
       _hover={{
         bg: 'redA.4',
         color: 'redA.11',
@@ -35,7 +35,7 @@ export function CloseButton({ label = 'Close' }: CloseButtonProps) {
       onClick={handleCloseClick}
       style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}
     >
-      <X size="0.875rem" strokeWidth={2} />
+      <X size={14} strokeWidth={2} />
     </IconButton>
   )
 }

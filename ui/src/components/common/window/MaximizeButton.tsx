@@ -22,9 +22,9 @@ export function MaximizeButton({ label = 'Maximize' }: MaximizeButtonProps) {
       size="xs"
       rounded="md"
       color="fg.muted"
-      h="1.75rem"
-      w="1.75rem"
-      minW="1.75rem"
+      h="windowControl"
+      w="windowControl"
+      minW="windowControl"
       _hover={{
         bg: 'whiteA.2',
         color: 'fg',
@@ -35,7 +35,7 @@ export function MaximizeButton({ label = 'Maximize' }: MaximizeButtonProps) {
       onClick={handleMaximizeClick}
       style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}
     >
-      <Square size="0.75rem" strokeWidth={2} />
+      <Square size={12} strokeWidth={2} />
     </IconButton>
   )
 }

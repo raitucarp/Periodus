@@ -17,7 +17,7 @@ export function SettingsButton({ label, onClick }: SettingsButtonProps) {
       size="sm"
       onClick={onClick}
     >
-      <SettingsIcon size="1rem" />
+      <SettingsIcon size={16} />
     </IconButton>
   )
 }

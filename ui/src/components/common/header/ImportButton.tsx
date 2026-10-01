@@ -18,7 +18,7 @@ export function ImportButton({ isImporting, label, onClick }: ImportButtonProps)
       loadingText={label}
       onClick={onClick}
     >
-      <Plus size="1rem" />
+      <Plus size={16} />
       {label}
     </Button>
   )

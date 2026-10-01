@@ -30,11 +30,11 @@ export function ReaderChapterSelect({
   const options = map(chapters, renderOption)
 
   return (
-    <HStack gap="0.5rem">
+    <HStack gap="2">
       <Square color="fg.muted">
-        <Layers size="1rem" />
+        <Layers size={16} />
       </Square>
-      <NativeSelect.Root size="sm" width="18rem">
+      <NativeSelect.Root size="sm" width="chapterSelectWidth">
         <NativeSelect.Field
           value={currentChapterIdx}
           onChange={onChange}

@@ -34,7 +34,7 @@ export function AllBooksShelf({
   const content = match(isEmpty(books))
     .with(true, function renderEmpty() {
       return (
-        <Text color="fg.muted" textStyle="sm">
+        <Text textStyle="shelf.empty">
           {emptyMessage}
         </Text>
       )
@@ -42,7 +42,7 @@ export function AllBooksShelf({
     .with(false, function renderGrid() {
       const cards = map(books, renderBookCard)
       return (
-        <Flex wrap="wrap" gap="1.5rem">
+        <Flex wrap="wrap" gap="6">
           {cards}
         </Flex>
       )
@@ -50,10 +50,10 @@ export function AllBooksShelf({
     .exhaustive()
 
   return (
-    <Stack as="section" gap="1rem">
-      <HStack gap="0.5rem" align="center">
-        <Square w="0.25rem" h="1.125rem" bg="border.muted" rounded="full" />
-        <Heading as="h2" fontFamily="heading" size="md" color="fg" fontWeight="bold">
+    <Stack as="section" gap="4">
+      <HStack gap="2" align="center">
+        <Square w="shelfIndicatorWidth" h="shelfIndicatorHeight" bg="border.muted" rounded="full" />
+        <Heading as="h2" textStyle="shelf.title">
           {heading}
         </Heading>
       </HStack>

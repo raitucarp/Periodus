@@ -3,6 +3,8 @@ import { Box, Heading, Text, Link, Code } from '@chakra-ui/react'
 import { motion, AnimatePresence } from 'motion/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useAtom } from 'jotai'
+import { readingSettingsAtom } from '@/state/atoms'
 
 export interface ParagraphReadingContentProps {
   content: string
@@ -10,17 +12,28 @@ export interface ParagraphReadingContentProps {
 }
 
 export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphReadingContentProps) {
+  const [readingSettings] = useAtom(readingSettingsAtom)
+
+  const lineH =
+    readingSettings.lineHeight === 'normal' || readingSettings.lineHeight === 'compact'
+      ? 1.5
+      : readingSettings.lineHeight === 'tall'
+      ? 1.7
+      : readingSettings.lineHeight === 'loose'
+      ? 1.8
+      : 2.2
+
   return (
     <Box
       flex="1"
       overflowY="auto"
       w="full"
-      px="3.5rem"
-      py="2rem"
+      px="14"
+      py="8"
       display="flex"
       flexDirection="column"
     >
-      <Box maxW="46rem" w="full" mx="auto" my="auto">
+      <Box maxW={readingSettings.maxWidth || 'readingMax'} w="full" mx="auto" my="auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={paragraphIndex}
@@ -35,13 +48,10 @@ export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphRe
                 h1: ({ children }) => (
                   <Heading
                     as="h1"
-                    fontFamily="heading"
-                    fontSize="2rem"
-                    fontWeight="bold"
-                    lineHeight="1.3"
-                    color="fg"
-                    mb="1.25rem"
-                    mt="0.5rem"
+                    fontFamily={readingSettings.fontFamily || 'heading'}
+                    textStyle="reading.h1"
+                    mb="5"
+                    mt="2"
                   >
                     {children}
                   </Heading>
@@ -49,13 +59,10 @@ export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphRe
                 h2: ({ children }) => (
                   <Heading
                     as="h2"
-                    fontFamily="heading"
-                    fontSize="1.625rem"
-                    fontWeight="bold"
-                    lineHeight="1.35"
-                    color="fg"
-                    mb="1.25rem"
-                    mt="0.5rem"
+                    fontFamily={readingSettings.fontFamily || 'heading'}
+                    textStyle="reading.h2"
+                    mb="5"
+                    mt="2"
                   >
                     {children}
                   </Heading>
@@ -63,13 +70,10 @@ export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphRe
                 h3: ({ children }) => (
                   <Heading
                     as="h3"
-                    fontFamily="heading"
-                    fontSize="1.375rem"
-                    fontWeight="semibold"
-                    lineHeight="1.4"
-                    color="fg"
-                    mb="1rem"
-                    mt="0.5rem"
+                    fontFamily={readingSettings.fontFamily || 'heading'}
+                    textStyle="reading.h3"
+                    mb="4"
+                    mt="2"
                   >
                     {children}
                   </Heading>
@@ -77,12 +81,9 @@ export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphRe
                 h4: ({ children }) => (
                   <Heading
                     as="h4"
-                    fontFamily="heading"
-                    fontSize="1.1875rem"
-                    fontWeight="semibold"
-                    lineHeight="1.4"
-                    color="fg"
-                    mb="0.75rem"
+                    fontFamily={readingSettings.fontFamily || 'heading'}
+                    textStyle="reading.h4"
+                    mb="3"
                   >
                     {children}
                   </Heading>
@@ -90,12 +91,12 @@ export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphRe
                 p: ({ children }) => (
                   <Text
                     as="p"
-                    fontFamily="reading"
-                    fontSize="1.25rem"
-                    lineHeight="2.2"
-                    letterSpacing="0.01em"
+                    fontFamily={readingSettings.fontFamily || 'reading'}
+                    fontSize={`${readingSettings.fontSize || 18}px`}
+                    lineHeight={lineH}
+                    textAlign={(readingSettings.textAlign as any) || 'left'}
                     color="fg"
-                    mb="1.25rem"
+                    mb="5"
                     _last={{ mb: 0 }}
                     wordBreak="break-word"
                   >
@@ -105,20 +106,14 @@ export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphRe
                 blockquote: ({ children }) => (
                   <Box
                     as="blockquote"
-                    fontFamily="editorial"
-                    fontSize="1.1875rem"
-                    lineHeight="2.0"
-                    borderLeftWidth="0.1875rem"
-                    borderLeftStyle="solid"
-                    borderLeftColor="ruby.solid"
-                    bg="glass.sidebar"
-                    pl="1.5rem"
-                    pr="1rem"
-                    py="0.75rem"
-                    my="1.25rem"
-                    roundedRight="lg"
-                    fontStyle="italic"
-                    color="fg.muted"
+                    fontFamily={readingSettings.fontFamily || 'reading'}
+                    fontSize={`${readingSettings.fontSize || 18}px`}
+                    lineHeight={lineH}
+                    layerStyle="readingQuoteBox"
+                    pl="6"
+                    pr="4"
+                    py="3"
+                    my="5"
                   >
                     {children}
                   </Box>
@@ -145,11 +140,10 @@ export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphRe
                 ),
                 code: ({ children }) => (
                   <Code
-                    fontFamily="mono"
-                    fontSize="0.9em"
+                    textStyle="reading.code"
                     bg="whiteA.2"
-                    px="0.375rem"
-                    py="0.125rem"
+                    px="1.5"
+                    py="0.5"
                     rounded="sm"
                   >
                     {children}
@@ -158,7 +152,7 @@ export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphRe
                 hr: () => (
                   <Box
                     as="hr"
-                    my="2rem"
+                    my="8"
                     border="none"
                     borderTopWidth="0.0625rem"
                     borderTopColor="glass.borderSubtle"

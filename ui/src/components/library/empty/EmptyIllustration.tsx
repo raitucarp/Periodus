@@ -9,10 +9,10 @@ export function EmptyIllustration() {
       {/* Background Radial Halo */}
       <Box
         position="absolute"
-        w="15rem"
-        h="15rem"
+        w="emptyHaloSize"
+        h="emptyHaloSize"
         borderRadius="full"
-        bg="radial-gradient(circle, {colors.rubyA.6} 0%, {colors.purpleA.4} 45%, transparent 70%)"
+        bg="{colors.gradient.emptyHalo}"
         filter="blur(2rem)"
         pointerEvents="none"
         aria-hidden="true"
@@ -26,17 +26,10 @@ export function EmptyIllustration() {
       >
         {/* Main Card Icon */}
         <Square
-          size="6.5rem"
-          rounded="3xl"
-          bg="linear-gradient(145deg, {colors.slateDark.2} 0%, {colors.slateDark.1} 100%)"
-          backdropFilter="blur(1.5rem)"
-          borderWidth="0.0625rem"
-          borderStyle="solid"
-          borderColor="whiteA.3"
-          color="ruby.solid"
-          boxShadow="inset 0 0.0625rem 0.0625rem 0 {colors.whiteA.4}, 0 1.25rem 2.5rem -0.5rem {colors.blackA.9}, 0 0 2rem {colors.rubyA.5}"
+          size="emptyIconSize"
+          layerStyle="emptyIconBox"
         >
-          <Library size="3.25rem" strokeWidth={1.4} />
+          <Library size={52} strokeWidth={1.4} />
         </Square>
 
         {/* Floating Sparkle Badge */}
@@ -50,15 +43,10 @@ export function EmptyIllustration() {
           }}
         >
           <Circle
-            size="2rem"
-            bg="linear-gradient(135deg, #e5484d 0%, #d63940 100%)"
-            color="#ffffff"
-            borderWidth="0.0625rem"
-            borderStyle="solid"
-            borderColor="whiteA.5"
-            boxShadow="0 0 1.25rem {colors.rubyA.10}, 0 0.25rem 0.5rem {colors.blackA.6}"
+            size="iconBadge"
+            layerStyle="emptySparkleBadge"
           >
-            <Sparkles size="0.95rem" />
+            <Sparkles size={16} />
           </Circle>
         </motion.div>
       </motion.div>

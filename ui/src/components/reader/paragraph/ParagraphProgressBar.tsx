@@ -13,7 +13,7 @@ export function ParagraphProgressBar({ percent }: ParagraphProgressBarProps) {
       colorPalette="ruby"
       variant="subtle"
       w="full"
-      mb="1rem"
+      mb="4"
     >
       <Progress.Track rounded="full">
         <Progress.Range />

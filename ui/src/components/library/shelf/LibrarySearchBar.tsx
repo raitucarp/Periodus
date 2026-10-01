@@ -10,34 +10,24 @@ export interface LibrarySearchBarProps {
 
 export function LibrarySearchBar({ placeholder, query, onChange }: LibrarySearchBarProps) {
   return (
-    <Flex position="relative" w="20rem" align="center">
+    <Flex position="relative" w="searchBar" align="center">
       <Square
         position="absolute"
-        left="0.75rem"
+        left="3"
         color="fg.subtle"
         pointerEvents="none"
         zIndex="2"
       >
-        <Search size="1rem" />
+        <Search size={16} />
       </Square>
       <Input
         placeholder={placeholder}
         value={query}
         onChange={onChange}
-        pl="2.25rem"
+        pl="9"
         size="sm"
         w="full"
-        bg="glass.input"
-        backdropFilter="blur(1rem)"
-        borderWidth="0.0625rem"
-        borderColor="glass.borderSubtle"
-        rounded="lg"
-        color="fg"
-        boxShadow="inset 0 0.0625rem 0.0625rem {colors.blackA.4}"
-        _focus={{
-          borderColor: 'ruby.solid',
-          boxShadow: '0 0 1rem {colors.rubyA.6}',
-        }}
+        layerStyle="glassInput"
       />
     </Flex>
   )

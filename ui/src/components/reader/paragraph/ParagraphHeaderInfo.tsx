@@ -14,17 +14,17 @@ export function ParagraphHeaderInfo({ chapterLabel, paragraphOfTotal }: Paragrap
       align="center"
       justify="space-between"
       flexShrink={0}
-      px="3.5rem"
-      pt="1.5rem"
-      pb="1rem"
+      px="14"
+      pt="6"
+      pb="4"
       borderBottomWidth="0.0625rem"
       borderBottomColor="glass.borderSubtle"
       w="full"
-      zIndex={1}
+      zIndex="base"
     >
-      <HStack gap="0.5rem">
+      <HStack gap="2">
         <Square color="ruby.solid">
-          <Bookmark size="1rem" />
+          <Bookmark size={16} />
         </Square>
         <Text textStyle="sm" fontWeight="semibold" color="fg.muted">
           {chapterLabel}
@@ -34,8 +34,8 @@ export function ParagraphHeaderInfo({ chapterLabel, paragraphOfTotal }: Paragrap
       <Badge
         colorPalette="ruby"
         variant="subtle"
-        px="0.75rem"
-        py="0.25rem"
+        px="3"
+        py="1"
         rounded="full"
         textStyle="xs"
         fontWeight="bold"

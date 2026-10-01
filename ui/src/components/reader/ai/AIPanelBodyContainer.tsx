@@ -13,7 +13,7 @@ export function AIPanelBodyContainer({ children }: AIPanelBodyContainerProps) {
       borderWidth="0.0625rem"
       borderColor="border.subtle"
       rounded="xl"
-      p="1.25rem"
+      p="5"
       overflowY="auto"
       display="flex"
       flexDirection="column"

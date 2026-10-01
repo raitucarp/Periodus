@@ -1,5 +1,5 @@
 import React from 'react'
-import { Flex, HStack, Button, Text, Square, Box } from '@chakra-ui/react'
+import { Flex, HStack, Button, Text, Square, Separator } from '@chakra-ui/react'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 import { WindowControls } from '@/components/common/window'
 
@@ -16,36 +16,36 @@ export function ReaderTopNav({ bookTitle, backLabel, onBack, children }: ReaderT
       as="header"
       position="sticky"
       top="0"
-      zIndex="50"
+      zIndex="sticky"
       align="center"
       justify="space-between"
-      px="1.5rem"
-      py="0.75rem"
+      px="6"
+      py="3"
       layerStyle="glassHeader"
       w="full"
       userSelect="none"
       style={{ '--wails-draggable': 'drag' } as React.CSSProperties}
     >
-      <HStack gap="1rem" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+      <HStack gap="4" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
         <Button
           variant="outline"
           colorPalette="gray"
           size="sm"
           onClick={onBack}
         >
-          <ArrowLeft size="1rem" />
+          <ArrowLeft size={16} />
           {backLabel}
         </Button>
 
-        <HStack gap="0.5rem">
+        <HStack gap="2">
           <Square color="ruby.solid">
-            <BookOpen size="1rem" />
+            <BookOpen size={16} />
           </Square>
           <Text
             textStyle="sm"
             fontWeight="bold"
             color="fg"
-            maxW="22rem"
+            maxW="readerSidebarMin"
             truncate
           >
             {bookTitle}
@@ -53,9 +53,9 @@ export function ReaderTopNav({ bookTitle, backLabel, onBack, children }: ReaderT
         </HStack>
       </HStack>
 
-      <HStack gap="0.75rem" align="center" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+      <HStack gap="3" align="center" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
         {children}
-        <Box w="0.0625rem" h="1.25rem" bg="border.subtle" mx="0.25rem" />
+        <Separator orientation="vertical" h="dividerHeight" borderColor="border.subtle" mx="1" />
         <WindowControls />
       </HStack>
     </Flex>

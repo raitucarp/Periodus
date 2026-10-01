@@ -33,45 +33,33 @@ export function EmptyPlaceholder({ onImport, isImporting = false }: EmptyPlaceho
       justifyContent="center"
       flex="1"
       minH="calc(100vh - 5rem)"
-      px="1.5rem"
-      py="3rem"
+      px="6"
+      py="12"
     >
       <EmptyState.Root
-        maxW="34rem"
+        maxW="emptyStateMax"
         w="full"
-        p="3rem 2.5rem"
-        borderRadius="3xl"
-        bg="glass.container"
-        backdropFilter="blur(2rem)"
-        borderWidth="0.0625rem"
-        borderStyle="solid"
-        borderColor="glass.borderSubtle"
-        boxShadow="0 2rem 4.5rem -1rem {colors.blackA.9}, inset 0 0.0625rem 0.0625rem {colors.whiteA.3}"
+        p="12"
+        layerStyle="emptyStateCard"
         justifyContent="center"
         textAlign="center"
       >
-        <EmptyState.Content gap="1.75rem">
+        <EmptyState.Content gap="7">
           <EmptyState.Indicator>
             <EmptyIllustration />
           </EmptyState.Indicator>
           <EmptyState.Title
-            fontFamily="heading"
-            fontSize="2rem"
-            fontWeight="bold"
-            letterSpacing="-0.02em"
-            backgroundImage="linear-gradient(135deg, #ffffff 40%, {colors.whiteA.9} 100%)"
-            style={{
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
+            textStyle="brand.emptyTitle"
+            backgroundImage="{colors.gradient.brandTextTitle}"
+            bgClip="text"
           >
             {t.emptyState.title}
           </EmptyState.Title>
           <EmptyState.Description
-            fontSize="1rem"
+            textStyle="md"
             color="fg.muted"
-            lineHeight="1.7"
-            maxW="26rem"
+            lineHeight="tall"
+            maxW="emptyStateContentMax"
             mx="auto"
           >
             {t.emptyState.description}

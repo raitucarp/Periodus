@@ -11,8 +11,8 @@ export interface HeaderLeftSectionProps {
 
 export function HeaderLeftSection({ title, subtitle }: HeaderLeftSectionProps) {
   return (
-    <HStack gap="0.75rem">
-      <BrandLogo icon={<BookOpen size="1.25rem" />} />
+    <HStack gap="3">
+      <BrandLogo icon={<BookOpen size={20} />} />
       <BrandTitle title={title} subtitle={subtitle} />
     </HStack>
   )

@@ -32,18 +32,18 @@ export function ParagraphNavigationControls({
       direction="column"
       flexShrink={0}
       mt="auto"
-      px="3.5rem"
-      pt="1rem"
-      pb="1.25rem"
+      px="14"
+      pt="4"
+      pb="5"
       borderTopWidth="0.0625rem"
       borderTopColor="glass.borderSubtle"
       bg="glass.sidebar"
       w="full"
-      zIndex={1}
+      zIndex="base"
     >
       <ParagraphProgressBar percent={percent} />
-      <Flex align="center" justify="space-between" mt="0.5rem">
-        <HStack gap="0.375rem">
+      <Flex align="center" justify="space-between" mt="2">
+        <HStack gap="1.5">
           <Text textStyle="xs" color="fg.subtle">
             {percentCompletedText} • {keyboardHint}
           </Text>
@@ -52,7 +52,7 @@ export function ParagraphNavigationControls({
           <Kbd size="sm" fontFamily="mono">→</Kbd>
         </HStack>
 
-        <HStack gap="0.75rem">
+        <HStack gap="3">
           <Button
             variant="outline"
             colorPalette="gray"
@@ -60,7 +60,7 @@ export function ParagraphNavigationControls({
             onClick={onPrev}
             disabled={!hasPrev}
           >
-            <ChevronLeft size="1rem" />
+            <ChevronLeft size={16} />
             {navPreviousText}
           </Button>
 
@@ -72,7 +72,7 @@ export function ParagraphNavigationControls({
             disabled={!hasNext}
           >
             {navNextText}
-            <ChevronRight size="1rem" />
+            <ChevronRight size={16} />
           </Button>
         </HStack>
       </Flex>

@@ -12,7 +12,7 @@ export function AIPanelLayout({ children }: AIPanelLayoutProps) {
       direction="column"
       h="full"
       w="full"
-      p="1.5rem"
+      p="6"
       overflowY="auto"
     >
       {children}

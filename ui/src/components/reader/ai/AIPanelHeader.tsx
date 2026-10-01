@@ -9,12 +9,12 @@ export interface AIPanelHeaderProps {
 
 export function AIPanelHeader({ heading, badge }: AIPanelHeaderProps) {
   return (
-    <Flex as="header" align="center" justify="space-between" mb="1.25rem">
-      <HStack gap="0.5rem">
+    <Flex as="header" align="center" justify="space-between" mb="5">
+      <HStack gap="2">
         <Square color="ruby.solid">
-          <Sparkles size="1.125rem" />
+          <Sparkles size={18} />
         </Square>
-        <Heading as="h3" fontFamily="heading" size="sm" color="fg" letterSpacing="wide">
+        <Heading as="h3" textStyle="analysis.header">
           {heading}
         </Heading>
       </HStack>
@@ -23,8 +23,8 @@ export function AIPanelHeader({ heading, badge }: AIPanelHeaderProps) {
         colorPalette="gray"
         variant="outline"
         rounded="md"
-        px="0.5rem"
-        py="0.125rem"
+        px="2"
+        py="0.5"
         textStyle="xs"
       >
         {badge}

@@ -12,25 +12,24 @@ export function BookCoverFallback({ title, author }: BookCoverFallbackProps) {
     <Card.Body
       w="full"
       h="full"
-      p="1rem"
+      p="4"
       display="flex"
       justifyContent="space-between"
       bg="bg.muted"
     >
       <Square
-        size="2rem"
+        size="iconBadge"
         rounded="md"
         bg="ruby.solid"
         color="ruby.contrast"
       >
-        <BookOpen size="1rem" />
+        <BookOpen size={16} />
       </Square>
 
-      <Stack gap="0.25rem">
+      <Stack gap="1">
         <Heading
           as="h5"
-          fontFamily="heading"
-          size="sm"
+          textStyle="card.title"
           color="fg"
           lineHeight="snug"
           lineClamp={3}
@@ -38,8 +37,7 @@ export function BookCoverFallback({ title, author }: BookCoverFallbackProps) {
           {title}
         </Heading>
         <Text
-          textStyle="xs"
-          color="fg.muted"
+          textStyle="card.author"
           truncate
         >
           {author}

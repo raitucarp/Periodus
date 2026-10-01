@@ -17,10 +17,10 @@ export function ThemeToggleButton({ label }: ThemeToggleButtonProps) {
 
   const iconElement = match(colorMode)
     .with('dark', function renderSun() {
-      return <Sun size="1rem" />
+      return <Sun size={16} />
     })
     .with('light', function renderMoon() {
-      return <Moon size="1rem" />
+      return <Moon size={16} />
     })
     .exhaustive()
 

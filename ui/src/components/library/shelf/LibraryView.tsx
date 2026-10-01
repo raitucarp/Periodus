@@ -4,12 +4,14 @@ import { isEmpty } from 'lodash-es'
 import { match } from 'ts-pattern'
 import { useLibrary } from '@/hooks/useLibrary'
 import { useTranslation } from '@/i18n'
+import { useNavigate } from '@tanstack/react-router'
 import { LibraryTopBar } from './LibraryTopBar'
 import { ContinueReadingShelf } from './ContinueReadingShelf'
 import { AllBooksShelf } from './AllBooksShelf'
 import { LibraryLayout } from './LibraryLayout'
 
 export function LibraryView() {
+  const navigate = useNavigate()
   const {
     books,
     inProgressBooks,
@@ -28,6 +30,7 @@ export function LibraryView() {
 
   function handleSelectBook(book: Book) {
     selectBook(book)
+    navigate({ to: '/reader/$bookId', params: { bookId: book.id } })
   }
 
   function handleDeleteBook(id: string, { stopPropagation }: React.MouseEvent) {

@@ -6,7 +6,7 @@ import { CloseButton } from './CloseButton'
 
 export function WindowControls() {
   return (
-    <HStack gap="0.25rem" ml="0.5rem" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+    <HStack gap="1" ml="2" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
       <MinimizeButton />
       <MaximizeButton />
       <CloseButton />

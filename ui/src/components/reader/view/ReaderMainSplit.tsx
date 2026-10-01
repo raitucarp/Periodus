@@ -12,34 +12,27 @@ export function ReaderMainSplit({ leftPane, rightPane }: ReaderMainSplitProps) {
       flex="1"
       overflow="hidden"
       w="full"
-      px="1.5rem"
-      pb="1.5rem"
-      pt="0.5rem"
+      px="6"
+      pb="6"
+      pt="2"
     >
       <Flex
         flex="1"
         h="full"
         w="full"
-        rounded="2xl"
-        borderWidth="0.0625rem"
-        borderColor="glass.borderSubtle"
-        bg="glass.container"
-        backdropFilter="blur(2rem)"
-        boxShadow="0 1rem 3rem {colors.blackA.8}, inset 0 0.0625rem 0.0625rem {colors.whiteA.2}"
+        layerStyle="glassContainer"
         overflow="hidden"
       >
         <Flex flex="1" h="full" direction="column" overflow="hidden">
           {leftPane}
         </Flex>
         <Flex
-          w="25rem"
-          minW="22rem"
-          maxW="28rem"
+          w="readerSidebar"
+          minW="readerSidebarMin"
+          maxW="readerSidebarMax"
           h="full"
           direction="column"
-          borderLeftWidth="0.0625rem"
-          borderLeftColor="glass.borderSubtle"
-          bg="glass.sidebar"
+          layerStyle="glassSidebar"
           overflow="hidden"
         >
           {rightPane}

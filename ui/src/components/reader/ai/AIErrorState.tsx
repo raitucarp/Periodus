@@ -16,17 +16,17 @@ export function AIErrorState({
 }: AIErrorStateProps) {
   return (
     <Card.Root
-      p="1rem"
+      p="4"
       rounded="md"
       bg="ruby.subtle"
       borderWidth="0.0625rem"
       borderColor="ruby.border"
       color="ruby.fg"
     >
-      <Text fontWeight="bold" textStyle="sm" mb="0.25rem">
+      <Text textStyle="analysis.errorHeading" mb="1">
         {problemHeading}
       </Text>
-      <Text textStyle="xs" mb="0.75rem" lineHeight="tall">
+      <Text textStyle="analysis.errorMessage" mb="3">
         {errorMessage}
       </Text>
       <Button

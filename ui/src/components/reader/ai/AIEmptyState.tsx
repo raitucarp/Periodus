@@ -9,14 +9,14 @@ export interface AIEmptyStateProps {
 
 export function AIEmptyState({ title, description }: AIEmptyStateProps) {
   return (
-    <Center flex="1" flexDirection="column" textAlign="center" p="1.25rem" color="fg.subtle">
-      <Square mb="0.75rem" opacity="0.5">
-        <Sparkles size="2rem" />
+    <Center flex="1" flexDirection="column" textAlign="center" p="5" color="fg.subtle">
+      <Square mb="3" opacity="0.5">
+        <Sparkles size={32} />
       </Square>
-      <Heading as="h4" fontFamily="heading" size="xs" color="fg.muted" mb="0.25rem">
+      <Heading as="h4" textStyle="card.title" color="fg.muted" mb="1">
         {title}
       </Heading>
-      <Text textStyle="xs" lineHeight="tall" maxW="16.25rem">
+      <Text textStyle="xs" lineHeight="tall" maxW="bookCardHeight">
         {description}
       </Text>
     </Center>
