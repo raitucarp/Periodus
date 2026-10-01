@@ -23,6 +23,15 @@ export const queryKeys = {
       ['reader', bookId, 'chapter', chapterIndex, 'paragraphs'] as const,
     content: (bookId: string, chapterIndex: number, paragraphIndex: number) =>
       ['reader', bookId, 'chapter', chapterIndex, 'paragraph', paragraphIndex, 'content'] as const,
+    stats: (bookId: string, chapterIndex: number, paragraphIndex: number) =>
+      ['reader', bookId, 'chapter', chapterIndex, 'paragraph', paragraphIndex, 'stats'] as const,
+    chapterHeatmap: (bookId: string) => ['reader', bookId, 'heatmap', 'chapters'] as const,
+    paragraphHeatmap: (bookId: string, chapterIndex: number) =>
+      ['reader', bookId, 'chapter', chapterIndex, 'heatmap', 'paragraphs'] as const,
+    sentenceAnnotations: (bookId: string, chapterIndex: number, paragraphIndex: number) =>
+      ['reader', bookId, 'chapter', chapterIndex, 'paragraph', paragraphIndex, 'annotations'] as const,
+    sentenceComments: (sentenceHash: string) =>
+      ['reader', 'sentence', sentenceHash, 'comments'] as const,
   },
   settings: {
     ai: (scope: string, bookId: string = '') => ['settings', 'ai', scope, bookId] as const,

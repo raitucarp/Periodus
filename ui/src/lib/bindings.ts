@@ -11,6 +11,10 @@ import type {
   AISettings,
   ReadingSettings,
   Prompt,
+  ParagraphStat,
+  SentenceAnnotation,
+  SentenceComment,
+  ChapterHeatmapItem,
 } from './types'
 
 // Check if running inside Wails desktop environment
@@ -106,6 +110,73 @@ export const ReaderService = {
   async getProgress(bookId: string): Promise<ReadingProgress | null> {
     if (!isWailsEnv()) return null
     return (await WailsReaderService.GetProgress(bookId)) as unknown as ReadingProgress | null
+  },
+
+  async incrementParagraphVisit(bookId: string, chapterIndex: number, paragraphIndex: number): Promise<ParagraphStat | null> {
+    if (!isWailsEnv()) return null
+    return (await WailsReaderService.IncrementParagraphVisit(bookId, chapterIndex, paragraphIndex)) as unknown as ParagraphStat
+  },
+
+  async getParagraphStats(bookId: string, chapterIndex: number, paragraphIndex: number): Promise<ParagraphStat | null> {
+    if (!isWailsEnv()) return null
+    return (await WailsReaderService.GetParagraphStats(bookId, chapterIndex, paragraphIndex)) as unknown as ParagraphStat | null
+  },
+
+  async updateParagraphStats(
+    bookId: string,
+    chapterIndex: number,
+    paragraphIndex: number,
+    isSkipped: boolean,
+    customFontFamily: string,
+    customFontSize: number
+  ): Promise<void> {
+    if (!isWailsEnv()) return
+    await WailsReaderService.UpdateParagraphStats(bookId, chapterIndex, paragraphIndex, isSkipped, customFontFamily, customFontSize)
+  },
+
+  async getChapterHeatmap(bookId: string): Promise<ChapterHeatmapItem[]> {
+    if (!isWailsEnv()) return []
+    return (await WailsReaderService.GetChapterHeatmap(bookId)) as unknown as ChapterHeatmapItem[]
+  },
+
+  async getParagraphHeatmap(bookId: string, chapterIndex: number): Promise<ParagraphStat[]> {
+    if (!isWailsEnv()) return []
+    return (await WailsReaderService.GetParagraphHeatmap(bookId, chapterIndex)) as unknown as ParagraphStat[]
+  },
+
+  async getSentenceAnnotations(bookId: string, chapterIndex: number, paragraphIndex: number): Promise<SentenceAnnotation[]> {
+    if (!isWailsEnv()) return []
+    return (await WailsReaderService.GetSentenceAnnotations(bookId, chapterIndex, paragraphIndex)) as unknown as SentenceAnnotation[]
+  },
+
+  async saveSentenceAnnotation(ann: SentenceAnnotation): Promise<void> {
+    if (!isWailsEnv()) return
+    await WailsReaderService.SaveSentenceAnnotation(new DbModels.SentenceAnnotation(ann as any))
+  },
+
+  async incrementSentenceUpvote(sentenceHash: string, bookId: string, chapterIndex: number, paragraphIndex: number): Promise<number> {
+    if (!isWailsEnv()) return 1
+    return await WailsReaderService.IncrementSentenceUpvote(sentenceHash, bookId, chapterIndex, paragraphIndex)
+  },
+
+  async getSentenceComments(sentenceHash: string): Promise<SentenceComment[]> {
+    if (!isWailsEnv()) return []
+    return (await WailsReaderService.GetSentenceComments(sentenceHash)) as unknown as SentenceComment[]
+  },
+
+  async getParagraphComments(bookId: string): Promise<SentenceComment[]> {
+    if (!isWailsEnv()) return []
+    return (await WailsReaderService.GetParagraphComments(bookId)) as unknown as SentenceComment[]
+  },
+
+  async addSentenceComment(id: string, sentenceHash: string, bookId: string, content: string): Promise<void> {
+    if (!isWailsEnv()) return
+    await WailsReaderService.AddSentenceComment(id, sentenceHash, bookId, content)
+  },
+
+  async deleteSentenceComment(id: string): Promise<void> {
+    if (!isWailsEnv()) return
+    await WailsReaderService.DeleteSentenceComment(id)
   },
 }
 
