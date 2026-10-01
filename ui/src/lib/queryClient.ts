@@ -32,6 +32,7 @@ export const queryKeys = {
       ['reader', bookId, 'chapter', chapterIndex, 'paragraph', paragraphIndex, 'annotations'] as const,
     sentenceComments: (sentenceHash: string) =>
       ['reader', 'sentence', sentenceHash, 'comments'] as const,
+    allComments: (bookId: string) => ['reader', bookId, 'allComments'] as const,
   },
   settings: {
     ai: (scope: string, bookId: string = '') => ['settings', 'ai', scope, bookId] as const,

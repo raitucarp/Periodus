@@ -282,6 +282,17 @@ export function useIncrementSentenceUpvoteMutation() {
 }
 
 // Sentence Comments (Marginalia)
+export function useBookCommentsQuery(bookId: string) {
+  return useQuery<SentenceComment[]>({
+    queryKey: queryKeys.reader.allComments(bookId),
+    queryFn: async function fetchAllBookComments() {
+      if (!bookId) return []
+      return await ReaderService.getParagraphComments(bookId)
+    },
+    enabled: Boolean(bookId),
+  })
+}
+
 export function useSentenceCommentsQuery(sentenceHash: string) {
   return useQuery<SentenceComment[]>({
     queryKey: queryKeys.reader.sentenceComments(sentenceHash),
@@ -306,6 +317,9 @@ export function useAddSentenceCommentMutation() {
     },
     onSuccess: function onCommentAdded(_data, variables) {
       queryClient.invalidateQueries({
+        queryKey: queryKeys.reader.allComments(variables.bookId),
+      })
+      queryClient.invalidateQueries({
         queryKey: queryKeys.reader.sentenceComments(variables.sentenceHash),
       })
       if (variables.chapterIndex) {
@@ -325,6 +339,11 @@ export function useDeleteSentenceCommentMutation() {
       await ReaderService.deleteSentenceComment(id)
     },
     onSuccess: function onDeleted(_data, variables) {
+      if (variables.bookId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.reader.allComments(variables.bookId),
+        })
+      }
       queryClient.invalidateQueries({
         queryKey: queryKeys.reader.sentenceComments(variables.sentenceHash),
       })
