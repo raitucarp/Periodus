@@ -19,6 +19,8 @@ export function useReader(book: Book) {
     isLoadingContent,
     goToPrevParagraph,
     goToNextParagraph,
+    goToParagraph,
+    chapterStats,
   } = useParagraphNavigation(book)
 
   const currentChapter = useAtomValue(currentChapterAtom)
@@ -41,12 +43,14 @@ export function useReader(book: Book) {
     currentParagraphIdx,
     paragraphsCountInChapter,
     paragraphContent,
+    chapterStats,
     isLoadingContent,
     percentInChapter,
     hasPrev,
     hasNext,
     goToPrevParagraph,
     goToNextParagraph,
+    goToParagraph,
     changeChapter,
   }
 }

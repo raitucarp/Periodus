@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useAtom } from 'jotai'
 import {
   currentChapterIdxAtom,
@@ -9,7 +9,7 @@ import {
   chaptersAtom,
 } from '@/state/atoms'
 import { ReaderService } from '@/lib/bindings'
-import type { Book } from '@/lib/types'
+import type { Book, ParagraphStat } from '@/lib/types'
 
 export function useParagraphNavigation({ id, current_paragraph_index, total_paragraphs }: Book) {
   const [currentChapterIdx, setCurrentChapterIdx] = useAtom(currentChapterIdxAtom)
@@ -18,6 +18,7 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
   const [chapters] = useAtom(chaptersAtom)
   const [paragraphContent, setParagraphContent] = useAtom(paragraphContentAtom)
   const [isLoadingContent, setIsLoadingContent] = useAtom(isParagraphLoadingAtom)
+  const [chapterStats, setChapterStats] = useState<ParagraphStat[]>([])
 
   useEffect(function initParagraphIndex() {
     setCurrentParagraphIdx(current_paragraph_index || 1)
@@ -26,8 +27,12 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
   useEffect(function fetchChapterParagraphs() {
     async function loadParagraphs() {
       try {
-        const data = await ReaderService.getParagraphs(id, currentChapterIdx)
+        const [data, stats] = await Promise.all([
+          ReaderService.getParagraphs(id, currentChapterIdx),
+          ReaderService.getParagraphHeatmap(id, currentChapterIdx),
+        ])
         setParagraphs(data || [])
+        setChapterStats(stats || [])
         setCurrentParagraphIdx(function boundIndex(prev) {
           if (prev <= (data?.length || 1)) return prev
           return 1
@@ -51,6 +56,10 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
         )
         setParagraphContent(text)
 
+        // Increment visit counter in background
+        ReaderService.incrementParagraphVisit(id, currentChapterIdx, currentParagraphIdx)
+          .catch((err) => console.error('Failed to increment visit:', err))
+
         const totalP = total_paragraphs || 1
         const percent = Math.min(
           100,
@@ -66,11 +75,27 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
     loadContent()
   }, [id, currentChapterIdx, currentParagraphIdx, paragraphs.length])
 
+  const statsMap = useMemo(
+    function computeStatsMap() {
+      const map = new Map<number, ParagraphStat>()
+      for (const s of chapterStats) {
+        map.set(s.paragraph_index, s)
+      }
+      return map
+    },
+    [chapterStats]
+  )
+
   function goToPrevParagraph() {
-    if (currentParagraphIdx > 1) {
-      setCurrentParagraphIdx(function decrement(prev) {
-        return prev - 1
-      })
+    let target = currentParagraphIdx - 1
+    while (target >= 1) {
+      const stat = statsMap.get(target)
+      if (!stat || stat.is_skipped !== 1) break
+      target--
+    }
+
+    if (target >= 1) {
+      setCurrentParagraphIdx(target)
     } else if (currentChapterIdx > 1) {
       setCurrentChapterIdx(function prevChapter(ch) {
         return ch - 1
@@ -79,10 +104,15 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
   }
 
   function goToNextParagraph() {
-    if (currentParagraphIdx < paragraphs.length) {
-      setCurrentParagraphIdx(function increment(prev) {
-        return prev + 1
-      })
+    let target = currentParagraphIdx + 1
+    while (target <= paragraphs.length) {
+      const stat = statsMap.get(target)
+      if (!stat || stat.is_skipped !== 1) break
+      target++
+    }
+
+    if (target <= paragraphs.length) {
+      setCurrentParagraphIdx(target)
     } else if (currentChapterIdx < chapters.length) {
       setCurrentChapterIdx(function nextChapter(ch) {
         return ch + 1
@@ -91,12 +121,20 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
     }
   }
 
+  function goToParagraph(index: number) {
+    if (index >= 1 && index <= paragraphs.length) {
+      setCurrentParagraphIdx(index)
+    }
+  }
+
   return {
     currentParagraphIdx,
     paragraphs,
+    chapterStats,
     paragraphContent,
     isLoadingContent,
     goToPrevParagraph,
     goToNextParagraph,
+    goToParagraph,
   }
 }
