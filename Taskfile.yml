@@ -1,0 +1,41 @@
+version: '3'
+
+vars:
+  APP_NAME: 'Periodus'
+  BIN_DIR: 'bin'
+
+tasks:
+  build:frontend:
+    desc: 'Build frontend assets with Vite'
+    dir: ui
+    cmds:
+      - npm run build
+
+  generate:bindings:
+    desc: 'Generate Wails v3 bindings'
+    cmds:
+      - wails3 generate bindings -ts -d ui/src/bindings
+
+  build:
+    desc: 'Build the desktop application'
+    deps:
+      - build:frontend
+    cmds:
+      - go build -o {{.BIN_DIR}}/{{.APP_NAME}}.exe .
+
+  run:
+    desc: 'Run the desktop application'
+    deps:
+      - build
+    cmds:
+      - ./{{.BIN_DIR}}/{{.APP_NAME}}.exe
+
+  dev:
+    desc: 'Run the application in development mode'
+    cmds:
+      - go run .
+
+  clean:
+    desc: 'Remove built artifacts'
+    cmds:
+      - cmd /c if exist bin rmdir /s /q bin

@@ -1,0 +1,27 @@
+# Binaries & executables
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Node & Frontend
+ui/node_modules/
+ui/.pnpm-store/
+ui/dist/
+.DS_Store
+
+# Local SQLite databases for development
+*.db
+*.db-wal
+*.db-shm
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Go test binaries
+*.test
