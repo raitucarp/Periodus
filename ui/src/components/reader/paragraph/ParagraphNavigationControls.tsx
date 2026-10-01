@@ -1,5 +1,5 @@
 import React from 'react'
-import { Flex, HStack, Button, Text, Kbd } from '@chakra-ui/react'
+import { Flex, HStack, Button, Text, Kbd, VStack, Box } from '@chakra-ui/react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ParagraphProgressBar } from './ParagraphProgressBar'
 
@@ -11,6 +11,7 @@ export interface ParagraphNavigationControlsProps {
   hasPrev: boolean
   hasNext: boolean
   percent: number
+  utilityToolbar?: React.ReactNode
   onPrev: () => void
   onNext: () => void
 }
@@ -23,6 +24,7 @@ export function ParagraphNavigationControls({
   hasPrev,
   hasNext,
   percent,
+  utilityToolbar,
   onPrev,
   onNext,
 }: ParagraphNavigationControlsProps) {
@@ -32,49 +34,65 @@ export function ParagraphNavigationControls({
       direction="column"
       flexShrink={0}
       mt="auto"
-      px="14"
-      pt="4"
-      pb="5"
-      borderTopWidth="0.0625rem"
-      borderTopColor="glass.borderSubtle"
-      bg="glass.sidebar"
+      px="8"
+      pt="3"
+      pb="4"
+      borderTopWidth="1px"
+      borderTopColor="border.subtle"
+      bg="bg.panel"
       w="full"
       zIndex="base"
+      gap="3"
     >
+      {/* Cyan Line Area: Paragraph Utility Toolbar */}
+      {utilityToolbar && (
+        <Box w="full">
+          {utilityToolbar}
+        </Box>
+      )}
+
+      {/* Progress Bar */}
       <ParagraphProgressBar percent={percent} />
-      <Flex align="center" justify="space-between" mt="2">
-        <HStack gap="1.5">
-          <Text textStyle="xs" color="fg.subtle">
-            {percentCompletedText} • {keyboardHint}
-          </Text>
-          <Kbd size="sm" fontFamily="mono">←</Kbd>
-          <Text textStyle="xs" color="fg.subtle">/</Text>
-          <Kbd size="sm" fontFamily="mono">→</Kbd>
-        </HStack>
 
-        <HStack gap="3">
-          <Button
-            variant="outline"
-            colorPalette="gray"
-            size="sm"
-            onClick={onPrev}
-            disabled={!hasPrev}
-          >
-            <ChevronLeft size={16} />
-            {navPreviousText}
-          </Button>
+      {/* Navigation Buttons and Right-Aligned Hint */}
+      <Flex align="center" justify="space-between" mt="1">
+        <Box flex="1" />
 
-          <Button
-            colorPalette="ruby"
-            variant="solid"
-            size="sm"
-            onClick={onNext}
-            disabled={!hasNext}
-          >
-            {navNextText}
-            <ChevronRight size={16} />
-          </Button>
-        </HStack>
+        {/* Right-aligned Navigation & Hint (hint placed under Previous/Next buttons) */}
+        <VStack align="end" gap="1.5">
+          <HStack gap="3">
+            <Button
+              variant="outline"
+              colorPalette="gray"
+              size="sm"
+              onClick={onPrev}
+              disabled={!hasPrev}
+            >
+              <ChevronLeft size={16} />
+              {navPreviousText}
+            </Button>
+
+            <Button
+              colorPalette="ruby"
+              variant="solid"
+              size="sm"
+              onClick={onNext}
+              disabled={!hasNext}
+            >
+              {navNextText}
+              <ChevronRight size={16} />
+            </Button>
+          </HStack>
+
+          <HStack gap="1.5">
+            <Text textStyle="2xs" color="fg.subtle">
+              {percentCompletedText} • {keyboardHint}
+            </Text>
+            <Kbd size="sm" fontFamily="mono">←</Kbd>
+            <Text textStyle="2xs" color="fg.subtle">/</Text>
+            <Kbd size="sm" fontFamily="mono">→</Kbd>
+          </HStack>
+        </VStack>
       </Flex>
     </Flex>
   )

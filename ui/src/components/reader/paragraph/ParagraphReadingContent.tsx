@@ -1,18 +1,84 @@
-import React from 'react'
-import { Box, Heading, Text, Link, Code } from '@chakra-ui/react'
+import React, { useMemo, useState, useEffect } from 'react'
+import { Box, VStack } from '@chakra-ui/react'
 import { motion, AnimatePresence } from 'motion/react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { useAtom } from 'jotai'
 import { readingSettingsAtom } from '@/state/atoms'
+import { splitIntoSentences, computeSentenceHash } from '@/lib/sentence'
+import { SentenceRow } from '../marginalia/SentenceRow'
+import type { SentenceAnnotation, SentenceComment } from '@/lib/types'
 
 export interface ParagraphReadingContentProps {
   content: string
+  bookId: string
+  chapterIndex: number
   paragraphIndex: number
+  customFontFamily?: string
+  customFontSize?: number
+  annotations?: SentenceAnnotation[]
+  comments?: SentenceComment[]
+  onToggleBookmark: (hash: string, currentVal: boolean) => void
+  onIncrementUpvote: (hash: string) => void
+  onSetHighlight: (hash: string, color: string) => void
+  onAddReaction: (hash: string, emoji: string) => void
+  onAddComment: (hash: string, text: string) => void
+  onDeleteComment: (commentId: string, hash: string) => void
 }
 
-export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphReadingContentProps) {
+interface HashedSentence {
+  text: string
+  hash: string
+}
+
+export function ParagraphReadingContent({
+  content,
+  paragraphIndex,
+  customFontFamily,
+  customFontSize,
+  annotations = [],
+  comments = [],
+  onToggleBookmark,
+  onIncrementUpvote,
+  onSetHighlight,
+  onAddReaction,
+  onAddComment,
+  onDeleteComment,
+}: ParagraphReadingContentProps) {
   const [readingSettings] = useAtom(readingSettingsAtom)
+  const [hashedSentences, setHashedSentences] = useState<HashedSentence[]>([])
+
+  // Raw sentence splitting
+  const sentences = useMemo(
+    function computeSentences() {
+      return splitIntoSentences(content)
+    },
+    [content]
+  )
+
+  // Compute sentence hashes asynchronously
+  useEffect(
+    function generateSentenceHashes() {
+      let isCurrent = true
+      async function runHash() {
+        const list: HashedSentence[] = []
+        for (const s of sentences) {
+          const hash = await computeSentenceHash(s)
+          list.push({ text: s, hash })
+        }
+        if (isCurrent) {
+          setHashedSentences(list)
+        }
+      }
+      runHash()
+      return () => {
+        isCurrent = false
+      }
+    },
+    [sentences]
+  )
+
+  // Typography settings with per-paragraph overrides
+  const activeFontFamily = customFontFamily || readingSettings.fontFamily || 'Literata'
+  const activeFontSize = customFontSize ? `${customFontSize}px` : `${readingSettings.fontSize || 18}px`
 
   const lineH =
     readingSettings.lineHeight === 'normal' || readingSettings.lineHeight === 'compact'
@@ -21,147 +87,80 @@ export function ParagraphReadingContent({ content, paragraphIndex }: ParagraphRe
       ? 1.7
       : readingSettings.lineHeight === 'loose'
       ? 1.8
-      : 2.2
+      : 2.1
+
+  // Maps for fast annotation & comment lookup
+  const annotationMap = useMemo(
+    function buildAnnotationMap() {
+      const map = new Map<string, SentenceAnnotation>()
+      for (const a of annotations) {
+        map.set(a.sentence_hash, a)
+      }
+      return map
+    },
+    [annotations]
+  )
+
+  const commentsByHash = useMemo(
+    function buildCommentsMap() {
+      const map = new Map<string, SentenceComment[]>()
+      for (const c of comments) {
+        const existing = map.get(c.sentence_hash) || []
+        existing.push(c)
+        map.set(c.sentence_hash, existing)
+      }
+      return map
+    },
+    [comments]
+  )
 
   return (
     <Box
       flex="1"
       overflowY="auto"
       w="full"
-      px="14"
-      py="8"
+      px="8"
+      pt="6"
+      pb="10"
       display="flex"
       flexDirection="column"
+      alignItems="flex-start"
+      justifyContent="flex-start"
     >
-      <Box maxW={readingSettings.maxWidth || 'readingMax'} w="full" mx="auto" my="auto">
+      <Box w="full" maxW="100%">
         <AnimatePresence mode="wait">
           <motion.div
             key={paragraphIndex}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
           >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                h1: ({ children }) => (
-                  <Heading
-                    as="h1"
-                    fontFamily={readingSettings.fontFamily || 'heading'}
-                    textStyle="reading.h1"
-                    mb="5"
-                    mt="2"
-                  >
-                    {children}
-                  </Heading>
-                ),
-                h2: ({ children }) => (
-                  <Heading
-                    as="h2"
-                    fontFamily={readingSettings.fontFamily || 'heading'}
-                    textStyle="reading.h2"
-                    mb="5"
-                    mt="2"
-                  >
-                    {children}
-                  </Heading>
-                ),
-                h3: ({ children }) => (
-                  <Heading
-                    as="h3"
-                    fontFamily={readingSettings.fontFamily || 'heading'}
-                    textStyle="reading.h3"
-                    mb="4"
-                    mt="2"
-                  >
-                    {children}
-                  </Heading>
-                ),
-                h4: ({ children }) => (
-                  <Heading
-                    as="h4"
-                    fontFamily={readingSettings.fontFamily || 'heading'}
-                    textStyle="reading.h4"
-                    mb="3"
-                  >
-                    {children}
-                  </Heading>
-                ),
-                p: ({ children }) => (
-                  <Text
-                    as="p"
-                    fontFamily={readingSettings.fontFamily || 'reading'}
-                    fontSize={`${readingSettings.fontSize || 18}px`}
+            <VStack align="stretch" gap="3">
+              {hashedSentences.map(function renderSentenceItem(item) {
+                const ann = annotationMap.get(item.hash)
+                const sentenceComments = commentsByHash.get(item.hash) || []
+
+                return (
+                  <SentenceRow
+                    key={item.hash}
+                    sentence={item.text}
+                    sentenceHash={item.hash}
+                    annotation={ann}
+                    comments={sentenceComments}
+                    fontFamily={activeFontFamily}
+                    fontSize={activeFontSize}
                     lineHeight={lineH}
-                    textAlign={(readingSettings.textAlign as any) || 'left'}
-                    color="fg"
-                    mb="5"
-                    _last={{ mb: 0 }}
-                    wordBreak="break-word"
-                  >
-                    {children}
-                  </Text>
-                ),
-                blockquote: ({ children }) => (
-                  <Box
-                    as="blockquote"
-                    fontFamily={readingSettings.fontFamily || 'reading'}
-                    fontSize={`${readingSettings.fontSize || 18}px`}
-                    lineHeight={lineH}
-                    layerStyle="readingQuoteBox"
-                    pl="6"
-                    pr="4"
-                    py="3"
-                    my="5"
-                  >
-                    {children}
-                  </Box>
-                ),
-                strong: ({ children }) => (
-                  <Text as="strong" fontWeight="bold" color="ruby.fg">
-                    {children}
-                  </Text>
-                ),
-                em: ({ children }) => (
-                  <Text as="em" fontStyle="italic" color="fg">
-                    {children}
-                  </Text>
-                ),
-                a: ({ href, children }) => (
-                  <Link
-                    href={href}
-                    color="ruby.fg"
-                    textDecoration="underline"
-                    textUnderlineOffset="0.2rem"
-                  >
-                    {children}
-                  </Link>
-                ),
-                code: ({ children }) => (
-                  <Code
-                    textStyle="reading.code"
-                    bg="whiteA.2"
-                    px="1.5"
-                    py="0.5"
-                    rounded="sm"
-                  >
-                    {children}
-                  </Code>
-                ),
-                hr: () => (
-                  <Box
-                    as="hr"
-                    my="8"
-                    border="none"
-                    borderTopWidth="0.0625rem"
-                    borderTopColor="glass.borderSubtle"
+                    onToggleBookmark={onToggleBookmark}
+                    onIncrementUpvote={onIncrementUpvote}
+                    onSetHighlight={onSetHighlight}
+                    onAddReaction={onAddReaction}
+                    onAddComment={onAddComment}
+                    onDeleteComment={onDeleteComment}
                   />
-                ),
-              }}
-            >
-              {content}
-            </ReactMarkdown>
+                )
+              })}
+            </VStack>
           </motion.div>
         </AnimatePresence>
       </Box>

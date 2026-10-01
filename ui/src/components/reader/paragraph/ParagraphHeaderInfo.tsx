@@ -1,47 +1,80 @@
 import React from 'react'
-import { Flex, HStack, Badge, Text, Square } from '@chakra-ui/react'
+import { Box, Flex, HStack, Badge, Text, VStack } from '@chakra-ui/react'
 import { Bookmark } from 'lucide-react'
+import { ParagraphHeatmap } from '../heatmap/ParagraphHeatmap'
+import type { ParagraphStat } from '@/lib/types'
 
 export interface ParagraphHeaderInfoProps {
-  chapterLabel: string
-  paragraphOfTotal: string
+  chapterIndex: number
+  totalChapters: number
+  chapterTitle: string
+  currentParagraphIndex: number
+  totalParagraphs: number
+  paragraphStats?: ParagraphStat[]
+  onSelectParagraph?: (index: number) => void
 }
 
-export function ParagraphHeaderInfo({ chapterLabel, paragraphOfTotal }: ParagraphHeaderInfoProps) {
+export function ParagraphHeaderInfo({
+  chapterIndex,
+  totalChapters,
+  chapterTitle,
+  currentParagraphIndex,
+  totalParagraphs,
+  paragraphStats = [],
+  onSelectParagraph = () => {},
+}: ParagraphHeaderInfoProps) {
   return (
-    <Flex
+    <Box
       as="header"
-      align="center"
-      justify="space-between"
       flexShrink={0}
-      px="14"
-      pt="6"
-      pb="4"
-      borderBottomWidth="0.0625rem"
-      borderBottomColor="glass.borderSubtle"
+      px="6"
+      pt="5"
+      pb="3"
+      borderBottomWidth="1px"
+      borderBottomColor="border.subtle"
       w="full"
       zIndex="base"
     >
-      <HStack gap="2">
-        <Square color="ruby.solid">
-          <Bookmark size={16} />
-        </Square>
-        <Text textStyle="sm" fontWeight="semibold" color="fg.muted">
-          {chapterLabel}
-        </Text>
-      </HStack>
+      <Flex align="center" justify="space-between" mb="3">
+        {/* Left Side: 2-line Chapter Info with tight left padding */}
+        <HStack gap="2.5" align="start">
+          <Box mt="0.5" color="ruby.solid">
+            <Bookmark size={15} />
+          </Box>
+          <VStack align="start" gap="0">
+            <Text textStyle="2xs" fontWeight="medium" color="fg.subtle">
+              Chapter {chapterIndex} of {totalChapters}
+            </Text>
+            <Text textStyle="sm" fontWeight="semibold" color="fg">
+              {chapterTitle || `Chapter ${chapterIndex}`}
+            </Text>
+          </VStack>
+        </HStack>
 
-      <Badge
-        colorPalette="ruby"
-        variant="subtle"
-        px="3"
-        py="1"
-        rounded="full"
-        textStyle="xs"
-        fontWeight="bold"
-      >
-        {paragraphOfTotal}
-      </Badge>
-    </Flex>
+        {/* Right Side: Paragraph Badge tucked towards right corner */}
+        <Badge
+          colorPalette="blue"
+          variant="subtle"
+          px="2.5"
+          py="1"
+          rounded="full"
+          textStyle="2xs"
+          fontWeight="semibold"
+          letterSpacing="tight"
+        >
+          Paragraph {currentParagraphIndex} of {totalParagraphs}
+        </Badge>
+      </Flex>
+
+      {/* Blue Line Area: Paragraph Calendar Heatmap */}
+      <Box pt="1">
+        <ParagraphHeatmap
+          totalParagraphs={totalParagraphs}
+          stats={paragraphStats}
+          currentParagraphIndex={currentParagraphIndex}
+          onSelectParagraph={onSelectParagraph}
+        />
+      </Box>
+    </Box>
   )
 }

@@ -4,6 +4,7 @@ import { AIAnalysisPanel } from '../ai'
 import { ActiveParagraph } from '../paragraph'
 import { useReader } from '@/hooks/useReader'
 import { useTranslation } from '@/i18n'
+import { useChapterHeatmapQuery } from '@/queries'
 import { ReaderTopNav } from './ReaderTopNav'
 import { ReaderChapterSelect } from './ReaderChapterSelect'
 import { ReaderMainSplit } from './ReaderMainSplit'
@@ -16,7 +17,7 @@ export interface ReaderViewProps {
 }
 
 export function ReaderView({ book, onBack, onOpenSettings }: ReaderViewProps) {
-  const { title: bookTitle } = book
+  const { title: bookTitle, author } = book
   const {
     chapters,
     currentChapter,
@@ -24,14 +25,17 @@ export function ReaderView({ book, onBack, onOpenSettings }: ReaderViewProps) {
     currentParagraphIdx,
     paragraphsCountInChapter,
     paragraphContent,
+    chapterStats,
     percentInChapter,
     hasPrev,
     hasNext,
     goToPrevParagraph,
     goToNextParagraph,
+    goToParagraph,
     changeChapter,
   } = useReader(book)
 
+  const { data: chapterHeatmapData = [] } = useChapterHeatmapQuery(book.id)
   const { t, format } = useTranslation()
 
   function handleBackClick() {
@@ -61,6 +65,11 @@ export function ReaderView({ book, onBack, onOpenSettings }: ReaderViewProps) {
     <ReaderLayout>
       <ReaderTopNav
         bookTitle={bookTitle}
+        author={author}
+        totalChapters={chapters.length || 1}
+        chapterHeatmapData={chapterHeatmapData}
+        currentChapterIndex={currentChapterIdx}
+        onSelectChapter={changeChapter}
         backLabel={t.reader.backToCatalog}
         onBack={handleBackClick}
       >
@@ -74,15 +83,18 @@ export function ReaderView({ book, onBack, onOpenSettings }: ReaderViewProps) {
       <ReaderMainSplit
         leftPane={
           <ActiveParagraph
-            chapterTitle={currentChapter.title}
+            bookId={book.id}
+            chapterTitle={currentChapter?.title || ''}
             chapterIndex={currentChapterIdx}
             totalChapters={chapters.length || 1}
             paragraphIndex={currentParagraphIdx}
             totalParagraphsInChapter={paragraphsCountInChapter || 1}
+            chapterStats={chapterStats}
             content={paragraphContent}
             percentInChapter={percentInChapter}
             onPrev={goToPrevParagraph}
             onNext={goToNextParagraph}
+            onSelectParagraph={goToParagraph}
             hasPrev={hasPrev}
             hasNext={hasNext}
           />

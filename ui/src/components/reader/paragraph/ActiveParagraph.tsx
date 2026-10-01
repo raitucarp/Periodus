@@ -1,58 +1,200 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { match } from 'ts-pattern'
 import { useTranslation } from '@/i18n'
 import { ParagraphHeaderInfo } from './ParagraphHeaderInfo'
 import { ParagraphReadingContent } from './ParagraphReadingContent'
 import { ParagraphNavigationControls } from './ParagraphNavigationControls'
 import { ActiveParagraphLayout } from './ActiveParagraphLayout'
+import { ParagraphUtilityToolbar } from '../utility/ParagraphUtilityToolbar'
+import { calculateParagraphStats } from '@/lib/sentence'
+import {
+  useParagraphStatsQuery,
+  useUpdateParagraphStatsMutation,
+  useSentenceAnnotationsQuery,
+  useSaveSentenceAnnotationMutation,
+  useIncrementSentenceUpvoteMutation,
+  useAddSentenceCommentMutation,
+  useDeleteSentenceCommentMutation,
+} from '@/queries'
+import { ReaderService } from '@/lib/bindings'
+import { useQuery } from '@tanstack/react-query'
+import type { ParagraphStat } from '@/lib/types'
 
 export interface ActiveParagraphProps {
+  bookId: string
   chapterTitle: string
   chapterIndex: number
   totalChapters: number
   paragraphIndex: number
   totalParagraphsInChapter: number
+  chapterStats?: ParagraphStat[]
   content: string
   percentInChapter: number
   onPrev: () => void
   onNext: () => void
+  onSelectParagraph?: (index: number) => void
   hasPrev: boolean
   hasNext: boolean
 }
 
 export function ActiveParagraph({
+  bookId,
   chapterTitle,
   chapterIndex,
   totalChapters,
   paragraphIndex,
   totalParagraphsInChapter,
+  chapterStats = [],
   content,
   percentInChapter,
   onPrev,
   onNext,
+  onSelectParagraph = () => {},
   hasPrev,
   hasNext,
 }: ActiveParagraphProps) {
   const { t, format } = useTranslation()
 
-  function handlePrevClick() {
-    onPrev()
-  }
+  // Queries for paragraph-level stats and annotations
+  const { data: paragraphStat } = useParagraphStatsQuery(bookId, chapterIndex, paragraphIndex)
+  const { mutate: updateParagraphStats } = useUpdateParagraphStatsMutation()
 
-  function handleNextClick() {
-    onNext()
-  }
+  const { data: annotations = [] } = useSentenceAnnotationsQuery(bookId, chapterIndex, paragraphIndex)
+  const { mutate: saveAnnotation } = useSaveSentenceAnnotationMutation()
+  const { mutate: incrementUpvote } = useIncrementSentenceUpvoteMutation()
 
-  const chapterLabelText = format(t.reader.chapterLabel, {
-    index: chapterIndex,
-    total: totalChapters,
-    title: chapterTitle,
+  // Load all marginalia comments for the book
+  const { data: allComments = [] } = useQuery({
+    queryKey: ['reader', bookId, 'allComments'],
+    queryFn: async function fetchAllBookComments() {
+      return await ReaderService.getParagraphComments(bookId)
+    },
+    enabled: Boolean(bookId),
   })
 
-  const paragraphOfTotalText = format(t.reader.paragraphOfTotal, {
-    current: paragraphIndex,
-    total: totalParagraphsInChapter,
-  })
+  const { mutate: addComment } = useAddSentenceCommentMutation()
+  const { mutate: deleteComment } = useDeleteSentenceCommentMutation()
+
+  // Reading statistics (words, characters, reading minutes)
+  const readingStats = useMemo(
+    function computeReadingMetrics() {
+      return calculateParagraphStats(content || '')
+    },
+    [content]
+  )
+
+  function handleToggleSkip(isSkipped: boolean) {
+    updateParagraphStats({
+      bookId,
+      chapterIndex,
+      paragraphIndex,
+      isSkipped,
+      customFontFamily: paragraphStat?.custom_font_family || '',
+      customFontSize: paragraphStat?.custom_font_size || 0,
+    })
+  }
+
+  function handleUpdateStyle(customFontFamily: string, customFontSize: number) {
+    updateParagraphStats({
+      bookId,
+      chapterIndex,
+      paragraphIndex,
+      isSkipped: paragraphStat?.is_skipped === 1,
+      customFontFamily,
+      customFontSize,
+    })
+  }
+
+  function handleToggleBookmark(sentenceHash: string, currentVal: boolean) {
+    const existing = annotations.find((a) => a.sentence_hash === sentenceHash)
+    saveAnnotation({
+      sentence_hash: sentenceHash,
+      book_id: bookId,
+      chapter_index: chapterIndex,
+      paragraph_index: paragraphIndex,
+      is_bookmarked: currentVal ? 0 : 1,
+      highlight_color: existing?.highlight_color || '',
+      upvotes_count: existing?.upvotes_count || 0,
+      emoji_reactions: existing?.emoji_reactions || '[]',
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  function handleIncrementUpvote(sentenceHash: string) {
+    incrementUpvote({
+      sentenceHash,
+      bookId,
+      chapterIndex,
+      paragraphIndex,
+    })
+  }
+
+  function handleSetHighlight(sentenceHash: string, color: string) {
+    const existing = annotations.find((a) => a.sentence_hash === sentenceHash)
+    saveAnnotation({
+      sentence_hash: sentenceHash,
+      book_id: bookId,
+      chapter_index: chapterIndex,
+      paragraph_index: paragraphIndex,
+      is_bookmarked: existing?.is_bookmarked || 0,
+      highlight_color: color,
+      upvotes_count: existing?.upvotes_count || 0,
+      emoji_reactions: existing?.emoji_reactions || '[]',
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  function handleAddReaction(sentenceHash: string, emoji: string) {
+    const existing = annotations.find((a) => a.sentence_hash === sentenceHash)
+    let reactions: Array<{ emoji: string; count: number }> = []
+    try {
+      if (existing?.emoji_reactions) {
+        reactions = JSON.parse(existing.emoji_reactions)
+      }
+    } catch {
+      reactions = []
+    }
+
+    const idx = reactions.findIndex((r) => r.emoji === emoji)
+    if (idx >= 0) {
+      reactions[idx].count += 1
+    } else {
+      reactions.push({ emoji, count: 1 })
+    }
+
+    saveAnnotation({
+      sentence_hash: sentenceHash,
+      book_id: bookId,
+      chapter_index: chapterIndex,
+      paragraph_index: paragraphIndex,
+      is_bookmarked: existing?.is_bookmarked || 0,
+      highlight_color: existing?.highlight_color || '',
+      upvotes_count: existing?.upvotes_count || 0,
+      emoji_reactions: JSON.stringify(reactions),
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  function handleAddComment(sentenceHash: string, text: string) {
+    const id = 'c_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+    addComment({
+      id,
+      sentenceHash,
+      bookId,
+      content: text,
+      chapterIndex,
+      paragraphIndex,
+    })
+  }
+
+  function handleDeleteComment(commentId: string, sentenceHash: string) {
+    deleteComment({
+      id: commentId,
+      sentenceHash,
+      bookId,
+      chapterIndex,
+    })
+  }
 
   const percentCompletedText = format(t.reader.percentCompleted, {
     percent: percentInChapter,
@@ -67,16 +209,35 @@ export function ActiveParagraph({
     })
     .exhaustive()
 
-  const paragraphLayout = (
+  return (
     <ActiveParagraphLayout>
       <ParagraphHeaderInfo
-        chapterLabel={chapterLabelText}
-        paragraphOfTotal={paragraphOfTotalText}
+        chapterIndex={chapterIndex}
+        totalChapters={totalChapters}
+        chapterTitle={chapterTitle}
+        currentParagraphIndex={paragraphIndex}
+        totalParagraphs={totalParagraphsInChapter}
+        paragraphStats={chapterStats}
+        onSelectParagraph={onSelectParagraph}
       />
+
       <ParagraphReadingContent
         content={textToDisplay}
+        bookId={bookId}
+        chapterIndex={chapterIndex}
         paragraphIndex={paragraphIndex}
+        customFontFamily={paragraphStat?.custom_font_family}
+        customFontSize={paragraphStat?.custom_font_size}
+        annotations={annotations}
+        comments={allComments}
+        onToggleBookmark={handleToggleBookmark}
+        onIncrementUpvote={handleIncrementUpvote}
+        onSetHighlight={handleSetHighlight}
+        onAddReaction={handleAddReaction}
+        onAddComment={handleAddComment}
+        onDeleteComment={handleDeleteComment}
       />
+
       <ParagraphNavigationControls
         percentCompletedText={percentCompletedText}
         keyboardHint={t.reader.keyboardHint}
@@ -85,11 +246,17 @@ export function ActiveParagraph({
         hasPrev={hasPrev}
         hasNext={hasNext}
         percent={percentInChapter}
-        onPrev={handlePrevClick}
-        onNext={handleNextClick}
+        utilityToolbar={
+          <ParagraphUtilityToolbar
+            stats={readingStats}
+            paragraphStat={paragraphStat}
+            onToggleSkip={handleToggleSkip}
+            onUpdateStyle={handleUpdateStyle}
+          />
+        }
+        onPrev={onPrev}
+        onNext={onNext}
       />
     </ActiveParagraphLayout>
   )
-
-  return paragraphLayout
 }
