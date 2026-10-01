@@ -3,9 +3,11 @@ import {
   Box,
   Button,
   Flex,
+  Group,
   HStack,
   IconButton,
   Input,
+  Separator,
   Text,
   VStack,
 } from '@chakra-ui/react'
@@ -81,7 +83,10 @@ export function SentenceRow({
   }
 
   function handleCommentSubmit(e?: React.FormEvent) {
-    if (e) e.preventDefault()
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     const trimmed = newCommentText.trim()
     if (!trimmed) return
     onAddComment(sentenceHash, trimmed)
@@ -151,107 +156,115 @@ export function SentenceRow({
           )}
 
           {/* Action Toolbar (Visible on hover or if annotated) */}
-          <HStack
-            gap="1.5"
+          <Flex
+            align="center"
+            justify="space-between"
+            w="full"
             opacity={isHovered || isBookmarked || upvotes > 0 ? 1 : 0}
             transition="opacity 0.2s ease"
             mt="1.5"
             position="relative"
           >
-            {/* Bookmark Toggle */}
-            <IconButton
-              size="xs"
-              variant={isBookmarked ? 'solid' : 'ghost'}
-              colorPalette={isBookmarked ? 'ruby' : 'gray'}
-              aria-label="Bookmark"
-              title="Bookmark sentence"
-              onClick={function handleBookmark() {
-                onToggleBookmark(sentenceHash, isBookmarked)
-              }}
-            >
-              <Bookmark size={15} fill={isBookmarked ? 'currentColor' : 'none'} />
-            </IconButton>
-
-            {/* Upvote Button (Repeatable) */}
-            <Button
-              size="xs"
-              variant={upvotes > 0 ? 'subtle' : 'ghost'}
-              colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
-              px="2.5"
-              h="7"
-              rounded="md"
-              title="Applaud / Upvote sentence"
-              onClick={function handleUpvote() {
-                onIncrementUpvote(sentenceHash)
-              }}
-            >
-              <ArrowBigUp size={16} fill={upvotes > 0 ? 'currentColor' : 'none'} />
-              {upvotes > 0 && (
-                <Text textStyle="xs" fontWeight="bold">
-                  {upvotes}
-                </Text>
-              )}
-            </Button>
-
-            {/* Highlight Color Picker */}
-            <IconButton
-              size="xs"
-              variant={highlightColor ? 'solid' : 'ghost'}
-              colorPalette={highlightColor ? (highlightColor as any) : 'gray'}
-              aria-label="Highlight"
-              title="Highlight sentence"
-              onClick={function toggleHighlightPicker() {
-                setShowHighlightPicker(!showHighlightPicker)
-              }}
-            >
-              <Highlighter size={15} />
-            </IconButton>
-
-            {showHighlightPicker && (
-              <HStack
-                position="absolute"
-                top="-9"
-                left="20"
-                bg="bg.panel"
-                borderWidth="1px"
-                borderColor="border.subtle"
-                p="1"
-                rounded="lg"
-                shadow="md"
-                zIndex="dropdown"
-                gap="1"
+            {/* Left Actions: Bookmark, Upvote, Highlight, Separator */}
+            <HStack gap="1.5" align="center">
+              {/* Bookmark Toggle */}
+              <IconButton
+                size="xs"
+                variant={isBookmarked ? 'solid' : 'ghost'}
+                colorPalette={isBookmarked ? 'ruby' : 'gray'}
+                aria-label="Bookmark"
+                title="Bookmark sentence"
+                onClick={function handleBookmark() {
+                  onToggleBookmark(sentenceHash, isBookmarked)
+                }}
               >
-                {HIGHLIGHT_COLORS.map(function renderColorBtn(hc) {
-                  return (
-                    <Button
-                      key={hc.name}
-                      size="xs"
-                      variant={highlightColor === hc.color ? 'solid' : 'ghost'}
-                      colorPalette={hc.color ? (hc.color as any) : 'gray'}
-                      onClick={function selectColor() {
-                        onSetHighlight(sentenceHash, hc.color)
-                        setShowHighlightPicker(false)
-                      }}
-                    >
-                      {hc.label}
-                    </Button>
-                  )
-                })}
-              </HStack>
-            )}
+                <Bookmark size={15} fill={isBookmarked ? 'currentColor' : 'none'} />
+              </IconButton>
 
-            {/* Quick Emoji Bar */}
-            <HStack gap="1" ml="1">
+              {/* Upvote Button (Repeatable) */}
+              <Button
+                size="xs"
+                variant={upvotes > 0 ? 'subtle' : 'ghost'}
+                colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
+                px="2"
+                h="7"
+                rounded="md"
+                title="Applaud / Upvote sentence"
+                onClick={function handleUpvote() {
+                  onIncrementUpvote(sentenceHash)
+                }}
+              >
+                <ArrowBigUp size={16} fill={upvotes > 0 ? 'currentColor' : 'none'} />
+                {upvotes > 0 && (
+                  <Text textStyle="xs" fontWeight="bold">
+                    {upvotes}
+                  </Text>
+                )}
+              </Button>
+
+              {/* Highlight Color Picker */}
+              <IconButton
+                size="xs"
+                variant={highlightColor ? 'solid' : 'ghost'}
+                colorPalette={highlightColor ? (highlightColor as any) : 'gray'}
+                aria-label="Highlight"
+                title="Highlight sentence"
+                onClick={function toggleHighlightPicker() {
+                  setShowHighlightPicker(!showHighlightPicker)
+                }}
+              >
+                <Highlighter size={15} />
+              </IconButton>
+
+              {showHighlightPicker && (
+                <HStack
+                  position="absolute"
+                  top="-9"
+                  left="0"
+                  bg="bg.panel"
+                  borderWidth="1px"
+                  borderColor="border.subtle"
+                  p="1"
+                  rounded="lg"
+                  shadow="md"
+                  zIndex="dropdown"
+                  gap="1"
+                >
+                  {HIGHLIGHT_COLORS.map(function renderColorBtn(hc) {
+                    return (
+                      <Button
+                        key={hc.name}
+                        size="xs"
+                        variant={highlightColor === hc.color ? 'solid' : 'ghost'}
+                        colorPalette={hc.color ? (hc.color as any) : 'gray'}
+                        onClick={function selectColor() {
+                          onSetHighlight(sentenceHash, hc.color)
+                          setShowHighlightPicker(false)
+                        }}
+                      >
+                        {hc.label}
+                      </Button>
+                    )
+                  })}
+                </HStack>
+              )}
+
+              {/* Separator between action buttons and emojis */}
+              <Separator orientation="vertical" h="3.5" borderColor="border.subtle" mx="0.5" />
+            </HStack>
+
+            {/* Right: Grouped & Attached Emoji Bar */}
+            <Group attached>
               {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
                 return (
                   <Button
                     key={em}
                     size="xs"
-                    variant="ghost"
-                    px="2"
-                    py="1"
+                    variant="subtle"
+                    colorPalette="gray"
+                    px="1.5"
                     h="7"
-                    fontSize="sm"
+                    fontSize="xs"
                     onClick={function sendQuickEmoji() {
                       onAddReaction(sentenceHash, em)
                     }}
@@ -262,18 +275,19 @@ export function SentenceRow({
               })}
               <IconButton
                 size="xs"
-                variant="ghost"
+                variant="subtle"
                 colorPalette="gray"
+                h="7"
                 aria-label="More Emojis"
                 title="Open full emoji picker"
                 onClick={function openPicker() {
                   setShowFullPicker(!showFullPicker)
                 }}
               >
-                <Plus size={14} />
+                <Plus size={13} />
               </IconButton>
-            </HStack>
-          </HStack>
+            </Group>
+          </Flex>
 
           {/* Full Emoji Picker Popover */}
           {showFullPicker && (
@@ -340,8 +354,8 @@ export function SentenceRow({
             })}
 
             {/* Seamless Editable Input ("No comment" placeholder, borderless when empty) */}
-            <form onSubmit={handleCommentSubmit}>
-              <HStack gap="1">
+            <form onSubmit={handleCommentSubmit} style={{ width: '100%' }}>
+              <HStack gap="1" w="full">
                 <Input
                   size="2xs"
                   variant="flushed"
@@ -350,12 +364,19 @@ export function SentenceRow({
                   onChange={function onTextChange(e) {
                     setNewCommentText(e.target.value)
                   }}
+                  onKeyDown={function handleKeyDown(e) {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleCommentSubmit()
+                    }
+                  }}
                   fontSize="2xs"
                   color="fg.muted"
                   _placeholder={{ color: 'fg.subtle', fontStyle: 'italic' }}
                   borderBottomColor={newCommentText ? 'ruby.focus' : 'transparent'}
                   _focus={{ borderBottomColor: 'ruby.solid' }}
                   px="1"
+                  flex="1"
                 />
                 {newCommentText.trim() && (
                   <IconButton
