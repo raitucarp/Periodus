@@ -5,14 +5,16 @@
 // @ts-ignore: Unused imports
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Unused imports
-import * as llm$0 from "../llm/models.js";
-
-export function AnalyzeParagraph(text: string, analysisType: string): $CancellablePromise<string> {
-    return $Call.ByID(3220602772, text, analysisType);
+/**
+ * AnalyzeParagraph keeps backward-compatibility, running analysis with a prompt ID
+ */
+export function AnalyzeParagraph(text: string, promptID: string): $CancellablePromise<string> {
+    return $Call.ByID(3220602772, text, promptID);
 }
 
-export function SetProvider(p: llm$0.Provider): $CancellablePromise<void> {
-    return $Call.ByID(3930761227, p);
+/**
+ * AnalyzeParagraphWithBook executes analysis for a specific prompt ID and book context
+ */
+export function AnalyzeParagraphWithBook(text: string, promptID: string, bookID: string): $CancellablePromise<string> {
+    return $Call.ByID(907536673, text, promptID, bookID);
 }

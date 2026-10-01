@@ -5,10 +5,72 @@
 // @ts-ignore: Unused imports
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as db$0 from "../db/models.js";
+
+export function DeletePrompt(id: string): $CancellablePromise<void> {
+    return $Call.ByID(3619804780, id);
+}
+
+/**
+ * AI Settings (Global or per-book)
+ */
+export function GetAISettings(bookID: string): $CancellablePromise<db$0.AISettings | null> {
+    return $Call.ByID(3062685216, bookID).then(($result: any) => {
+        return $$createType1($result);
+    });
+}
+
+/**
+ * Backward-compatible API key methods
+ */
 export function GetApiKey(): $CancellablePromise<string> {
     return $Call.ByID(682982808);
+}
+
+/**
+ * Prompts Management
+ */
+export function GetPrompts(bookID: string): $CancellablePromise<db$0.Prompt[]> {
+    return $Call.ByID(3935606358, bookID).then(($result: any) => {
+        return $$createType3($result);
+    });
+}
+
+/**
+ * Reading Settings (Global or per-book)
+ */
+export function GetReadingSettings(bookID: string): $CancellablePromise<db$0.ReadingSettings | null> {
+    return $Call.ByID(3327268460, bookID).then(($result: any) => {
+        return $$createType5($result);
+    });
+}
+
+export function ResetPrompts(): $CancellablePromise<void> {
+    return $Call.ByID(3464408699);
+}
+
+export function SaveAISettings(settings: db$0.AISettings): $CancellablePromise<void> {
+    return $Call.ByID(718108327, settings);
 }
 
 export function SaveApiKey(key: string): $CancellablePromise<void> {
     return $Call.ByID(122644043, key);
 }
+
+export function SavePrompt(p: db$0.Prompt): $CancellablePromise<void> {
+    return $Call.ByID(1871489810, p);
+}
+
+export function SaveReadingSettings(settings: db$0.ReadingSettings): $CancellablePromise<void> {
+    return $Call.ByID(839273213, settings);
+}
+
+// Private type creation functions
+const $$createType0 = db$0.AISettings.createFrom;
+const $$createType1 = $Create.Nullable($$createType0);
+const $$createType2 = db$0.Prompt.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = db$0.ReadingSettings.createFrom;
+const $$createType5 = $Create.Nullable($$createType4);

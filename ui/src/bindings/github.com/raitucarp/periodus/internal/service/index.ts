@@ -3,11 +3,13 @@
 
 import * as AIService from "./aiservice.js";
 import * as BookService from "./bookservice.js";
+import * as DictionaryService from "./dictionaryservice.js";
 import * as ReaderService from "./readerservice.js";
 import * as SettingsService from "./settingsservice.js";
 export {
     AIService,
     BookService,
+    DictionaryService,
     ReaderService,
     SettingsService
 };

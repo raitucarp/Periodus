@@ -5,6 +5,55 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+export class AISettings {
+    "scope": string;
+    "useGlobal": boolean;
+    "chat": ModelConfig;
+    "embedding": EmbeddingConfig;
+    "vision": VisionConfig;
+
+    /** Creates a new AISettings instance. */
+    constructor($$source: Partial<AISettings> = {}) {
+        if (!("scope" in $$source)) {
+            this["scope"] = "";
+        }
+        if (!("useGlobal" in $$source)) {
+            this["useGlobal"] = false;
+        }
+        if (!("chat" in $$source)) {
+            this["chat"] = (new ModelConfig());
+        }
+        if (!("embedding" in $$source)) {
+            this["embedding"] = (new EmbeddingConfig());
+        }
+        if (!("vision" in $$source)) {
+            this["vision"] = (new VisionConfig());
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AISettings instance from a string or object.
+     */
+    static createFrom($$source: any = {}): AISettings {
+        const $$createField2_0 = $$createType0;
+        const $$createField3_0 = $$createType1;
+        const $$createField4_0 = $$createType2;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("chat" in $$parsedSource) {
+            $$parsedSource["chat"] = $$createField2_0($$parsedSource["chat"]);
+        }
+        if ("embedding" in $$parsedSource) {
+            $$parsedSource["embedding"] = $$createField3_0($$parsedSource["embedding"]);
+        }
+        if ("vision" in $$parsedSource) {
+            $$parsedSource["vision"] = $$createField4_0($$parsedSource["vision"]);
+        }
+        return new AISettings($$parsedSource as Partial<AISettings>);
+    }
+}
+
 export class Chapter {
     "id": string;
     "book_id": string;
@@ -47,6 +96,43 @@ export class Chapter {
     static createFrom($$source: any = {}): Chapter {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new Chapter($$parsedSource as Partial<Chapter>);
+    }
+}
+
+export class EmbeddingConfig {
+    "provider": string;
+    "model": string;
+    "apiKey": string;
+    "baseUrl": string;
+    "dimensions": number;
+
+    /** Creates a new EmbeddingConfig instance. */
+    constructor($$source: Partial<EmbeddingConfig> = {}) {
+        if (!("provider" in $$source)) {
+            this["provider"] = "";
+        }
+        if (!("model" in $$source)) {
+            this["model"] = "";
+        }
+        if (!("apiKey" in $$source)) {
+            this["apiKey"] = "";
+        }
+        if (!("baseUrl" in $$source)) {
+            this["baseUrl"] = "";
+        }
+        if (!("dimensions" in $$source)) {
+            this["dimensions"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EmbeddingConfig instance from a string or object.
+     */
+    static createFrom($$source: any = {}): EmbeddingConfig {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new EmbeddingConfig($$parsedSource as Partial<EmbeddingConfig>);
     }
 }
 
@@ -212,6 +298,47 @@ export class ListBooksRow {
     }
 }
 
+export class ModelConfig {
+    "provider": string;
+    "model": string;
+    "apiKey": string;
+    "baseUrl": string;
+    "temperature": number;
+    "maxTokens": number;
+
+    /** Creates a new ModelConfig instance. */
+    constructor($$source: Partial<ModelConfig> = {}) {
+        if (!("provider" in $$source)) {
+            this["provider"] = "";
+        }
+        if (!("model" in $$source)) {
+            this["model"] = "";
+        }
+        if (!("apiKey" in $$source)) {
+            this["apiKey"] = "";
+        }
+        if (!("baseUrl" in $$source)) {
+            this["baseUrl"] = "";
+        }
+        if (!("temperature" in $$source)) {
+            this["temperature"] = 0;
+        }
+        if (!("maxTokens" in $$source)) {
+            this["maxTokens"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ModelConfig instance from a string or object.
+     */
+    static createFrom($$source: any = {}): ModelConfig {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ModelConfig($$parsedSource as Partial<ModelConfig>);
+    }
+}
+
 export class Paragraph {
     "id": string;
     "book_id": string;
@@ -257,6 +384,95 @@ export class Paragraph {
     }
 }
 
+export class Prompt {
+    "id": string;
+    "name": string;
+    "description": string;
+    "icon": string;
+    "color_palette": string;
+    "system_prompt": string;
+    "user_prompt": string;
+    "provider": string;
+    "model": string;
+    "temperature": number;
+    "max_tokens": number;
+    "is_builtin": number;
+    "is_enabled": number;
+    "sort_order": number;
+    "scope": string;
+    "book_id": string;
+    "created_at": string;
+    "updated_at": string;
+
+    /** Creates a new Prompt instance. */
+    constructor($$source: Partial<Prompt> = {}) {
+        if (!("id" in $$source)) {
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            this["name"] = "";
+        }
+        if (!("description" in $$source)) {
+            this["description"] = "";
+        }
+        if (!("icon" in $$source)) {
+            this["icon"] = "";
+        }
+        if (!("color_palette" in $$source)) {
+            this["color_palette"] = "";
+        }
+        if (!("system_prompt" in $$source)) {
+            this["system_prompt"] = "";
+        }
+        if (!("user_prompt" in $$source)) {
+            this["user_prompt"] = "";
+        }
+        if (!("provider" in $$source)) {
+            this["provider"] = "";
+        }
+        if (!("model" in $$source)) {
+            this["model"] = "";
+        }
+        if (!("temperature" in $$source)) {
+            this["temperature"] = 0;
+        }
+        if (!("max_tokens" in $$source)) {
+            this["max_tokens"] = 0;
+        }
+        if (!("is_builtin" in $$source)) {
+            this["is_builtin"] = 0;
+        }
+        if (!("is_enabled" in $$source)) {
+            this["is_enabled"] = 0;
+        }
+        if (!("sort_order" in $$source)) {
+            this["sort_order"] = 0;
+        }
+        if (!("scope" in $$source)) {
+            this["scope"] = "";
+        }
+        if (!("book_id" in $$source)) {
+            this["book_id"] = "";
+        }
+        if (!("created_at" in $$source)) {
+            this["created_at"] = "0001-01-01T00:00:00.000Z";
+        }
+        if (!("updated_at" in $$source)) {
+            this["updated_at"] = "0001-01-01T00:00:00.000Z";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Prompt instance from a string or object.
+     */
+    static createFrom($$source: any = {}): Prompt {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Prompt($$parsedSource as Partial<Prompt>);
+    }
+}
+
 export class ReadingProgress {
     "book_id": string;
     "current_chapter_index": number;
@@ -293,3 +509,82 @@ export class ReadingProgress {
         return new ReadingProgress($$parsedSource as Partial<ReadingProgress>);
     }
 }
+
+export class ReadingSettings {
+    "scope": string;
+    "fontFamily": string;
+    "fontSize": number;
+    "lineHeight": string;
+    "maxWidth": string;
+    "textAlign": string;
+
+    /** Creates a new ReadingSettings instance. */
+    constructor($$source: Partial<ReadingSettings> = {}) {
+        if (!("scope" in $$source)) {
+            this["scope"] = "";
+        }
+        if (!("fontFamily" in $$source)) {
+            this["fontFamily"] = "";
+        }
+        if (!("fontSize" in $$source)) {
+            this["fontSize"] = 0;
+        }
+        if (!("lineHeight" in $$source)) {
+            this["lineHeight"] = "";
+        }
+        if (!("maxWidth" in $$source)) {
+            this["maxWidth"] = "";
+        }
+        if (!("textAlign" in $$source)) {
+            this["textAlign"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ReadingSettings instance from a string or object.
+     */
+    static createFrom($$source: any = {}): ReadingSettings {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ReadingSettings($$parsedSource as Partial<ReadingSettings>);
+    }
+}
+
+export class VisionConfig {
+    "provider": string;
+    "model": string;
+    "apiKey": string;
+    "baseUrl": string;
+
+    /** Creates a new VisionConfig instance. */
+    constructor($$source: Partial<VisionConfig> = {}) {
+        if (!("provider" in $$source)) {
+            this["provider"] = "";
+        }
+        if (!("model" in $$source)) {
+            this["model"] = "";
+        }
+        if (!("apiKey" in $$source)) {
+            this["apiKey"] = "";
+        }
+        if (!("baseUrl" in $$source)) {
+            this["baseUrl"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new VisionConfig instance from a string or object.
+     */
+    static createFrom($$source: any = {}): VisionConfig {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new VisionConfig($$parsedSource as Partial<VisionConfig>);
+    }
+}
+
+// Private type creation functions
+const $$createType0 = ModelConfig.createFrom;
+const $$createType1 = EmbeddingConfig.createFrom;
+const $$createType2 = VisionConfig.createFrom;
