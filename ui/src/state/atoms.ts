@@ -1,5 +1,5 @@
 import { atom } from 'jotai'
-import type { Book, Chapter, Paragraph } from '@/lib/types'
+import type { Book, Chapter, Paragraph, ReadingSettings, AISettings, Prompt } from '@/lib/types'
 import { filter, find, includes, toLower, trim, isEmpty } from 'lodash-es'
 
 // Primitive Base Atoms
@@ -37,6 +37,48 @@ export const isSettingsOpenAtom = atom<boolean>(false)
 export const apiKeyAtom = atom<string>('')
 export const isSavingApiKeyAtom = atom<boolean>(false)
 export const apiKeySaveSuccessAtom = atom<boolean>(false)
+
+export const defaultReadingSettings: ReadingSettings = {
+  scope: 'global',
+  fontFamily: 'Literata',
+  fontSize: 18,
+  lineHeight: 'reading',
+  maxWidth: '800px',
+  textAlign: 'left',
+}
+
+export const defaultAISettings: AISettings = {
+  scope: 'global',
+  useGlobal: true,
+  chat: {
+    provider: 'gemini',
+    model: 'gemini-2.5-flash',
+    apiKey: '',
+    baseUrl: '',
+    temperature: 0.7,
+    maxTokens: 2048,
+  },
+  embedding: {
+    provider: 'gemini',
+    model: 'text-embedding-004',
+    apiKey: '',
+    baseUrl: '',
+    dimensions: 768,
+  },
+  vision: {
+    provider: 'gemini',
+    model: 'gemini-2.5-flash',
+    apiKey: '',
+    baseUrl: '',
+  },
+}
+
+export const readingSettingsAtom = atom<ReadingSettings>(defaultReadingSettings)
+export const aiSettingsAtom = atom<AISettings>(defaultAISettings)
+export const promptsListAtom = atom<Prompt[]>([])
+export const settingsScopeAtom = atom<string>('global')
+export const activeSettingsTabAtom = atom<string>('general')
+export const activeAISubTabAtom = atom<string>('chat')
 
 // --- Derived Atoms ---
 

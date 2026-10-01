@@ -1,15 +1,35 @@
 import { atom, useAtom } from 'jotai'
-import { id } from './id'
 import { en } from './en'
+import { id } from './id'
+import { fr } from './fr'
+import { de } from './de'
+import { la } from './la'
+import { nl } from './nl'
+import { es } from './es'
+import { ja } from './ja'
 import type { Locale, TranslationSchema } from './types'
 
 const translations: Record<Locale, TranslationSchema> = {
-  id,
   en,
+  id,
+  fr,
+  de,
+  la,
+  nl,
+  es,
+  ja,
 }
 
-const savedLocale = (typeof localStorage !== 'undefined' && localStorage.getItem('periodus_locale')) as Locale | null
-export const localeAtom = atom<Locale>(savedLocale === 'id' ? 'id' : 'en')
+function getInitialLocale(): Locale {
+  if (typeof localStorage === 'undefined') return 'en'
+  const saved = localStorage.getItem('periodus_locale')
+  if (saved && saved in translations) {
+    return saved as Locale
+  }
+  return 'en'
+}
+
+export const localeAtom = atom<Locale>(getInitialLocale())
 
 export function useTranslation() {
   const [currentLocale, setCurrentLocale] = useAtom(localeAtom)
@@ -21,7 +41,7 @@ export function useTranslation() {
     setCurrentLocale(newLocale)
   }
 
-  const t = translations[currentLocale]
+  const t = translations[currentLocale] || translations.en
 
   function format(template: string, params: Record<string, string | number>): string {
     let result = template
