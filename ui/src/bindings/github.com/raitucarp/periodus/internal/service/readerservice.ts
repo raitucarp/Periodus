@@ -9,9 +9,41 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 // @ts-ignore: Unused imports
 import * as db$0 from "../db/models.js";
 
+/**
+ * AddSentenceComment adds a marginalia comment to a sentence
+ */
+export function AddSentenceComment(id: string, sentenceHash: string, bookID: string, content: string): $CancellablePromise<void> {
+    return $Call.ByID(4237580260, id, sentenceHash, bookID, content);
+}
+
+/**
+ * DeleteSentenceComment removes a comment by ID
+ */
+export function DeleteSentenceComment(id: string): $CancellablePromise<void> {
+    return $Call.ByID(950751478, id);
+}
+
+/**
+ * GetChapterHeatmap returns chapter-level visit counts for the chapter heatmap
+ */
+export function GetChapterHeatmap(bookID: string): $CancellablePromise<db$0.ListChapterStatsByBookRow[]> {
+    return $Call.ByID(1412398954, bookID).then(($result: any) => {
+        return $$createType1($result);
+    });
+}
+
 export function GetChapters(bookID: string): $CancellablePromise<db$0.Chapter[]> {
     return $Call.ByID(3585073963, bookID).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType3($result);
+    });
+}
+
+/**
+ * GetParagraphComments returns all comments in the book/paragraph
+ */
+export function GetParagraphComments(bookID: string): $CancellablePromise<db$0.SentenceComment[]> {
+    return $Call.ByID(2477530819, bookID).then(($result: any) => {
+        return $$createType5($result);
     });
 }
 
@@ -19,26 +51,101 @@ export function GetParagraphContent(bookID: string, chapterIndex: number, paragr
     return $Call.ByID(1207352262, bookID, chapterIndex, paragraphIndex);
 }
 
+/**
+ * GetParagraphHeatmap returns paragraph-level visit counts for the paragraph heatmap
+ */
+export function GetParagraphHeatmap(bookID: string, chapterIndex: number): $CancellablePromise<db$0.ParagraphStat[]> {
+    return $Call.ByID(188889119, bookID, chapterIndex).then(($result: any) => {
+        return $$createType7($result);
+    });
+}
+
+/**
+ * GetParagraphStats returns statistics and customization for a paragraph
+ */
+export function GetParagraphStats(bookID: string, chapterIndex: number, paragraphIndex: number): $CancellablePromise<db$0.ParagraphStat | null> {
+    return $Call.ByID(1500418896, bookID, chapterIndex, paragraphIndex).then(($result: any) => {
+        return $$createType8($result);
+    });
+}
+
 export function GetParagraphs(bookID: string, chapterIndex: number): $CancellablePromise<db$0.Paragraph[]> {
     return $Call.ByID(1514791094, bookID, chapterIndex).then(($result: any) => {
-        return $$createType3($result);
+        return $$createType10($result);
     });
 }
 
 export function GetProgress(bookID: string): $CancellablePromise<db$0.ReadingProgress | null> {
     return $Call.ByID(251424062, bookID).then(($result: any) => {
+        return $$createType12($result);
+    });
+}
+
+/**
+ * GetSentenceAnnotations returns all sentence annotations for a paragraph
+ */
+export function GetSentenceAnnotations(bookID: string, chapterIndex: number, paragraphIndex: number): $CancellablePromise<db$0.SentenceAnnotation[]> {
+    return $Call.ByID(227867678, bookID, chapterIndex, paragraphIndex).then(($result: any) => {
+        return $$createType14($result);
+    });
+}
+
+/**
+ * GetSentenceComments returns all comments for a sentence
+ */
+export function GetSentenceComments(sentenceHash: string): $CancellablePromise<db$0.SentenceComment[]> {
+    return $Call.ByID(210131518, sentenceHash).then(($result: any) => {
         return $$createType5($result);
     });
+}
+
+/**
+ * IncrementParagraphVisit increments and returns hit counter for a paragraph
+ */
+export function IncrementParagraphVisit(bookID: string, chapterIndex: number, paragraphIndex: number): $CancellablePromise<db$0.ParagraphStat | null> {
+    return $Call.ByID(2919781085, bookID, chapterIndex, paragraphIndex).then(($result: any) => {
+        return $$createType8($result);
+    });
+}
+
+/**
+ * IncrementSentenceUpvote increments upvotes for a sentence
+ */
+export function IncrementSentenceUpvote(sentenceHash: string, bookID: string, chapterIndex: number, paragraphIndex: number): $CancellablePromise<number> {
+    return $Call.ByID(1838455964, sentenceHash, bookID, chapterIndex, paragraphIndex);
 }
 
 export function SaveProgress(bookID: string, chapterIndex: number, paragraphIndex: number, percent: number): $CancellablePromise<void> {
     return $Call.ByID(169201873, bookID, chapterIndex, paragraphIndex, percent);
 }
 
+/**
+ * SaveSentenceAnnotation creates or updates sentence annotation (bookmark, highlight, emoji reactions)
+ */
+export function SaveSentenceAnnotation(ann: db$0.SentenceAnnotation): $CancellablePromise<void> {
+    return $Call.ByID(1386604314, ann);
+}
+
+/**
+ * UpdateParagraphStats updates skip status and custom styling for a paragraph
+ */
+export function UpdateParagraphStats(bookID: string, chapterIndex: number, paragraphIndex: number, isSkipped: boolean, customFontFamily: string, customFontSize: number): $CancellablePromise<void> {
+    return $Call.ByID(3170170515, bookID, chapterIndex, paragraphIndex, isSkipped, customFontFamily, customFontSize);
+}
+
 // Private type creation functions
-const $$createType0 = db$0.Chapter.createFrom;
+const $$createType0 = db$0.ListChapterStatsByBookRow.createFrom;
 const $$createType1 = $Create.Array($$createType0);
-const $$createType2 = db$0.Paragraph.createFrom;
+const $$createType2 = db$0.Chapter.createFrom;
 const $$createType3 = $Create.Array($$createType2);
-const $$createType4 = db$0.ReadingProgress.createFrom;
-const $$createType5 = $Create.Nullable($$createType4);
+const $$createType4 = db$0.SentenceComment.createFrom;
+const $$createType5 = $Create.Array($$createType4);
+const $$createType6 = db$0.ParagraphStat.createFrom;
+const $$createType7 = $Create.Array($$createType6);
+const $$createType8 = $Create.Nullable($$createType6);
+const $$createType9 = db$0.Paragraph.createFrom;
+const $$createType10 = $Create.Array($$createType9);
+const $$createType11 = db$0.ReadingProgress.createFrom;
+const $$createType12 = $Create.Nullable($$createType11);
+const $$createType13 = db$0.SentenceAnnotation.createFrom;
+const $$createType14 = $Create.Array($$createType13);

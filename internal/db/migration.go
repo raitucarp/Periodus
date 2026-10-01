@@ -12,6 +12,57 @@ func migrateSchema(db *sql.DB) error {
 		return fmt.Errorf("migrate prompts table: %w", err)
 	}
 
+	if err := migrateNewReadingTables(db); err != nil {
+		return fmt.Errorf("migrate reading tables: %w", err)
+	}
+
+	return nil
+}
+
+func migrateNewReadingTables(db *sql.DB) error {
+	queries := []string{
+		`CREATE TABLE IF NOT EXISTS paragraph_stats (
+			book_id TEXT NOT NULL,
+			chapter_index INTEGER NOT NULL,
+			paragraph_index INTEGER NOT NULL,
+			visit_count INTEGER NOT NULL DEFAULT 0,
+			is_skipped INTEGER NOT NULL DEFAULT 0,
+			custom_font_family TEXT NOT NULL DEFAULT '',
+			custom_font_size REAL NOT NULL DEFAULT 0,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (book_id, chapter_index, paragraph_index),
+			FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE
+		);`,
+		`CREATE TABLE IF NOT EXISTS sentence_annotations (
+			sentence_hash TEXT PRIMARY KEY,
+			book_id TEXT NOT NULL,
+			chapter_index INTEGER NOT NULL,
+			paragraph_index INTEGER NOT NULL,
+			is_bookmarked INTEGER NOT NULL DEFAULT 0,
+			highlight_color TEXT NOT NULL DEFAULT '',
+			upvotes_count INTEGER NOT NULL DEFAULT 0,
+			emoji_reactions TEXT NOT NULL DEFAULT '[]',
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE
+		);`,
+		`CREATE TABLE IF NOT EXISTS sentence_comments (
+			id TEXT PRIMARY KEY,
+			sentence_hash TEXT NOT NULL,
+			book_id TEXT NOT NULL,
+			content TEXT NOT NULL,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_paragraph_stats_lookup ON paragraph_stats(book_id, chapter_index);`,
+		`CREATE INDEX IF NOT EXISTS idx_sentence_annotations_pos ON sentence_annotations(book_id, chapter_index, paragraph_index);`,
+		`CREATE INDEX IF NOT EXISTS idx_sentence_comments_hash ON sentence_comments(sentence_hash);`,
+	}
+
+	for _, q := range queries {
+		if _, err := db.Exec(q); err != nil {
+			return fmt.Errorf("execute table migration: %w", err)
+		}
+	}
 	return nil
 }
 

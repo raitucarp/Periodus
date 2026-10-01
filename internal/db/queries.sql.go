@@ -10,6 +10,28 @@ import (
 	"time"
 )
 
+const createSentenceComment = `-- name: CreateSentenceComment :exec
+INSERT INTO sentence_comments (id, sentence_hash, book_id, content, created_at)
+VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+`
+
+type CreateSentenceCommentParams struct {
+	ID           string `json:"id"`
+	SentenceHash string `json:"sentence_hash"`
+	BookID       string `json:"book_id"`
+	Content      string `json:"content"`
+}
+
+func (q *Queries) CreateSentenceComment(ctx context.Context, arg CreateSentenceCommentParams) error {
+	_, err := q.db.ExecContext(ctx, createSentenceComment,
+		arg.ID,
+		arg.SentenceHash,
+		arg.BookID,
+		arg.Content,
+	)
+	return err
+}
+
 const deleteBook = `-- name: DeleteBook :exec
 DELETE FROM books WHERE id = ?
 `
@@ -35,6 +57,15 @@ WHERE id = ? AND is_builtin = 0
 
 func (q *Queries) DeletePrompt(ctx context.Context, id string) error {
 	_, err := q.db.ExecContext(ctx, deletePrompt, id)
+	return err
+}
+
+const deleteSentenceComment = `-- name: DeleteSentenceComment :exec
+DELETE FROM sentence_comments WHERE id = ?
+`
+
+func (q *Queries) DeleteSentenceComment(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteSentenceComment, id)
 	return err
 }
 
@@ -137,6 +168,34 @@ func (q *Queries) GetParagraphEmbedding(ctx context.Context, paragraphID string)
 	return i, err
 }
 
+const getParagraphStats = `-- name: GetParagraphStats :one
+SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+FROM paragraph_stats
+WHERE book_id = ? AND chapter_index = ? AND paragraph_index = ?
+`
+
+type GetParagraphStatsParams struct {
+	BookID         string `json:"book_id"`
+	ChapterIndex   int64  `json:"chapter_index"`
+	ParagraphIndex int64  `json:"paragraph_index"`
+}
+
+func (q *Queries) GetParagraphStats(ctx context.Context, arg GetParagraphStatsParams) (ParagraphStat, error) {
+	row := q.db.QueryRowContext(ctx, getParagraphStats, arg.BookID, arg.ChapterIndex, arg.ParagraphIndex)
+	var i ParagraphStat
+	err := row.Scan(
+		&i.BookID,
+		&i.ChapterIndex,
+		&i.ParagraphIndex,
+		&i.VisitCount,
+		&i.IsSkipped,
+		&i.CustomFontFamily,
+		&i.CustomFontSize,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getProgress = `-- name: GetProgress :one
 SELECT book_id, current_chapter_index, current_paragraph_index, percent_complete, last_read_at
 FROM reading_progress
@@ -192,6 +251,29 @@ func (q *Queries) GetPromptByID(ctx context.Context, id string) (Prompt, error) 
 	return i, err
 }
 
+const getSentenceAnnotation = `-- name: GetSentenceAnnotation :one
+SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+FROM sentence_annotations
+WHERE sentence_hash = ?
+`
+
+func (q *Queries) GetSentenceAnnotation(ctx context.Context, sentenceHash string) (SentenceAnnotation, error) {
+	row := q.db.QueryRowContext(ctx, getSentenceAnnotation, sentenceHash)
+	var i SentenceAnnotation
+	err := row.Scan(
+		&i.SentenceHash,
+		&i.BookID,
+		&i.ChapterIndex,
+		&i.ParagraphIndex,
+		&i.IsBookmarked,
+		&i.HighlightColor,
+		&i.UpvotesCount,
+		&i.EmojiReactions,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getSetting = `-- name: GetSetting :one
 SELECT value FROM settings WHERE key = ?
 `
@@ -201,6 +283,67 @@ func (q *Queries) GetSetting(ctx context.Context, key string) (string, error) {
 	var value string
 	err := row.Scan(&value)
 	return value, err
+}
+
+const incrementParagraphVisit = `-- name: IncrementParagraphVisit :one
+INSERT INTO paragraph_stats (
+    book_id, chapter_index, paragraph_index, visit_count, updated_at
+) VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
+ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
+    visit_count = paragraph_stats.visit_count + 1,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+`
+
+type IncrementParagraphVisitParams struct {
+	BookID         string `json:"book_id"`
+	ChapterIndex   int64  `json:"chapter_index"`
+	ParagraphIndex int64  `json:"paragraph_index"`
+}
+
+func (q *Queries) IncrementParagraphVisit(ctx context.Context, arg IncrementParagraphVisitParams) (ParagraphStat, error) {
+	row := q.db.QueryRowContext(ctx, incrementParagraphVisit, arg.BookID, arg.ChapterIndex, arg.ParagraphIndex)
+	var i ParagraphStat
+	err := row.Scan(
+		&i.BookID,
+		&i.ChapterIndex,
+		&i.ParagraphIndex,
+		&i.VisitCount,
+		&i.IsSkipped,
+		&i.CustomFontFamily,
+		&i.CustomFontSize,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const incrementSentenceUpvote = `-- name: IncrementSentenceUpvote :one
+INSERT INTO sentence_annotations (
+    sentence_hash, book_id, chapter_index, paragraph_index, upvotes_count, updated_at
+) VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+ON CONFLICT(sentence_hash) DO UPDATE SET
+    upvotes_count = sentence_annotations.upvotes_count + 1,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING upvotes_count
+`
+
+type IncrementSentenceUpvoteParams struct {
+	SentenceHash   string `json:"sentence_hash"`
+	BookID         string `json:"book_id"`
+	ChapterIndex   int64  `json:"chapter_index"`
+	ParagraphIndex int64  `json:"paragraph_index"`
+}
+
+func (q *Queries) IncrementSentenceUpvote(ctx context.Context, arg IncrementSentenceUpvoteParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, incrementSentenceUpvote,
+		arg.SentenceHash,
+		arg.BookID,
+		arg.ChapterIndex,
+		arg.ParagraphIndex,
+	)
+	var upvotes_count int64
+	err := row.Scan(&upvotes_count)
+	return upvotes_count, err
 }
 
 const listBooks = `-- name: ListBooks :many
@@ -276,6 +419,57 @@ func (q *Queries) ListBooks(ctx context.Context) ([]ListBooksRow, error) {
 	return items, nil
 }
 
+const listChapterStatsByBook = `-- name: ListChapterStatsByBook :many
+SELECT 
+    c.chapter_index,
+    c.title,
+    c.paragraph_count,
+    COALESCE(SUM(ps.visit_count), 0) AS total_visits,
+    COUNT(CASE WHEN ps.visit_count > 0 THEN 1 END) AS visited_paragraphs
+FROM chapters c
+LEFT JOIN paragraph_stats ps ON ps.book_id = c.book_id AND ps.chapter_index = c.chapter_index
+WHERE c.book_id = ?
+GROUP BY c.chapter_index, c.title, c.paragraph_count
+ORDER BY c.chapter_index ASC
+`
+
+type ListChapterStatsByBookRow struct {
+	ChapterIndex      int64       `json:"chapter_index"`
+	Title             string      `json:"title"`
+	ParagraphCount    int64       `json:"paragraph_count"`
+	TotalVisits       interface{} `json:"total_visits"`
+	VisitedParagraphs int64       `json:"visited_paragraphs"`
+}
+
+func (q *Queries) ListChapterStatsByBook(ctx context.Context, bookID string) ([]ListChapterStatsByBookRow, error) {
+	rows, err := q.db.QueryContext(ctx, listChapterStatsByBook, bookID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListChapterStatsByBookRow
+	for rows.Next() {
+		var i ListChapterStatsByBookRow
+		if err := rows.Scan(
+			&i.ChapterIndex,
+			&i.Title,
+			&i.ParagraphCount,
+			&i.TotalVisits,
+			&i.VisitedParagraphs,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listChaptersByBookID = `-- name: ListChaptersByBookID :many
 SELECT id, book_id, chapter_index, title, file_path, paragraph_count, created_at
 FROM chapters
@@ -337,6 +531,50 @@ func (q *Queries) ListParagraphEmbeddingsByBook(ctx context.Context, bookID stri
 			&i.Dimensions,
 			&i.Model,
 			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listParagraphStatsByChapter = `-- name: ListParagraphStatsByChapter :many
+SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+FROM paragraph_stats
+WHERE book_id = ? AND chapter_index = ?
+ORDER BY paragraph_index ASC
+`
+
+type ListParagraphStatsByChapterParams struct {
+	BookID       string `json:"book_id"`
+	ChapterIndex int64  `json:"chapter_index"`
+}
+
+func (q *Queries) ListParagraphStatsByChapter(ctx context.Context, arg ListParagraphStatsByChapterParams) ([]ParagraphStat, error) {
+	rows, err := q.db.QueryContext(ctx, listParagraphStatsByChapter, arg.BookID, arg.ChapterIndex)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ParagraphStat
+	for rows.Next() {
+		var i ParagraphStat
+		if err := rows.Scan(
+			&i.BookID,
+			&i.ChapterIndex,
+			&i.ParagraphIndex,
+			&i.VisitCount,
+			&i.IsSkipped,
+			&i.CustomFontFamily,
+			&i.CustomFontSize,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -432,6 +670,123 @@ func (q *Queries) ListPrompts(ctx context.Context, bookID string) ([]Prompt, err
 			&i.BookID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSentenceAnnotationsByParagraph = `-- name: ListSentenceAnnotationsByParagraph :many
+SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+FROM sentence_annotations
+WHERE book_id = ? AND chapter_index = ? AND paragraph_index = ?
+`
+
+type ListSentenceAnnotationsByParagraphParams struct {
+	BookID         string `json:"book_id"`
+	ChapterIndex   int64  `json:"chapter_index"`
+	ParagraphIndex int64  `json:"paragraph_index"`
+}
+
+func (q *Queries) ListSentenceAnnotationsByParagraph(ctx context.Context, arg ListSentenceAnnotationsByParagraphParams) ([]SentenceAnnotation, error) {
+	rows, err := q.db.QueryContext(ctx, listSentenceAnnotationsByParagraph, arg.BookID, arg.ChapterIndex, arg.ParagraphIndex)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SentenceAnnotation
+	for rows.Next() {
+		var i SentenceAnnotation
+		if err := rows.Scan(
+			&i.SentenceHash,
+			&i.BookID,
+			&i.ChapterIndex,
+			&i.ParagraphIndex,
+			&i.IsBookmarked,
+			&i.HighlightColor,
+			&i.UpvotesCount,
+			&i.EmojiReactions,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSentenceComments = `-- name: ListSentenceComments :many
+SELECT id, sentence_hash, book_id, content, created_at
+FROM sentence_comments
+WHERE sentence_hash = ?
+ORDER BY created_at ASC
+`
+
+func (q *Queries) ListSentenceComments(ctx context.Context, sentenceHash string) ([]SentenceComment, error) {
+	rows, err := q.db.QueryContext(ctx, listSentenceComments, sentenceHash)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SentenceComment
+	for rows.Next() {
+		var i SentenceComment
+		if err := rows.Scan(
+			&i.ID,
+			&i.SentenceHash,
+			&i.BookID,
+			&i.Content,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSentenceCommentsByParagraph = `-- name: ListSentenceCommentsByParagraph :many
+SELECT sc.id, sc.sentence_hash, sc.book_id, sc.content, sc.created_at
+FROM sentence_comments sc
+WHERE sc.book_id = ?
+ORDER BY sc.created_at ASC
+`
+
+func (q *Queries) ListSentenceCommentsByParagraph(ctx context.Context, bookID string) ([]SentenceComment, error) {
+	rows, err := q.db.QueryContext(ctx, listSentenceCommentsByParagraph, bookID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SentenceComment
+	for rows.Next() {
+		var i SentenceComment
+		if err := rows.Scan(
+			&i.ID,
+			&i.SentenceHash,
+			&i.BookID,
+			&i.Content,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -564,6 +919,38 @@ type SetSettingParams struct {
 
 func (q *Queries) SetSetting(ctx context.Context, arg SetSettingParams) error {
 	_, err := q.db.ExecContext(ctx, setSetting, arg.Key, arg.Value)
+	return err
+}
+
+const updateParagraphStats = `-- name: UpdateParagraphStats :exec
+INSERT INTO paragraph_stats (
+    book_id, chapter_index, paragraph_index, is_skipped, custom_font_family, custom_font_size, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
+    is_skipped = excluded.is_skipped,
+    custom_font_family = excluded.custom_font_family,
+    custom_font_size = excluded.custom_font_size,
+    updated_at = CURRENT_TIMESTAMP
+`
+
+type UpdateParagraphStatsParams struct {
+	BookID           string  `json:"book_id"`
+	ChapterIndex     int64   `json:"chapter_index"`
+	ParagraphIndex   int64   `json:"paragraph_index"`
+	IsSkipped        int64   `json:"is_skipped"`
+	CustomFontFamily string  `json:"custom_font_family"`
+	CustomFontSize   float64 `json:"custom_font_size"`
+}
+
+func (q *Queries) UpdateParagraphStats(ctx context.Context, arg UpdateParagraphStatsParams) error {
+	_, err := q.db.ExecContext(ctx, updateParagraphStats,
+		arg.BookID,
+		arg.ChapterIndex,
+		arg.ParagraphIndex,
+		arg.IsSkipped,
+		arg.CustomFontFamily,
+		arg.CustomFontSize,
+	)
 	return err
 }
 
@@ -791,6 +1178,43 @@ func (q *Queries) UpsertPrompt(ctx context.Context, arg UpsertPromptParams) erro
 		arg.SortOrder,
 		arg.Scope,
 		arg.BookID,
+	)
+	return err
+}
+
+const upsertSentenceAnnotation = `-- name: UpsertSentenceAnnotation :exec
+INSERT INTO sentence_annotations (
+    sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+ON CONFLICT(sentence_hash) DO UPDATE SET
+    is_bookmarked = excluded.is_bookmarked,
+    highlight_color = excluded.highlight_color,
+    upvotes_count = excluded.upvotes_count,
+    emoji_reactions = excluded.emoji_reactions,
+    updated_at = CURRENT_TIMESTAMP
+`
+
+type UpsertSentenceAnnotationParams struct {
+	SentenceHash   string `json:"sentence_hash"`
+	BookID         string `json:"book_id"`
+	ChapterIndex   int64  `json:"chapter_index"`
+	ParagraphIndex int64  `json:"paragraph_index"`
+	IsBookmarked   int64  `json:"is_bookmarked"`
+	HighlightColor string `json:"highlight_color"`
+	UpvotesCount   int64  `json:"upvotes_count"`
+	EmojiReactions string `json:"emoji_reactions"`
+}
+
+func (q *Queries) UpsertSentenceAnnotation(ctx context.Context, arg UpsertSentenceAnnotationParams) error {
+	_, err := q.db.ExecContext(ctx, upsertSentenceAnnotation,
+		arg.SentenceHash,
+		arg.BookID,
+		arg.ChapterIndex,
+		arg.ParagraphIndex,
+		arg.IsBookmarked,
+		arg.HighlightColor,
+		arg.UpvotesCount,
+		arg.EmojiReactions,
 	)
 	return err
 }

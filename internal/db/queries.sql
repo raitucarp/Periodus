@@ -256,3 +256,95 @@ ON CONFLICT(id) DO UPDATE SET
 -- name: DeletePrompt :exec
 DELETE FROM prompts 
 WHERE id = ? AND is_builtin = 0;
+
+-- name: IncrementParagraphVisit :one
+INSERT INTO paragraph_stats (
+    book_id, chapter_index, paragraph_index, visit_count, updated_at
+) VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
+ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
+    visit_count = paragraph_stats.visit_count + 1,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at;
+
+-- name: GetParagraphStats :one
+SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+FROM paragraph_stats
+WHERE book_id = ? AND chapter_index = ? AND paragraph_index = ?;
+
+-- name: UpdateParagraphStats :exec
+INSERT INTO paragraph_stats (
+    book_id, chapter_index, paragraph_index, is_skipped, custom_font_family, custom_font_size, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
+    is_skipped = excluded.is_skipped,
+    custom_font_family = excluded.custom_font_family,
+    custom_font_size = excluded.custom_font_size,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- name: ListParagraphStatsByChapter :many
+SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+FROM paragraph_stats
+WHERE book_id = ? AND chapter_index = ?
+ORDER BY paragraph_index ASC;
+
+-- name: ListChapterStatsByBook :many
+SELECT 
+    c.chapter_index,
+    c.title,
+    c.paragraph_count,
+    COALESCE(SUM(ps.visit_count), 0) AS total_visits,
+    COUNT(CASE WHEN ps.visit_count > 0 THEN 1 END) AS visited_paragraphs
+FROM chapters c
+LEFT JOIN paragraph_stats ps ON ps.book_id = c.book_id AND ps.chapter_index = c.chapter_index
+WHERE c.book_id = ?
+GROUP BY c.chapter_index, c.title, c.paragraph_count
+ORDER BY c.chapter_index ASC;
+
+-- name: GetSentenceAnnotation :one
+SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+FROM sentence_annotations
+WHERE sentence_hash = ?;
+
+-- name: ListSentenceAnnotationsByParagraph :many
+SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+FROM sentence_annotations
+WHERE book_id = ? AND chapter_index = ? AND paragraph_index = ?;
+
+-- name: UpsertSentenceAnnotation :exec
+INSERT INTO sentence_annotations (
+    sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+ON CONFLICT(sentence_hash) DO UPDATE SET
+    is_bookmarked = excluded.is_bookmarked,
+    highlight_color = excluded.highlight_color,
+    upvotes_count = excluded.upvotes_count,
+    emoji_reactions = excluded.emoji_reactions,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- name: IncrementSentenceUpvote :one
+INSERT INTO sentence_annotations (
+    sentence_hash, book_id, chapter_index, paragraph_index, upvotes_count, updated_at
+) VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+ON CONFLICT(sentence_hash) DO UPDATE SET
+    upvotes_count = sentence_annotations.upvotes_count + 1,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING upvotes_count;
+
+-- name: ListSentenceComments :many
+SELECT id, sentence_hash, book_id, content, created_at
+FROM sentence_comments
+WHERE sentence_hash = ?
+ORDER BY created_at ASC;
+
+-- name: ListSentenceCommentsByParagraph :many
+SELECT sc.id, sc.sentence_hash, sc.book_id, sc.content, sc.created_at
+FROM sentence_comments sc
+WHERE sc.book_id = ?
+ORDER BY sc.created_at ASC;
+
+-- name: CreateSentenceComment :exec
+INSERT INTO sentence_comments (id, sentence_hash, book_id, content, created_at)
+VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP);
+
+-- name: DeleteSentenceComment :exec
+DELETE FROM sentence_comments WHERE id = ?;

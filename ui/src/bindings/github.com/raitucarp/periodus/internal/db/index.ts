@@ -7,10 +7,14 @@ export {
     EmbeddingConfig,
     GetBookByIDRow,
     ListBooksRow,
+    ListChapterStatsByBookRow,
     ModelConfig,
     Paragraph,
+    ParagraphStat,
     Prompt,
     ReadingProgress,
     ReadingSettings,
+    SentenceAnnotation,
+    SentenceComment,
     VisionConfig
 } from "./models.js";

@@ -53,6 +53,17 @@ type ParagraphEmbedding struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+type ParagraphStat struct {
+	BookID           string    `json:"book_id"`
+	ChapterIndex     int64     `json:"chapter_index"`
+	ParagraphIndex   int64     `json:"paragraph_index"`
+	VisitCount       int64     `json:"visit_count"`
+	IsSkipped        int64     `json:"is_skipped"`
+	CustomFontFamily string    `json:"custom_font_family"`
+	CustomFontSize   float64   `json:"custom_font_size"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
 type Prompt struct {
 	ID           string    `json:"id"`
 	Name         string    `json:"name"`
@@ -80,6 +91,26 @@ type ReadingProgress struct {
 	CurrentParagraphIndex int64     `json:"current_paragraph_index"`
 	PercentComplete       float64   `json:"percent_complete"`
 	LastReadAt            time.Time `json:"last_read_at"`
+}
+
+type SentenceAnnotation struct {
+	SentenceHash   string    `json:"sentence_hash"`
+	BookID         string    `json:"book_id"`
+	ChapterIndex   int64     `json:"chapter_index"`
+	ParagraphIndex int64     `json:"paragraph_index"`
+	IsBookmarked   int64     `json:"is_bookmarked"`
+	HighlightColor string    `json:"highlight_color"`
+	UpvotesCount   int64     `json:"upvotes_count"`
+	EmojiReactions string    `json:"emoji_reactions"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type SentenceComment struct {
+	ID           string    `json:"id"`
+	SentenceHash string    `json:"sentence_hash"`
+	BookID       string    `json:"book_id"`
+	Content      string    `json:"content"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type Setting struct {

@@ -298,6 +298,43 @@ export class ListBooksRow {
     }
 }
 
+export class ListChapterStatsByBookRow {
+    "chapter_index": number;
+    "title": string;
+    "paragraph_count": number;
+    "total_visits": any;
+    "visited_paragraphs": number;
+
+    /** Creates a new ListChapterStatsByBookRow instance. */
+    constructor($$source: Partial<ListChapterStatsByBookRow> = {}) {
+        if (!("chapter_index" in $$source)) {
+            this["chapter_index"] = 0;
+        }
+        if (!("title" in $$source)) {
+            this["title"] = "";
+        }
+        if (!("paragraph_count" in $$source)) {
+            this["paragraph_count"] = 0;
+        }
+        if (!("total_visits" in $$source)) {
+            this["total_visits"] = null;
+        }
+        if (!("visited_paragraphs" in $$source)) {
+            this["visited_paragraphs"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ListChapterStatsByBookRow instance from a string or object.
+     */
+    static createFrom($$source: any = {}): ListChapterStatsByBookRow {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ListChapterStatsByBookRow($$parsedSource as Partial<ListChapterStatsByBookRow>);
+    }
+}
+
 export class ModelConfig {
     "provider": string;
     "model": string;
@@ -381,6 +418,55 @@ export class Paragraph {
     static createFrom($$source: any = {}): Paragraph {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new Paragraph($$parsedSource as Partial<Paragraph>);
+    }
+}
+
+export class ParagraphStat {
+    "book_id": string;
+    "chapter_index": number;
+    "paragraph_index": number;
+    "visit_count": number;
+    "is_skipped": number;
+    "custom_font_family": string;
+    "custom_font_size": number;
+    "updated_at": string;
+
+    /** Creates a new ParagraphStat instance. */
+    constructor($$source: Partial<ParagraphStat> = {}) {
+        if (!("book_id" in $$source)) {
+            this["book_id"] = "";
+        }
+        if (!("chapter_index" in $$source)) {
+            this["chapter_index"] = 0;
+        }
+        if (!("paragraph_index" in $$source)) {
+            this["paragraph_index"] = 0;
+        }
+        if (!("visit_count" in $$source)) {
+            this["visit_count"] = 0;
+        }
+        if (!("is_skipped" in $$source)) {
+            this["is_skipped"] = 0;
+        }
+        if (!("custom_font_family" in $$source)) {
+            this["custom_font_family"] = "";
+        }
+        if (!("custom_font_size" in $$source)) {
+            this["custom_font_size"] = 0;
+        }
+        if (!("updated_at" in $$source)) {
+            this["updated_at"] = "0001-01-01T00:00:00.000Z";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ParagraphStat instance from a string or object.
+     */
+    static createFrom($$source: any = {}): ParagraphStat {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ParagraphStat($$parsedSource as Partial<ParagraphStat>);
     }
 }
 
@@ -548,6 +634,96 @@ export class ReadingSettings {
     static createFrom($$source: any = {}): ReadingSettings {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new ReadingSettings($$parsedSource as Partial<ReadingSettings>);
+    }
+}
+
+export class SentenceAnnotation {
+    "sentence_hash": string;
+    "book_id": string;
+    "chapter_index": number;
+    "paragraph_index": number;
+    "is_bookmarked": number;
+    "highlight_color": string;
+    "upvotes_count": number;
+    "emoji_reactions": string;
+    "updated_at": string;
+
+    /** Creates a new SentenceAnnotation instance. */
+    constructor($$source: Partial<SentenceAnnotation> = {}) {
+        if (!("sentence_hash" in $$source)) {
+            this["sentence_hash"] = "";
+        }
+        if (!("book_id" in $$source)) {
+            this["book_id"] = "";
+        }
+        if (!("chapter_index" in $$source)) {
+            this["chapter_index"] = 0;
+        }
+        if (!("paragraph_index" in $$source)) {
+            this["paragraph_index"] = 0;
+        }
+        if (!("is_bookmarked" in $$source)) {
+            this["is_bookmarked"] = 0;
+        }
+        if (!("highlight_color" in $$source)) {
+            this["highlight_color"] = "";
+        }
+        if (!("upvotes_count" in $$source)) {
+            this["upvotes_count"] = 0;
+        }
+        if (!("emoji_reactions" in $$source)) {
+            this["emoji_reactions"] = "";
+        }
+        if (!("updated_at" in $$source)) {
+            this["updated_at"] = "0001-01-01T00:00:00.000Z";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SentenceAnnotation instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SentenceAnnotation {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SentenceAnnotation($$parsedSource as Partial<SentenceAnnotation>);
+    }
+}
+
+export class SentenceComment {
+    "id": string;
+    "sentence_hash": string;
+    "book_id": string;
+    "content": string;
+    "created_at": string;
+
+    /** Creates a new SentenceComment instance. */
+    constructor($$source: Partial<SentenceComment> = {}) {
+        if (!("id" in $$source)) {
+            this["id"] = "";
+        }
+        if (!("sentence_hash" in $$source)) {
+            this["sentence_hash"] = "";
+        }
+        if (!("book_id" in $$source)) {
+            this["book_id"] = "";
+        }
+        if (!("content" in $$source)) {
+            this["content"] = "";
+        }
+        if (!("created_at" in $$source)) {
+            this["created_at"] = "0001-01-01T00:00:00.000Z";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SentenceComment instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SentenceComment {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SentenceComment($$parsedSource as Partial<SentenceComment>);
     }
 }
 

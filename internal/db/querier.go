@@ -9,29 +9,42 @@ import (
 )
 
 type Querier interface {
+	CreateSentenceComment(ctx context.Context, arg CreateSentenceCommentParams) error
 	DeleteBook(ctx context.Context, id string) error
 	DeleteEmbeddingsByBookID(ctx context.Context, bookID string) error
 	DeletePrompt(ctx context.Context, id string) error
+	DeleteSentenceComment(ctx context.Context, id string) error
 	GetBookByID(ctx context.Context, id string) (GetBookByIDRow, error)
 	GetParagraphByID(ctx context.Context, id string) (Paragraph, error)
 	GetParagraphEmbedding(ctx context.Context, paragraphID string) (ParagraphEmbedding, error)
+	GetParagraphStats(ctx context.Context, arg GetParagraphStatsParams) (ParagraphStat, error)
 	GetProgress(ctx context.Context, bookID string) (ReadingProgress, error)
 	GetPromptByID(ctx context.Context, id string) (Prompt, error)
+	GetSentenceAnnotation(ctx context.Context, sentenceHash string) (SentenceAnnotation, error)
 	GetSetting(ctx context.Context, key string) (string, error)
+	IncrementParagraphVisit(ctx context.Context, arg IncrementParagraphVisitParams) (ParagraphStat, error)
+	IncrementSentenceUpvote(ctx context.Context, arg IncrementSentenceUpvoteParams) (int64, error)
 	ListBooks(ctx context.Context) ([]ListBooksRow, error)
+	ListChapterStatsByBook(ctx context.Context, bookID string) ([]ListChapterStatsByBookRow, error)
 	ListChaptersByBookID(ctx context.Context, bookID string) ([]Chapter, error)
 	ListParagraphEmbeddingsByBook(ctx context.Context, bookID string) ([]ParagraphEmbedding, error)
+	ListParagraphStatsByChapter(ctx context.Context, arg ListParagraphStatsByChapterParams) ([]ParagraphStat, error)
 	ListParagraphsByChapter(ctx context.Context, arg ListParagraphsByChapterParams) ([]Paragraph, error)
 	ListPrompts(ctx context.Context, bookID string) ([]Prompt, error)
+	ListSentenceAnnotationsByParagraph(ctx context.Context, arg ListSentenceAnnotationsByParagraphParams) ([]SentenceAnnotation, error)
+	ListSentenceComments(ctx context.Context, sentenceHash string) ([]SentenceComment, error)
+	ListSentenceCommentsByParagraph(ctx context.Context, bookID string) ([]SentenceComment, error)
 	ResetDefaultPrompts(ctx context.Context) error
 	SeedDefaultPrompts(ctx context.Context) error
 	SetSetting(ctx context.Context, arg SetSettingParams) error
+	UpdateParagraphStats(ctx context.Context, arg UpdateParagraphStatsParams) error
 	UpsertBook(ctx context.Context, arg UpsertBookParams) error
 	UpsertChapter(ctx context.Context, arg UpsertChapterParams) error
 	UpsertParagraph(ctx context.Context, arg UpsertParagraphParams) error
 	UpsertParagraphEmbedding(ctx context.Context, arg UpsertParagraphEmbeddingParams) error
 	UpsertProgress(ctx context.Context, arg UpsertProgressParams) error
 	UpsertPrompt(ctx context.Context, arg UpsertPromptParams) error
+	UpsertSentenceAnnotation(ctx context.Context, arg UpsertSentenceAnnotationParams) error
 }
 
 var _ Querier = (*Queries)(nil)
