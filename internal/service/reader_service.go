@@ -62,13 +62,35 @@ func (s *ReaderService) GetParagraphStats(bookID string, chapterIndex int, parag
 	return s.repo.GetParagraphStats(context.Background(), bookID, int64(chapterIndex), int64(paragraphIndex))
 }
 
-// UpdateParagraphStats updates skip status and custom styling for a paragraph
-func (s *ReaderService) UpdateParagraphStats(bookID string, chapterIndex int, paragraphIndex int, isSkipped bool, customFontFamily string, customFontSize float64) error {
+// UpdateParagraphStats updates skip status, custom styling, bookmark, and reactions for a paragraph
+func (s *ReaderService) UpdateParagraphStats(bookID string, chapterIndex int, paragraphIndex int, isSkipped bool, customFontFamily string, customFontSize float64, isBookmarked bool, upvotesCount int64, emojiReactions string) error {
 	skipVal := int64(0)
 	if isSkipped {
 		skipVal = 1
 	}
-	return s.repo.UpdateParagraphStats(context.Background(), bookID, int64(chapterIndex), int64(paragraphIndex), skipVal, customFontFamily, customFontSize)
+	bmVal := int64(0)
+	if isBookmarked {
+		bmVal = 1
+	}
+	if emojiReactions == "" {
+		emojiReactions = "[]"
+	}
+	return s.repo.UpdateParagraphStats(context.Background(), db.UpdateParagraphStatsParams{
+		BookID:           bookID,
+		ChapterIndex:     int64(chapterIndex),
+		ParagraphIndex:   int64(paragraphIndex),
+		IsSkipped:        skipVal,
+		CustomFontFamily: customFontFamily,
+		CustomFontSize:   customFontSize,
+		IsBookmarked:     bmVal,
+		UpvotesCount:     upvotesCount,
+		EmojiReactions:   emojiReactions,
+	})
+}
+
+// IncrementParagraphUpvote increments upvotes for a paragraph
+func (s *ReaderService) IncrementParagraphUpvote(bookID string, chapterIndex int, paragraphIndex int) (int64, error) {
+	return s.repo.IncrementParagraphUpvote(context.Background(), bookID, int64(chapterIndex), int64(paragraphIndex))
 }
 
 // GetChapterHeatmap returns chapter-level visit counts for the chapter heatmap

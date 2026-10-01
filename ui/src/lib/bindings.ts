@@ -128,10 +128,28 @@ export const ReaderService = {
     paragraphIndex: number,
     isSkipped: boolean,
     customFontFamily: string,
-    customFontSize: number
+    customFontSize: number,
+    isBookmarked: boolean = false,
+    upvotesCount: number = 0,
+    emojiReactions: string = '[]'
   ): Promise<void> {
     if (!isWailsEnv()) return
-    await WailsReaderService.UpdateParagraphStats(bookId, chapterIndex, paragraphIndex, isSkipped, customFontFamily, customFontSize)
+    await WailsReaderService.UpdateParagraphStats(
+      bookId,
+      chapterIndex,
+      paragraphIndex,
+      isSkipped,
+      customFontFamily,
+      customFontSize,
+      isBookmarked,
+      upvotesCount,
+      emojiReactions
+    )
+  },
+
+  async incrementParagraphUpvote(bookId: string, chapterIndex: number, paragraphIndex: number): Promise<number> {
+    if (!isWailsEnv()) return 1
+    return await WailsReaderService.IncrementParagraphUpvote(bookId, chapterIndex, paragraphIndex)
   },
 
   async getChapterHeatmap(bookId: string): Promise<ChapterHeatmapItem[]> {

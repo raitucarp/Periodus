@@ -97,6 +97,9 @@ CREATE TABLE IF NOT EXISTS paragraph_stats (
     is_skipped INTEGER NOT NULL DEFAULT 0,
     custom_font_family TEXT NOT NULL DEFAULT '',
     custom_font_size REAL NOT NULL DEFAULT 0,
+    is_bookmarked INTEGER NOT NULL DEFAULT 0,
+    upvotes_count INTEGER NOT NULL DEFAULT 0,
+    emoji_reactions TEXT NOT NULL DEFAULT '[]',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (book_id, chapter_index, paragraph_index),
     FOREIGN KEY(book_id) REFERENCES books(id) ON DELETE CASCADE

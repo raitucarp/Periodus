@@ -63,6 +63,38 @@ func migrateNewReadingTables(db *sql.DB) error {
 			return fmt.Errorf("execute table migration: %w", err)
 		}
 	}
+
+	// Add missing columns to existing paragraph_stats if already created
+	newCols := []struct {
+		name string
+		def  string
+	}{
+		{"is_bookmarked", "INTEGER NOT NULL DEFAULT 0"},
+		{"upvotes_count", "INTEGER NOT NULL DEFAULT 0"},
+		{"emoji_reactions", "TEXT NOT NULL DEFAULT '[]'"},
+	}
+
+	rows, err := db.Query("PRAGMA table_info(paragraph_stats);")
+	if err == nil {
+		defer rows.Close()
+		existingCols := make(map[string]bool)
+		for rows.Next() {
+			var cid int
+			var name, typ string
+			var notnull, pk int
+			var dflt sql.NullString
+			if err := rows.Scan(&cid, &name, &typ, &notnull, &dflt, &pk); err == nil {
+				existingCols[name] = true
+			}
+		}
+		for _, col := range newCols {
+			if !existingCols[col.name] {
+				query := fmt.Sprintf("ALTER TABLE paragraph_stats ADD COLUMN %s %s;", col.name, col.def)
+				_, _ = db.Exec(query)
+			}
+		}
+	}
+
 	return nil
 }
 

@@ -169,7 +169,7 @@ func (q *Queries) GetParagraphEmbedding(ctx context.Context, paragraphID string)
 }
 
 const getParagraphStats = `-- name: GetParagraphStats :one
-SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, is_bookmarked, upvotes_count, emoji_reactions, updated_at
 FROM paragraph_stats
 WHERE book_id = ? AND chapter_index = ? AND paragraph_index = ?
 `
@@ -191,6 +191,9 @@ func (q *Queries) GetParagraphStats(ctx context.Context, arg GetParagraphStatsPa
 		&i.IsSkipped,
 		&i.CustomFontFamily,
 		&i.CustomFontSize,
+		&i.IsBookmarked,
+		&i.UpvotesCount,
+		&i.EmojiReactions,
 		&i.UpdatedAt,
 	)
 	return i, err
@@ -285,6 +288,29 @@ func (q *Queries) GetSetting(ctx context.Context, key string) (string, error) {
 	return value, err
 }
 
+const incrementParagraphUpvote = `-- name: IncrementParagraphUpvote :one
+INSERT INTO paragraph_stats (
+    book_id, chapter_index, paragraph_index, upvotes_count, updated_at
+) VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
+ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
+    upvotes_count = paragraph_stats.upvotes_count + 1,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING upvotes_count
+`
+
+type IncrementParagraphUpvoteParams struct {
+	BookID         string `json:"book_id"`
+	ChapterIndex   int64  `json:"chapter_index"`
+	ParagraphIndex int64  `json:"paragraph_index"`
+}
+
+func (q *Queries) IncrementParagraphUpvote(ctx context.Context, arg IncrementParagraphUpvoteParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, incrementParagraphUpvote, arg.BookID, arg.ChapterIndex, arg.ParagraphIndex)
+	var upvotes_count int64
+	err := row.Scan(&upvotes_count)
+	return upvotes_count, err
+}
+
 const incrementParagraphVisit = `-- name: IncrementParagraphVisit :one
 INSERT INTO paragraph_stats (
     book_id, chapter_index, paragraph_index, visit_count, updated_at
@@ -292,7 +318,7 @@ INSERT INTO paragraph_stats (
 ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
     visit_count = paragraph_stats.visit_count + 1,
     updated_at = CURRENT_TIMESTAMP
-RETURNING book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+RETURNING book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, is_bookmarked, upvotes_count, emoji_reactions, updated_at
 `
 
 type IncrementParagraphVisitParams struct {
@@ -312,6 +338,9 @@ func (q *Queries) IncrementParagraphVisit(ctx context.Context, arg IncrementPara
 		&i.IsSkipped,
 		&i.CustomFontFamily,
 		&i.CustomFontSize,
+		&i.IsBookmarked,
+		&i.UpvotesCount,
+		&i.EmojiReactions,
 		&i.UpdatedAt,
 	)
 	return i, err
@@ -546,7 +575,7 @@ func (q *Queries) ListParagraphEmbeddingsByBook(ctx context.Context, bookID stri
 }
 
 const listParagraphStatsByChapter = `-- name: ListParagraphStatsByChapter :many
-SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, is_bookmarked, upvotes_count, emoji_reactions, updated_at
 FROM paragraph_stats
 WHERE book_id = ? AND chapter_index = ?
 ORDER BY paragraph_index ASC
@@ -574,6 +603,9 @@ func (q *Queries) ListParagraphStatsByChapter(ctx context.Context, arg ListParag
 			&i.IsSkipped,
 			&i.CustomFontFamily,
 			&i.CustomFontSize,
+			&i.IsBookmarked,
+			&i.UpvotesCount,
+			&i.EmojiReactions,
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
@@ -924,12 +956,15 @@ func (q *Queries) SetSetting(ctx context.Context, arg SetSettingParams) error {
 
 const updateParagraphStats = `-- name: UpdateParagraphStats :exec
 INSERT INTO paragraph_stats (
-    book_id, chapter_index, paragraph_index, is_skipped, custom_font_family, custom_font_size, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    book_id, chapter_index, paragraph_index, is_skipped, custom_font_family, custom_font_size, is_bookmarked, upvotes_count, emoji_reactions, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
     is_skipped = excluded.is_skipped,
     custom_font_family = excluded.custom_font_family,
     custom_font_size = excluded.custom_font_size,
+    is_bookmarked = excluded.is_bookmarked,
+    upvotes_count = excluded.upvotes_count,
+    emoji_reactions = excluded.emoji_reactions,
     updated_at = CURRENT_TIMESTAMP
 `
 
@@ -940,6 +975,9 @@ type UpdateParagraphStatsParams struct {
 	IsSkipped        int64   `json:"is_skipped"`
 	CustomFontFamily string  `json:"custom_font_family"`
 	CustomFontSize   float64 `json:"custom_font_size"`
+	IsBookmarked     int64   `json:"is_bookmarked"`
+	UpvotesCount     int64   `json:"upvotes_count"`
+	EmojiReactions   string  `json:"emoji_reactions"`
 }
 
 func (q *Queries) UpdateParagraphStats(ctx context.Context, arg UpdateParagraphStatsParams) error {
@@ -950,6 +988,9 @@ func (q *Queries) UpdateParagraphStats(ctx context.Context, arg UpdateParagraphS
 		arg.IsSkipped,
 		arg.CustomFontFamily,
 		arg.CustomFontSize,
+		arg.IsBookmarked,
+		arg.UpvotesCount,
+		arg.EmojiReactions,
 	)
 	return err
 }

@@ -35,14 +35,16 @@ func (r *Repository) GetParagraphStats(ctx context.Context, bookID string, chapt
 }
 
 // UpdateParagraphStats updates the skip status and custom styling for a paragraph
-func (r *Repository) UpdateParagraphStats(ctx context.Context, bookID string, chapterIdx, paragraphIdx int64, isSkipped int64, customFontFamily string, customFontSize float64) error {
-	return r.queries.UpdateParagraphStats(ctx, UpdateParagraphStatsParams{
-		BookID:           bookID,
-		ChapterIndex:     chapterIdx,
-		ParagraphIndex:   paragraphIdx,
-		IsSkipped:        isSkipped,
-		CustomFontFamily: customFontFamily,
-		CustomFontSize:   customFontSize,
+func (r *Repository) UpdateParagraphStats(ctx context.Context, params UpdateParagraphStatsParams) error {
+	return r.queries.UpdateParagraphStats(ctx, params)
+}
+
+// IncrementParagraphUpvote increments the upvotes count for a paragraph
+func (r *Repository) IncrementParagraphUpvote(ctx context.Context, bookID string, chapterIdx, paragraphIdx int64) (int64, error) {
+	return r.queries.IncrementParagraphUpvote(ctx, IncrementParagraphUpvoteParams{
+		BookID:         bookID,
+		ChapterIndex:   chapterIdx,
+		ParagraphIndex: paragraphIdx,
 	})
 }
 

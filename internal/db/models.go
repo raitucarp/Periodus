@@ -61,6 +61,9 @@ type ParagraphStat struct {
 	IsSkipped        int64     `json:"is_skipped"`
 	CustomFontFamily string    `json:"custom_font_family"`
 	CustomFontSize   float64   `json:"custom_font_size"`
+	IsBookmarked     int64     `json:"is_bookmarked"`
+	UpvotesCount     int64     `json:"upvotes_count"`
+	EmojiReactions   string    `json:"emoji_reactions"`
 	UpdatedAt        time.Time `json:"updated_at"`
 }
 

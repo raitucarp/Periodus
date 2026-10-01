@@ -264,25 +264,37 @@ INSERT INTO paragraph_stats (
 ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
     visit_count = paragraph_stats.visit_count + 1,
     updated_at = CURRENT_TIMESTAMP
-RETURNING book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at;
+RETURNING book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, is_bookmarked, upvotes_count, emoji_reactions, updated_at;
 
 -- name: GetParagraphStats :one
-SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, is_bookmarked, upvotes_count, emoji_reactions, updated_at
 FROM paragraph_stats
 WHERE book_id = ? AND chapter_index = ? AND paragraph_index = ?;
 
 -- name: UpdateParagraphStats :exec
 INSERT INTO paragraph_stats (
-    book_id, chapter_index, paragraph_index, is_skipped, custom_font_family, custom_font_size, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    book_id, chapter_index, paragraph_index, is_skipped, custom_font_family, custom_font_size, is_bookmarked, upvotes_count, emoji_reactions, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
     is_skipped = excluded.is_skipped,
     custom_font_family = excluded.custom_font_family,
     custom_font_size = excluded.custom_font_size,
+    is_bookmarked = excluded.is_bookmarked,
+    upvotes_count = excluded.upvotes_count,
+    emoji_reactions = excluded.emoji_reactions,
     updated_at = CURRENT_TIMESTAMP;
 
+-- name: IncrementParagraphUpvote :one
+INSERT INTO paragraph_stats (
+    book_id, chapter_index, paragraph_index, upvotes_count, updated_at
+) VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
+ON CONFLICT(book_id, chapter_index, paragraph_index) DO UPDATE SET
+    upvotes_count = paragraph_stats.upvotes_count + 1,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING upvotes_count;
+
 -- name: ListParagraphStatsByChapter :many
-SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, updated_at
+SELECT book_id, chapter_index, paragraph_index, visit_count, is_skipped, custom_font_family, custom_font_size, is_bookmarked, upvotes_count, emoji_reactions, updated_at
 FROM paragraph_stats
 WHERE book_id = ? AND chapter_index = ?
 ORDER BY paragraph_index ASC;

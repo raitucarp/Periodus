@@ -115,6 +115,9 @@ export interface ParagraphStat {
   is_skipped: number
   custom_font_family: string
   custom_font_size: number
+  is_bookmarked: number
+  upvotes_count: number
+  emoji_reactions: string
   updated_at: string
 }
 

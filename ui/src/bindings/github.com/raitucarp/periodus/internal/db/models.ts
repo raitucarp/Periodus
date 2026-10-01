@@ -429,6 +429,9 @@ export class ParagraphStat {
     "is_skipped": number;
     "custom_font_family": string;
     "custom_font_size": number;
+    "is_bookmarked": number;
+    "upvotes_count": number;
+    "emoji_reactions": string;
     "updated_at": string;
 
     /** Creates a new ParagraphStat instance. */
@@ -453,6 +456,15 @@ export class ParagraphStat {
         }
         if (!("custom_font_size" in $$source)) {
             this["custom_font_size"] = 0;
+        }
+        if (!("is_bookmarked" in $$source)) {
+            this["is_bookmarked"] = 0;
+        }
+        if (!("upvotes_count" in $$source)) {
+            this["upvotes_count"] = 0;
+        }
+        if (!("emoji_reactions" in $$source)) {
+            this["emoji_reactions"] = "";
         }
         if (!("updated_at" in $$source)) {
             this["updated_at"] = "0001-01-01T00:00:00.000Z";

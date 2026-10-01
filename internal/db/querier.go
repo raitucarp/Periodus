@@ -22,6 +22,7 @@ type Querier interface {
 	GetPromptByID(ctx context.Context, id string) (Prompt, error)
 	GetSentenceAnnotation(ctx context.Context, sentenceHash string) (SentenceAnnotation, error)
 	GetSetting(ctx context.Context, key string) (string, error)
+	IncrementParagraphUpvote(ctx context.Context, arg IncrementParagraphUpvoteParams) (int64, error)
 	IncrementParagraphVisit(ctx context.Context, arg IncrementParagraphVisitParams) (ParagraphStat, error)
 	IncrementSentenceUpvote(ctx context.Context, arg IncrementSentenceUpvoteParams) (int64, error)
 	ListBooks(ctx context.Context) ([]ListBooksRow, error)

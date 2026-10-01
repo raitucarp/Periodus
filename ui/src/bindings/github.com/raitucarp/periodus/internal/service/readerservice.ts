@@ -100,6 +100,13 @@ export function GetSentenceComments(sentenceHash: string): $CancellablePromise<d
 }
 
 /**
+ * IncrementParagraphUpvote increments upvotes for a paragraph
+ */
+export function IncrementParagraphUpvote(bookID: string, chapterIndex: number, paragraphIndex: number): $CancellablePromise<number> {
+    return $Call.ByID(1117731915, bookID, chapterIndex, paragraphIndex);
+}
+
+/**
  * IncrementParagraphVisit increments and returns hit counter for a paragraph
  */
 export function IncrementParagraphVisit(bookID: string, chapterIndex: number, paragraphIndex: number): $CancellablePromise<db$0.ParagraphStat | null> {
@@ -127,10 +134,10 @@ export function SaveSentenceAnnotation(ann: db$0.SentenceAnnotation): $Cancellab
 }
 
 /**
- * UpdateParagraphStats updates skip status and custom styling for a paragraph
+ * UpdateParagraphStats updates skip status, custom styling, bookmark, and reactions for a paragraph
  */
-export function UpdateParagraphStats(bookID: string, chapterIndex: number, paragraphIndex: number, isSkipped: boolean, customFontFamily: string, customFontSize: number): $CancellablePromise<void> {
-    return $Call.ByID(3170170515, bookID, chapterIndex, paragraphIndex, isSkipped, customFontFamily, customFontSize);
+export function UpdateParagraphStats(bookID: string, chapterIndex: number, paragraphIndex: number, isSkipped: boolean, customFontFamily: string, customFontSize: number, isBookmarked: boolean, upvotesCount: number, emojiReactions: string): $CancellablePromise<void> {
+    return $Call.ByID(3170170515, bookID, chapterIndex, paragraphIndex, isSkipped, customFontFamily, customFontSize, isBookmarked, upvotesCount, emojiReactions);
 }
 
 // Private type creation functions

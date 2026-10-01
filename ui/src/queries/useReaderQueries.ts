@@ -146,6 +146,9 @@ export function useUpdateParagraphStatsMutation() {
       isSkipped: boolean
       customFontFamily: string
       customFontSize: number
+      isBookmarked?: boolean
+      upvotesCount?: number
+      emojiReactions?: string
     }
   >({
     mutationFn: async function performUpdate(params) {
@@ -155,7 +158,10 @@ export function useUpdateParagraphStatsMutation() {
         params.paragraphIndex,
         params.isSkipped,
         params.customFontFamily,
-        params.customFontSize
+        params.customFontSize,
+        params.isBookmarked ?? false,
+        params.upvotesCount ?? 0,
+        params.emojiReactions ?? '[]'
       )
     },
     onSuccess: function onUpdated(_data, variables) {
@@ -164,6 +170,29 @@ export function useUpdateParagraphStatsMutation() {
       })
       queryClient.invalidateQueries({
         queryKey: queryKeys.reader.paragraphHeatmap(variables.bookId, variables.chapterIndex),
+      })
+    },
+  })
+}
+
+export function useIncrementParagraphUpvoteMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    number,
+    Error,
+    {
+      bookId: string
+      chapterIndex: number
+      paragraphIndex: number
+    }
+  >({
+    mutationFn: async function performIncrement(params) {
+      return await ReaderService.incrementParagraphUpvote(params.bookId, params.chapterIndex, params.paragraphIndex)
+    },
+    onSuccess: function onUpdated(_data, variables) {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reader.stats(variables.bookId, variables.chapterIndex, variables.paragraphIndex),
       })
     },
   })
