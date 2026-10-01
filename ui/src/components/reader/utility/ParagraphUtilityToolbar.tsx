@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import {
   Box,
   Button,
+  Group,
   HStack,
   IconButton,
   NativeSelect,
@@ -178,15 +179,16 @@ export function ParagraphUtilityToolbar({
             )
           })}
 
-          {/* Quick Emojis */}
-          <HStack gap="0.5">
+          {/* Quick Emojis (Grouped and Attached) */}
+          <Group attached>
             {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
               return (
                 <Button
                   key={em}
                   size="xs"
-                  variant="ghost"
-                  px="1"
+                  variant="subtle"
+                  colorPalette="gray"
+                  px="1.5"
                   h="7"
                   fontSize="xs"
                   onClick={function clickQuickEmoji() {
@@ -199,8 +201,9 @@ export function ParagraphUtilityToolbar({
             })}
             <IconButton
               size="xs"
-              variant="ghost"
+              variant="subtle"
               colorPalette="gray"
+              h="7"
               aria-label="More emojis"
               title="Add emoji reaction to paragraph"
               onClick={function togglePicker() {
@@ -209,7 +212,7 @@ export function ParagraphUtilityToolbar({
             >
               <Plus size={13} />
             </IconButton>
-          </HStack>
+          </Group>
         </HStack>
 
         <Separator orientation="vertical" h="3.5" borderColor="border.subtle" mx="0.5" flexShrink={0} />
