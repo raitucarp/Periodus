@@ -28,16 +28,15 @@ export function ParagraphHeaderInfo({
       as="header"
       flexShrink={0}
       px="6"
-      pt="5"
-      pb="3"
+      py="3"
       borderBottomWidth="1px"
       borderBottomColor="border.subtle"
       w="full"
       zIndex="base"
     >
-      <Flex align="center" justify="space-between" mb="3">
+      <Flex align="center" justify="space-between" gap="4">
         {/* Left Side: 2-line Chapter Info with tight left padding */}
-        <HStack gap="2.5" align="start">
+        <HStack gap="2.5" align="start" flexShrink={0} maxW="38%">
           <Box mt="0.5" color="ruby.solid">
             <Bookmark size={15} />
           </Box>
@@ -45,14 +44,33 @@ export function ParagraphHeaderInfo({
             <Text textStyle="2xs" fontWeight="medium" color="fg.subtle">
               Chapter {chapterIndex} of {totalChapters}
             </Text>
-            <Text textStyle="sm" fontWeight="semibold" color="fg">
+            <Text textStyle="sm" fontWeight="semibold" color="fg" lineClamp={1}>
               {chapterTitle || `Chapter ${chapterIndex}`}
             </Text>
           </VStack>
         </HStack>
 
+        {/* Center: 3-row Paragraph Calendar Heatmap */}
+        <Box
+          flex="1"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          overflowX="auto"
+          className="no-scrollbar"
+          px="2"
+        >
+          <ParagraphHeatmap
+            totalParagraphs={totalParagraphs}
+            stats={paragraphStats}
+            currentParagraphIndex={currentParagraphIndex}
+            onSelectParagraph={onSelectParagraph}
+          />
+        </Box>
+
         {/* Right Side: Paragraph Badge tucked towards right corner */}
         <Badge
+          flexShrink={0}
           colorPalette="blue"
           variant="subtle"
           px="2.5"
@@ -65,16 +83,7 @@ export function ParagraphHeaderInfo({
           Paragraph {currentParagraphIndex} of {totalParagraphs}
         </Badge>
       </Flex>
-
-      {/* Blue Line Area: Paragraph Calendar Heatmap */}
-      <Box pt="1">
-        <ParagraphHeatmap
-          totalParagraphs={totalParagraphs}
-          stats={paragraphStats}
-          currentParagraphIndex={currentParagraphIndex}
-          onSelectParagraph={onSelectParagraph}
-        />
-      </Box>
     </Box>
   )
 }
+
