@@ -44,3 +44,65 @@ export interface ReadingProgress {
   percent_complete: number
   last_read_at: string
 }
+
+export interface ModelConfig {
+  provider: string
+  model: string
+  apiKey: string
+  baseUrl: string
+  temperature: number
+  maxTokens: number
+}
+
+export interface EmbeddingConfig {
+  provider: string
+  model: string
+  apiKey: string
+  baseUrl: string
+  dimensions: number
+}
+
+export interface VisionConfig {
+  provider: string
+  model: string
+  apiKey: string
+  baseUrl: string
+}
+
+export interface AISettings {
+  scope: string
+  useGlobal: boolean
+  chat: ModelConfig
+  embedding: EmbeddingConfig
+  vision: VisionConfig
+}
+
+export interface ReadingSettings {
+  scope: string
+  fontFamily: string
+  fontSize: number
+  lineHeight: string
+  maxWidth: string
+  textAlign: string
+}
+
+export interface Prompt {
+  id: string
+  name: string
+  description: string
+  icon: string
+  color_palette: string
+  system_prompt: string
+  user_prompt: string
+  provider: string
+  model: string
+  temperature: number
+  max_tokens: number
+  is_builtin: number
+  is_enabled: number
+  sort_order: number
+  scope: string
+  book_id: string
+  created_at: string
+  updated_at: string
+}

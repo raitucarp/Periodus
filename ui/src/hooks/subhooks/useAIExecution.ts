@@ -1,21 +1,22 @@
 import { useAtom } from 'jotai'
-import { aiAnalysisStateAtom } from '@/state/atoms'
+import { aiAnalysisStateAtom, selectedBookIdAtom } from '@/state/atoms'
 import { AIService } from '@/lib/bindings'
 import { useTranslation } from '@/i18n'
 
 export function useAIExecution() {
   const [, setAiState] = useAtom(aiAnalysisStateAtom)
+  const [selectedBookId] = useAtom(selectedBookIdAtom)
   const { t } = useTranslation()
 
   async function executeAnalysis(
     text: string,
-    actionType: 'explain' | 'summarize' | 'vocabulary'
+    actionType: string
   ) {
     if (!text || text.trim() === '') {
       setAiState({
         loading: false,
         result: null,
-        action: actionType,
+        action: actionType as any,
         error: t.aiPanel.emptyParagraphError,
       })
       return
@@ -24,16 +25,16 @@ export function useAIExecution() {
     setAiState({
       loading: true,
       result: null,
-      action: actionType,
+      action: actionType as any,
       error: null,
     })
 
     try {
-      const response = await AIService.analyzeParagraph(text, actionType)
+      const response = await AIService.analyzeParagraphWithBook(text, actionType, selectedBookId || '')
       setAiState({
         loading: false,
         result: response,
-        action: actionType,
+        action: actionType as any,
         error: null,
       })
     } catch (error: any) {
@@ -41,7 +42,7 @@ export function useAIExecution() {
       setAiState({
         loading: false,
         result: null,
-        action: actionType,
+        action: actionType as any,
         error: error?.message || t.aiPanel.missingKeyError,
       })
     }
