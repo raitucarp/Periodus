@@ -26,6 +26,8 @@ import type { SentenceAnnotation, SentenceComment, SentenceEmojiReaction } from 
 export interface SentenceRowProps {
   sentence: string
   sentenceHash: string
+  sentenceIndex?: number
+  totalSentences?: number
   annotation?: SentenceAnnotation
   comments: SentenceComment[]
   fontFamily?: string
@@ -51,6 +53,8 @@ const HIGHLIGHT_COLORS = [
 export function SentenceRow({
   sentence,
   sentenceHash,
+  sentenceIndex = 0,
+  totalSentences = 1,
   annotation,
   comments,
   fontFamily,
@@ -114,7 +118,57 @@ export function SentenceRow({
       }}
       position="relative"
     >
-      <Flex align="start" gap="4" w="full">
+      <Flex align="start" gap="3" w="full" position="relative">
+        {/* Sentence Timeline Connector (Only if totalSentences > 1) */}
+        {totalSentences > 1 && (
+          <Box
+            position="relative"
+            w="2.5"
+            flexShrink={0}
+            alignSelf="stretch"
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+          >
+            {/* Vertical connector line from top */}
+            {sentenceIndex !== 0 && (
+              <Box
+                position="absolute"
+                top="-12px"
+                bottom="calc(100% - 9px)"
+                w="1px"
+                bg="fg.subtle"
+                opacity={0.35}
+              />
+            )}
+
+            {/* Circle dot in front of sentence */}
+            <Box
+              position="absolute"
+              top="7px"
+              w="1.5"
+              h="1.5"
+              rounded="full"
+              borderWidth="1px"
+              borderColor="fg.subtle"
+              bg="bg"
+              zIndex={1}
+            />
+
+            {/* Vertical connector line to bottom */}
+            {sentenceIndex !== totalSentences - 1 && (
+              <Box
+                position="absolute"
+                top="13px"
+                bottom="-12px"
+                w="1px"
+                bg="fg.subtle"
+                opacity={0.35}
+              />
+            )}
+          </Box>
+        )}
+
         {/* Left Column: Sentence & Action Bar */}
         <Box flex="1" minW="0">
           <Box mb="1.5">
@@ -155,18 +209,23 @@ export function SentenceRow({
             </HStack>
           )}
 
-          {/* Action Toolbar (Visible on hover or if annotated) */}
+          {/* Action Toolbar */}
           <Flex
             align="center"
             justify="space-between"
             w="full"
-            opacity={isHovered || isBookmarked || upvotes > 0 ? 1 : 0}
-            transition="opacity 0.2s ease"
             mt="1.5"
+            minH="7"
             position="relative"
           >
             {/* Left Actions: Bookmark, Upvote, Highlight, Separator */}
-            <HStack gap="1.5" align="center">
+            <HStack
+              gap="1.5"
+              align="center"
+              opacity={isHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 1 : 0}
+              transition="opacity 0.2s ease"
+              pointerEvents={isHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 'auto' : 'none'}
+            >
               {/* Bookmark Toggle */}
               <IconButton
                 size="xs"
@@ -249,12 +308,24 @@ export function SentenceRow({
                 </HStack>
               )}
 
-              {/* Separator between action buttons and emojis */}
-              <Separator orientation="vertical" h="3.5" borderColor="border.subtle" mx="0.5" />
+              {/* Separator between action buttons and emojis (only when hovered) */}
+              <Separator
+                orientation="vertical"
+                h="3.5"
+                borderColor="border.subtle"
+                mx="0.5"
+                opacity={isHovered ? 1 : 0}
+                transition="opacity 0.2s ease"
+              />
             </HStack>
 
-            {/* Right: Grouped & Attached Emoji Bar */}
-            <Group attached>
+            {/* Right: Grouped & Attached Emoji Bar (ONLY visible when hovered) */}
+            <Group
+              attached
+              opacity={isHovered ? 1 : 0}
+              transition="opacity 0.2s ease"
+              pointerEvents={isHovered ? 'auto' : 'none'}
+            >
               {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
                 return (
                   <Button
@@ -306,43 +377,81 @@ export function SentenceRow({
         <Box
           w="6"
           h="1px"
-          alignSelf="center"
-          bg={isHovered || comments.length > 0 ? 'ruby.focus' : 'border.subtle'}
-          opacity={isHovered || comments.length > 0 ? 0.8 : 0.25}
-          transition="all 0.2s ease"
+          mt="2.5"
+          bg="fg.subtle"
+          opacity={isHovered || comments.length > 0 ? 0.45 : 0.15}
+          transition="opacity 0.2s ease"
           flexShrink={0}
         />
 
-        {/* Right Column: Marginalia / Comments (Smaller font size) */}
-        <Box w="38%" minW="14rem" maxW="20rem" flexShrink={0}>
-          <VStack align="stretch" gap="1.5">
+        {/* Right Column: Marginalia / Comments (No border, circle marker, thin Plus Jakarta Sans font) */}
+        <Box w="38%" minW="14rem" maxW="22rem" flexShrink={0}>
+          <VStack align="stretch" gap="2">
             {/* Existing Comments List */}
-            {comments.map(function renderComment(c) {
+            {comments.map(function renderComment(c, cIdx) {
+              const isLast = cIdx === comments.length - 1
+
               return (
-                <Flex
-                  key={c.id}
-                  justify="space-between"
-                  align="start"
-                  bg="bg.panel"
-                  borderWidth="1px"
-                  borderColor="border.subtle"
-                  p="2"
-                  rounded="lg"
-                  shadow="2xs"
-                  gap="2"
-                  _hover={{ borderColor: 'border.muted' }}
-                >
-                  <Text textStyle="2xs" color="fg.muted" flex="1" wordBreak="break-word">
+                <Flex key={c.id} align="start" gap="2" position="relative" role="group">
+                  {/* Circle indicator in front of comment & vertical connector for multiple comments */}
+                  <Box
+                    position="relative"
+                    w="2"
+                    flexShrink={0}
+                    alignSelf="stretch"
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                  >
+                    {/* Circle dot marker */}
+                    <Box
+                      w="1.5"
+                      h="1.5"
+                      mt="1.5"
+                      rounded="full"
+                      borderWidth="1px"
+                      borderColor="fg.subtle"
+                      bg="bg"
+                      zIndex={1}
+                    />
+
+                    {/* Vertical connector line between comments */}
+                    {!isLast && (
+                      <Box
+                        position="absolute"
+                        top="12px"
+                        bottom="-8px"
+                        w="1px"
+                        bg="fg.subtle"
+                        opacity={0.35}
+                      />
+                    )}
+                  </Box>
+
+                  {/* Comment Text: no border, slightly larger font, Plus Jakarta Sans, thin weight 300 */}
+                  <Text
+                    fontSize="xs"
+                    fontFamily="'Plus Jakarta Sans', sans-serif"
+                    fontWeight="300"
+                    lineHeight="1.5"
+                    color="fg.muted"
+                    flex="1"
+                    wordBreak="break-word"
+                    py="0.5"
+                  >
                     {c.content}
                   </Text>
+
+                  {/* Delete button (visible on hover) */}
                   <IconButton
                     size="2xs"
                     variant="ghost"
                     colorPalette="gray"
                     aria-label="Delete comment"
                     title="Delete marginalia"
-                    opacity={0.6}
-                    _hover={{ opacity: 1, color: 'ruby.fg' }}
+                    opacity={0}
+                    _groupHover={{ opacity: 0.6 }}
+                    _hover={{ opacity: '1 !important', color: 'ruby.fg' }}
                     onClick={function removeComment() {
                       onDeleteComment(c.id, sentenceHash)
                     }}
@@ -356,6 +465,18 @@ export function SentenceRow({
             {/* Seamless Editable Input ("No comment" placeholder, borderless when empty) */}
             <form onSubmit={handleCommentSubmit} style={{ width: '100%' }}>
               <HStack gap="1" w="full">
+                {comments.length === 0 && (
+                  <Box
+                    w="1.5"
+                    h="1.5"
+                    rounded="full"
+                    borderWidth="1px"
+                    borderColor="fg.subtle"
+                    bg="transparent"
+                    opacity={0.3}
+                    flexShrink={0}
+                  />
+                )}
                 <Input
                   size="2xs"
                   variant="flushed"
@@ -370,9 +491,11 @@ export function SentenceRow({
                       handleCommentSubmit()
                     }
                   }}
-                  fontSize="2xs"
+                  fontSize="xs"
+                  fontFamily="'Plus Jakarta Sans', sans-serif"
+                  fontWeight="300"
                   color="fg.muted"
-                  _placeholder={{ color: 'fg.subtle', fontStyle: 'italic' }}
+                  _placeholder={{ color: 'fg.subtle', fontStyle: 'italic', fontWeight: '300' }}
                   borderBottomColor={newCommentText ? 'ruby.focus' : 'transparent'}
                   _focus={{ borderBottomColor: 'ruby.solid' }}
                   px="1"
