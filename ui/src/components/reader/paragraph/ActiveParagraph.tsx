@@ -14,11 +14,10 @@ import {
   useSentenceAnnotationsQuery,
   useSaveSentenceAnnotationMutation,
   useIncrementSentenceUpvoteMutation,
+  useBookCommentsQuery,
   useAddSentenceCommentMutation,
   useDeleteSentenceCommentMutation,
 } from '@/queries'
-import { ReaderService } from '@/lib/bindings'
-import { useQuery } from '@tanstack/react-query'
 import type { ParagraphStat } from '@/lib/types'
 
 export interface ActiveParagraphProps {
@@ -65,13 +64,7 @@ export function ActiveParagraph({
   const { mutate: incrementUpvote } = useIncrementSentenceUpvoteMutation()
 
   // Load all marginalia comments for the book
-  const { data: allComments = [] } = useQuery({
-    queryKey: ['reader', bookId, 'allComments'],
-    queryFn: async function fetchAllBookComments() {
-      return await ReaderService.getParagraphComments(bookId)
-    },
-    enabled: Boolean(bookId),
-  })
+  const { data: allComments = [] } = useBookCommentsQuery(bookId)
 
   const { mutate: addComment } = useAddSentenceCommentMutation()
   const { mutate: deleteComment } = useDeleteSentenceCommentMutation()
