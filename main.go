@@ -47,11 +47,11 @@ func main() {
 			initialProvider = p
 		}
 	}
-	aiService := service.NewAIService(initialProvider)
+	aiService := service.NewAIService(repo, initialProvider)
 
 	settingsService := service.NewSettingsService(repo, func(newKey string) {
 		if p, err := llm.NewGenkitProvider(newKey, "googleai/gemini-2.5-flash"); err == nil {
-			aiService.SetProvider(p)
+			service.SetLegacyProvider(aiService, p)
 		}
 	})
 

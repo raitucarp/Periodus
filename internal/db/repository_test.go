@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"path/filepath"
 	"testing"
 )
@@ -120,4 +121,126 @@ func TestRepositoryOperations(t *testing.T) {
 	if results[0].ID != "p_1" {
 		t.Errorf("expected top match to be p_1, got %s", results[0].ID)
 	}
+
+	// 7. Test Prompts Seeding from Database Initial Schema & CRUD
+	prompts, err := repo.GetPrompts(ctx, "")
+	if err != nil {
+		t.Fatalf("failed to get prompts: %v", err)
+	}
+	if len(prompts) < 4 {
+		t.Fatalf("expected at least 4 default seeded prompts, got %d", len(prompts))
+	}
+
+	// Test GetPromptByID
+	explainPrompt, err := repo.GetPromptByID(ctx, "prompt-explain")
+	if err != nil || explainPrompt == nil {
+		t.Fatalf("failed to get prompt-explain: %v", err)
+	}
+	if explainPrompt.Name != "Explain Nuance" || explainPrompt.IsBuiltin != 1 {
+		t.Errorf("unexpected explain prompt: %+v", explainPrompt)
+	}
+
+	// Test Save Custom Prompt
+	customPrompt := Prompt{
+		ID:           "custom-sentiment",
+		Name:         "Sentiment Check",
+		Description:  "Check emotional tone",
+		Icon:         "Compass",
+		ColorPalette: "blue",
+		SystemPrompt: "Analyze emotional resonance.",
+		UserPrompt:   "Determine the mood of:\n{{text}}",
+		Temperature:  0.4,
+		MaxTokens:    512,
+		IsBuiltin:    0,
+		IsEnabled:    1,
+		SortOrder:    10,
+		Scope:        "global",
+	}
+	if err := repo.SavePrompt(ctx, customPrompt); err != nil {
+		t.Fatalf("failed to save custom prompt: %v", err)
+	}
+
+	saved, err := repo.GetPromptByID(ctx, "custom-sentiment")
+	if err != nil || saved == nil {
+		t.Fatalf("failed to fetch custom prompt: %v", err)
+	}
+	if saved.Icon != "Compass" || saved.ColorPalette != "blue" {
+		t.Errorf("saved prompt field mismatch: %+v", saved)
+	}
+
+	// Test Delete Prompt
+	if err := repo.DeletePrompt(ctx, "custom-sentiment"); err != nil {
+		t.Fatalf("failed to delete custom prompt: %v", err)
+	}
+	deleted, err := repo.GetPromptByID(ctx, "custom-sentiment")
+	if err != nil {
+		t.Fatalf("error checking deleted prompt: %v", err)
+	}
+	if deleted != nil {
+		t.Errorf("expected prompt to be deleted, got: %+v", deleted)
+	}
+}
+
+func TestPromptsMigration(t *testing.T) {
+	tempDir := t.TempDir()
+	dbPath := filepath.Join(tempDir, "legacy_prompts.db")
+
+	// 1. Create a legacy table without icon and color_palette
+	legacyRepo, err := sqlOpenAndCreateLegacy(dbPath)
+	if err != nil {
+		t.Fatalf("failed to create legacy db: %v", err)
+	}
+	legacyRepo.Close()
+
+	// 2. Open via NewRepository - it should execute migrateSchema and SeedDefaultPrompts without error
+	repo, err := NewRepository(dbPath)
+	if err != nil {
+		t.Fatalf("NewRepository failed on legacy schema: %v", err)
+	}
+	defer repo.Close()
+
+	// 3. Verify icon and color_palette now exist and prompts can be fetched
+	prompts, err := repo.GetPrompts(context.Background(), "")
+	if err != nil {
+		t.Fatalf("failed to list prompts after migration: %v", err)
+	}
+	if len(prompts) < 4 {
+		t.Errorf("expected at least 4 default prompts after migration, got %d", len(prompts))
+	}
+	for _, p := range prompts {
+		if p.Icon == "" {
+			t.Errorf("prompt %s has empty icon after migration", p.ID)
+		}
+	}
+}
+
+func sqlOpenAndCreateLegacy(dbPath string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return nil, err
+	}
+	// Old prompts schema without icon and color_palette
+	oldSQL := `
+	CREATE TABLE prompts (
+		id TEXT PRIMARY KEY,
+		name TEXT NOT NULL,
+		description TEXT NOT NULL DEFAULT '',
+		system_prompt TEXT NOT NULL DEFAULT '',
+		user_prompt TEXT NOT NULL,
+		temperature REAL NOT NULL DEFAULT 0.7,
+		max_tokens INTEGER NOT NULL DEFAULT 2048,
+		is_builtin INTEGER NOT NULL DEFAULT 0,
+		is_enabled INTEGER NOT NULL DEFAULT 1,
+		sort_order INTEGER NOT NULL DEFAULT 0,
+		scope TEXT NOT NULL DEFAULT 'global',
+		book_id TEXT NOT NULL DEFAULT '',
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	);
+	`
+	if _, err := db.Exec(oldSQL); err != nil {
+		db.Close()
+		return nil, err
+	}
+	return db, nil
 }
