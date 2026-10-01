@@ -8,8 +8,8 @@ export interface SettingsSuccessBannerProps {
 
 export function SettingsSuccessBanner({ message }: SettingsSuccessBannerProps) {
   return (
-    <HStack gap="0.5rem" color="ruby.fg" textStyle="sm" mb="1rem">
-      <Check size="1rem" />
+    <HStack gap="2" color="ruby.fg" textStyle="sm" mb="4">
+      <Check size={16} />
       <Text>{message}</Text>
     </HStack>
   )

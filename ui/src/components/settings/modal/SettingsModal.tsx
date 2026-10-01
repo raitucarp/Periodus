@@ -9,12 +9,24 @@ import { SettingsDialogContent } from './SettingsDialogContent'
 export function SettingsModal() {
   const {
     isOpen,
-    apiKey,
+    scope,
+    readingSettings,
+    aiSettings,
+    prompts,
+    books,
     isSaving,
     isSuccess,
     closeSettings,
-    updateApiKeyInput,
-    saveApiKey,
+    setScope,
+    updateReadingSettings,
+    updateChatConfig,
+    updateEmbeddingConfig,
+    updateVisionConfig,
+    updateUseGlobal,
+    handleSavePrompt,
+    handleDeletePrompt,
+    handleResetPrompts,
+    saveAllSettings,
   } = useSettings()
 
   const { t, locale, changeLocale } = useTranslation()
@@ -23,18 +35,6 @@ export function SettingsModal() {
     if (!open) {
       closeSettings()
     }
-  }
-
-  function handleInputChange({ target: { value } }: React.ChangeEvent<HTMLInputElement>) {
-    updateApiKeyInput(value)
-  }
-
-  function handleSaveClick() {
-    saveApiKey()
-  }
-
-  function handleCancelClick() {
-    closeSettings()
   }
 
   function handleSelectLanguage(newLocale: Locale) {
@@ -50,40 +50,40 @@ export function SettingsModal() {
     })
     .exhaustive()
 
-  const renderedDialog = (
+  return (
     <Dialog.Root
       open={isOpen}
       onOpenChange={handleOpenChange}
       placement="center"
     >
       <Portal>
-        <Dialog.Backdrop bg="blackAlpha.700" backdropFilter="blur(0.25rem)" />
+        <Dialog.Backdrop bg="glass.backdrop" backdropFilter="blur(sm)" />
         <Dialog.Positioner>
           <SettingsDialogContent
-            title={t.settings.title}
-            description={t.settings.description}
-            themeLabel={t.settings.themeSelection}
-            themeDarkLabel={t.settings.themeDark}
-            themeLightLabel={t.settings.themeLight}
-            languageLabel={t.settings.languageSelection}
-            apiKeyLabel={t.settings.apiKeyLabel}
-            apiKeyPlaceholder={t.settings.apiKeyPlaceholder}
-            apiKeyValue={apiKey}
-            cancelLabel={t.settings.cancelBtn}
-            saveLabel={t.settings.saveBtn}
-            savingLabel={t.settings.savingBtn}
-            isSaving={isSaving}
+            t={t}
             locale={locale}
+            books={books}
+            scope={scope}
+            readingSettings={readingSettings}
+            aiSettings={aiSettings}
+            prompts={prompts}
+            isSaving={isSaving}
             successElement={successElement}
             onSelectLanguage={handleSelectLanguage}
-            onApiKeyChange={handleInputChange}
-            onCancel={handleCancelClick}
-            onSave={handleSaveClick}
+            onScopeChange={setScope}
+            onUseGlobalChange={updateUseGlobal}
+            onUpdateReadingSettings={updateReadingSettings}
+            onUpdateChatConfig={updateChatConfig}
+            onUpdateEmbeddingConfig={updateEmbeddingConfig}
+            onUpdateVisionConfig={updateVisionConfig}
+            onSavePrompt={handleSavePrompt}
+            onDeletePrompt={handleDeletePrompt}
+            onResetPrompts={handleResetPrompts}
+            onCancel={closeSettings}
+            onSave={saveAllSettings}
           />
         </Dialog.Positioner>
       </Portal>
     </Dialog.Root>
   )
-
-  return renderedDialog
 }

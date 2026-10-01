@@ -1,72 +1,60 @@
 import React from 'react'
 import { Grid, Button } from '@chakra-ui/react'
-import { BookOpenText, ListFilter, HelpCircle } from 'lucide-react'
+import { PromptIcon } from './PromptIcon'
+import type { Prompt } from '@/lib/types'
 
 export interface AIActionButtonsProps {
-  activeAction: 'explain' | 'summarize' | 'vocabulary' | null
+  prompts: Prompt[]
+  activeAction: string | null
   isLoading: boolean
-  explainLabel: string
-  summarizeLabel: string
-  vocabularyLabel: string
-  onExplain: () => void
-  onSummarize: () => void
-  onVocabulary: () => void
+  onActionClick: (promptId: string) => void
 }
 
 export function AIActionButtons({
+  prompts,
   activeAction,
   isLoading,
-  explainLabel,
-  summarizeLabel,
-  vocabularyLabel,
-  onExplain,
-  onSummarize,
-  onVocabulary,
+  onActionClick,
 }: AIActionButtonsProps) {
-  const isExplain = activeAction === 'explain'
-  const isSummarize = activeAction === 'summarize'
-  const isVocabulary = activeAction === 'vocabulary'
+  // Only render prompts that are enabled by the user
+  const activePrompts = prompts.filter(function isPromptActive(p) {
+    return p.is_enabled === 1
+  })
+
+  if (activePrompts.length === 0) {
+    return null
+  }
+
+  const columns = activePrompts.length <= 3 ? `repeat(${activePrompts.length}, 1fr)` : 'repeat(2, 1fr)'
 
   return (
-    <Grid templateColumns="repeat(3, 1fr)" gap="0.5rem" mb="1.25rem">
-      <Button
-        size="sm"
-        colorPalette="ruby"
-        variant={isExplain ? 'solid' : 'outline'}
-        onClick={onExplain}
-        disabled={isLoading}
-        fontWeight="semibold"
-        textStyle="xs"
-      >
-        <HelpCircle size="0.875rem" />
-        {explainLabel}
-      </Button>
+    <Grid templateColumns={columns} gap="2" mb="5">
+      {activePrompts.map(function renderButton(p) {
+        const isSelected = activeAction === p.id
+        const palette = p.color_palette || 'ruby'
 
-      <Button
-        size="sm"
-        colorPalette="ruby"
-        variant={isSummarize ? 'solid' : 'outline'}
-        onClick={onSummarize}
-        disabled={isLoading}
-        fontWeight="semibold"
-        textStyle="xs"
-      >
-        <BookOpenText size="0.875rem" />
-        {summarizeLabel}
-      </Button>
-
-      <Button
-        size="sm"
-        colorPalette="ruby"
-        variant={isVocabulary ? 'solid' : 'outline'}
-        onClick={onVocabulary}
-        disabled={isLoading}
-        fontWeight="semibold"
-        textStyle="xs"
-      >
-        <ListFilter size="0.875rem" />
-        {vocabularyLabel}
-      </Button>
+        return (
+          <Button
+            key={p.id}
+            size="sm"
+            colorPalette={palette}
+            variant={isSelected ? 'solid' : 'outline'}
+            onClick={function handleClick() {
+              onActionClick(p.id)
+            }}
+            disabled={isLoading}
+            fontWeight="semibold"
+            textStyle="xs"
+            gap="1.5"
+            px="2.5"
+            py="1.5"
+            title={p.description || p.name}
+          >
+            <PromptIcon name={p.icon || 'Sparkles'} size={14} />
+            {p.name}
+          </Button>
+        )
+      })}
     </Grid>
   )
 }

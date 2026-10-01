@@ -1,6 +1,8 @@
 import React from 'react'
 import { match } from 'ts-pattern'
 import { motion, AnimatePresence } from 'motion/react'
+import { useAtom } from 'jotai'
+import { promptsListAtom } from '@/state/atoms'
 import { useAIAnalysis } from '@/hooks/useAIAnalysis'
 import { useTranslation } from '@/i18n'
 import { AIPanelHeader } from './AIPanelHeader'
@@ -19,25 +21,23 @@ export interface AIAnalysisPanelProps {
 
 export function AIAnalysisPanel({ paragraphText, onOpenSettings }: AIAnalysisPanelProps) {
   const { isLoading, analysisResult, activeAction, errorMessage, analyzeParagraph } = useAIAnalysis()
+  const [prompts] = useAtom(promptsListAtom)
   const { t, format } = useTranslation()
 
-  function handleExplainClick() {
-    analyzeParagraph(paragraphText, 'explain')
-  }
-
-  function handleSummarizeClick() {
-    analyzeParagraph(paragraphText, 'summarize')
-  }
-
-  function handleVocabularyClick() {
-    analyzeParagraph(paragraphText, 'vocabulary')
+  function handleActionClick(promptId: string) {
+    analyzeParagraph(paragraphText, promptId)
   }
 
   function handleSettingsClick() {
     onOpenSettings()
   }
 
-  const resultBadgeText = format(t.aiPanel.resultBadge, { action: activeAction || '' })
+  const activePrompt = prompts.find(function matchPrompt(p) {
+    return p.id === activeAction
+  })
+
+  const actionName = activePrompt ? activePrompt.name : activeAction || ''
+  const resultBadgeText = format(t.aiPanel.resultBadge, { action: actionName })
 
   type ViewStatus = 'loading' | 'error' | 'result' | 'empty'
   const currentStatus: ViewStatus = match({ isLoading, errorMessage, analysisResult })
@@ -86,21 +86,17 @@ export function AIAnalysisPanel({ paragraphText, onOpenSettings }: AIAnalysisPan
     })
     .exhaustive()
 
-  const panelLayout = (
+  return (
     <AIPanelLayout>
       <AIPanelHeader
         heading={t.aiPanel.heading}
         badge={t.aiPanel.badge}
       />
       <AIActionButtons
+        prompts={prompts}
         activeAction={activeAction}
         isLoading={isLoading}
-        explainLabel={t.aiPanel.explainBtn}
-        summarizeLabel={t.aiPanel.summarizeBtn}
-        vocabularyLabel={t.aiPanel.vocabularyBtn}
-        onExplain={handleExplainClick}
-        onSummarize={handleSummarizeClick}
-        onVocabulary={handleVocabularyClick}
+        onActionClick={handleActionClick}
       />
       <AIPanelBodyContainer>
         <AnimatePresence mode="wait">
@@ -109,8 +105,7 @@ export function AIAnalysisPanel({ paragraphText, onOpenSettings }: AIAnalysisPan
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18 }}
-            style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
+            transition={{ duration: 0.15 }}
           >
             {bodyContent}
           </motion.div>
@@ -118,6 +113,4 @@ export function AIAnalysisPanel({ paragraphText, onOpenSettings }: AIAnalysisPan
       </AIPanelBodyContainer>
     </AIPanelLayout>
   )
-
-  return panelLayout
 }

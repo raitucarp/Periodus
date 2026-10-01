@@ -19,7 +19,7 @@ export function SettingsModalFooter({
   onSave,
 }: SettingsModalFooterProps) {
   return (
-    <HStack justify="flex-end" gap="0.75rem" w="full">
+    <HStack justify="flex-end" gap="3" w="full">
       <Button
         variant="outline"
         colorPalette="gray"

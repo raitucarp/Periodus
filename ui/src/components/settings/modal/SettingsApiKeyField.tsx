@@ -10,8 +10,8 @@ export interface SettingsApiKeyFieldProps {
 
 export function SettingsApiKeyField({ label, placeholder, value, onChange }: SettingsApiKeyFieldProps) {
   return (
-    <Field.Root mb="1.25rem">
-      <Field.Label textStyle="xs" fontWeight="bold" color="fg.muted">
+    <Field.Root mb="5">
+      <Field.Label textStyle="modal.fieldLabel">
         {label}
       </Field.Label>
       <Input

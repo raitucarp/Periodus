@@ -23,11 +23,11 @@ export function SettingsThemeSelector({ label, darkLabel, lightLabel }: Settings
   }
 
   return (
-    <VStack align="stretch" gap="0.5rem" mb="1.25rem">
-      <Text textStyle="xs" fontWeight="bold" color="fg.muted">
+    <VStack align="stretch" gap="2" mb="5">
+      <Text textStyle="modal.fieldLabel">
         {label}
       </Text>
-      <HStack gap="0.75rem">
+      <HStack gap="3">
         <Button
           size="sm"
           colorPalette="ruby"
@@ -35,7 +35,7 @@ export function SettingsThemeSelector({ label, darkLabel, lightLabel }: Settings
           onClick={handleChooseLight}
           flex="1"
         >
-          <Sun size="0.875rem" />
+          <Sun size={14} />
           {lightLabel}
         </Button>
         <Button
@@ -45,7 +45,7 @@ export function SettingsThemeSelector({ label, darkLabel, lightLabel }: Settings
           onClick={handleChooseDark}
           flex="1"
         >
-          <Moon size="0.875rem" />
+          <Moon size={14} />
           {darkLabel}
         </Button>
       </HStack>
