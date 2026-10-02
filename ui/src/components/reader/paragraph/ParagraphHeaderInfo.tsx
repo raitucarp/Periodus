@@ -73,11 +73,11 @@ export function ParagraphHeaderInfo({
           <Text textStyle="xs" fontWeight="medium" color="fg.subtle">
             Paragraph
           </Text>
-          <HStack gap="0" align="baseline">
-            <Text textStyle="md" fontWeight="bold" color="fg">
+          <HStack gap="0.5" align="baseline">
+            <Text textStyle="xl" fontWeight="extrabold" color="fg" lineHeight="1">
               {currentParagraphIndex}
             </Text>
-            <Text textStyle="xs" fontWeight="medium" color="fg.muted">
+            <Text textStyle="sm" fontWeight="semibold" color="fg.muted" lineHeight="1">
               /{totalParagraphs}
             </Text>
           </HStack>
