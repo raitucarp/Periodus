@@ -62,12 +62,14 @@ export function ParagraphNavigationControls({
         </Box>
 
         {/* Right Side: Navigation Buttons & Keyboard Shortcut Hint */}
-        <VStack align="end" gap="1" flexShrink={0}>
+        <VStack align="end" gap="1.5" flexShrink={0}>
           <HStack gap="2.5">
             <Button
               variant="outline"
               colorPalette="gray"
               size="sm"
+              w="28"
+              justifyContent="center"
               onClick={onPrev}
               disabled={!hasPrev}
             >
@@ -79,6 +81,8 @@ export function ParagraphNavigationControls({
               colorPalette="ruby"
               variant="solid"
               size="sm"
+              w="28"
+              justifyContent="center"
               onClick={onNext}
               disabled={!hasNext}
             >
@@ -87,10 +91,21 @@ export function ParagraphNavigationControls({
             </Button>
           </HStack>
 
-          <HStack gap="1" title={`${percentCompletedText} • ${keyboardHint}`}>
-            <Kbd size="sm" fontFamily="mono">←</Kbd>
-            <Text textStyle="2xs" color="fg.subtle">/</Text>
-            <Kbd size="sm" fontFamily="mono">→</Kbd>
+          <HStack gap="1.5" align="center" title={`${percentCompletedText} • ${keyboardHint}`}>
+            <Text textStyle="2xs" color="fg.subtle">
+              Shortcut:
+            </Text>
+            <HStack gap="1" align="center">
+              <Kbd size="sm" fontFamily="mono">←</Kbd>
+              <Text textStyle="2xs" color="fg.subtle">prev</Text>
+            </HStack>
+            <Text textStyle="2xs" color="fg.subtle">•</Text>
+            <HStack gap="1" align="center">
+              <Kbd size="sm" fontFamily="mono">→</Kbd>
+              <Text textStyle="2xs" color="fg.subtle">or</Text>
+              <Kbd size="sm" fontFamily="mono">Space</Kbd>
+              <Text textStyle="2xs" color="fg.subtle">next</Text>
+            </HStack>
           </HStack>
         </VStack>
       </Flex>
