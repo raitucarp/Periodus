@@ -20,7 +20,7 @@ function SettingsReaderRoute() {
   const currentSettings: ReadingSettings = readingSettings || {
     scope: 'global',
     fontFamily: 'Literata',
-    fontSize: 18,
+    fontSize: 21,
     lineHeight: 'reading',
     maxWidth: '800px',
     textAlign: 'left',

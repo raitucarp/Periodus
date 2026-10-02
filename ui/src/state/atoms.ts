@@ -41,7 +41,7 @@ export const apiKeySaveSuccessAtom = atom<boolean>(false)
 export const defaultReadingSettings: ReadingSettings = {
   scope: 'global',
   fontFamily: 'Literata',
-  fontSize: 18,
+  fontSize: 21,
   lineHeight: 'reading',
   maxWidth: '800px',
   textAlign: 'left',

@@ -58,7 +58,7 @@ export function SettingsReaderTab({
   previewTitle,
   previewText,
 }: SettingsReaderTabProps) {
-  const currentFontSize = settings.fontSize || 18
+  const currentFontSize = settings.fontSize || 21
 
   function handleDecreaseFontSize() {
     if (currentFontSize > 14) {
