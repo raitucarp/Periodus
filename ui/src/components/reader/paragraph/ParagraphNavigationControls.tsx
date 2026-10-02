@@ -35,14 +35,14 @@ export function ParagraphNavigationControls({
       flexShrink={0}
       mt="auto"
       px="6"
-      pt="2.5"
-      pb="3.5"
+      pt="2"
+      pb="2.5"
       borderTopWidth="1px"
       borderTopColor="border.subtle"
       bg="bg.panel"
       w="full"
       zIndex="base"
-      gap="2.5"
+      gap="1.5"
     >
       {/* Progress Bar with Percentage beside it */}
       <HStack gap="3" w="full" align="center">

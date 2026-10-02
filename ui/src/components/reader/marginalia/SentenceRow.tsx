@@ -169,7 +169,7 @@ export function SentenceRow({
 
   return (
     <Box
-      py="2"
+      py="1.5"
       px="3"
       rounded="xl"
       transition="background-color 0.15s ease"
@@ -289,33 +289,24 @@ export function SentenceRow({
             </HStack>
           )}
 
-          {/* Floating Action Toolbar (Zero layout shift / no movement on hover) */}
-          <Box
-            position="absolute"
-            top="calc(100% + 2px)"
-            left="0"
-            zIndex="dropdown"
-            opacity={isSentenceHovered || hasActiveActions ? 1 : 0}
-            pointerEvents={isSentenceHovered || hasActiveActions ? 'auto' : 'none'}
-            transition="opacity 0.15s ease, transform 0.15s ease"
-            transform={isSentenceHovered || hasActiveActions ? 'translateY(0)' : 'translateY(-4px)'}
-          >
+          {/* In-flow Action Toolbar (m="0" p="0", left actions & right emojis) */}
+          {(isSentenceHovered || hasActiveActions) && (
             <Flex
               align="center"
               justify="space-between"
-              gap="2"
-              h="8"
-              px="2"
-              rounded="lg"
-              bg="bg.panel"
-              shadow="md"
-              borderWidth="1px"
-              borderColor="border.subtle"
+              w="full"
+              m="0"
+              p="0"
+              h="6"
+              minH="6"
+              position="relative"
             >
-              {/* Left Actions: Bookmark, Upvote, Highlight, Separator */}
+              {/* Left Actions: Bookmark, Upvote, Highlight */}
               <HStack
-                gap="1.5"
+                gap="1"
                 align="center"
+                m="0"
+                p="0"
                 opacity={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 1 : 0}
                 transition="opacity 0.2s ease"
                 pointerEvents={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 'auto' : 'none'}
@@ -323,6 +314,8 @@ export function SentenceRow({
                 {/* Bookmark Toggle */}
                 <IconButton
                   size="xs"
+                  h="6"
+                  minW="6"
                   variant={isBookmarked ? 'solid' : 'ghost'}
                   colorPalette={isBookmarked ? 'ruby' : 'gray'}
                   aria-label="Bookmark"
@@ -331,25 +324,25 @@ export function SentenceRow({
                     onToggleBookmark(sentenceHash, isBookmarked)
                   }}
                 >
-                  <Bookmark size={15} fill={isBookmarked ? 'currentColor' : 'none'} />
+                  <Bookmark size={14} fill={isBookmarked ? 'currentColor' : 'none'} />
                 </IconButton>
 
                 {/* Upvote Button (Repeatable) */}
                 <Button
                   size="xs"
+                  h="6"
+                  px="1.5"
                   variant={upvotes > 0 ? 'subtle' : 'ghost'}
                   colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
-                  px="2"
-                  h="7"
                   rounded="md"
                   title="Applaud / Upvote sentence"
                   onClick={function handleUpvote() {
                     onIncrementUpvote(sentenceHash)
                   }}
                 >
-                  <ArrowBigUp size={16} fill={upvotes > 0 ? 'currentColor' : 'none'} />
+                  <ArrowBigUp size={15} fill={upvotes > 0 ? 'currentColor' : 'none'} />
                   {upvotes > 0 && (
-                    <Text textStyle="xs" fontWeight="bold">
+                    <Text textStyle="2xs" fontWeight="bold">
                       {upvotes}
                     </Text>
                   )}
@@ -358,6 +351,8 @@ export function SentenceRow({
                 {/* Highlight Color Picker */}
                 <IconButton
                   size="xs"
+                  h="6"
+                  minW="6"
                   variant={highlightColor ? 'solid' : 'ghost'}
                   colorPalette={highlightColor ? (highlightColor as any) : 'gray'}
                   aria-label="Highlight"
@@ -366,13 +361,13 @@ export function SentenceRow({
                     setShowHighlightPicker(!showHighlightPicker)
                   }}
                 >
-                  <Highlighter size={15} />
+                  <Highlighter size={14} />
                 </IconButton>
 
                 {showHighlightPicker && (
                   <HStack
                     position="absolute"
-                    top="-9"
+                    bottom="calc(100% + 4px)"
                     left="0"
                     bg="bg.panel"
                     borderWidth="1px"
@@ -401,63 +396,57 @@ export function SentenceRow({
                     })}
                   </HStack>
                 )}
-
-                {/* Separator between action buttons and emojis (only when hovered) */}
-                <Separator
-                  orientation="vertical"
-                  h="3.5"
-                  borderColor="border.subtle"
-                  mx="0.5"
-                  opacity={isSentenceHovered ? 1 : 0}
-                  transition="opacity 0.2s ease"
-                />
               </HStack>
 
               {/* Right: Grouped & Attached Emoji Bar (ONLY visible when hovered) */}
-              <Group
-                attached
+              <Box
+                m="0"
+                p="0"
                 opacity={isSentenceHovered ? 1 : 0}
                 transition="opacity 0.2s ease"
                 pointerEvents={isSentenceHovered ? 'auto' : 'none'}
               >
-                {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
-                  return (
-                    <Button
-                      key={em}
-                      size="xs"
-                      variant="subtle"
-                      colorPalette="gray"
-                      px="1.5"
-                      h="7"
-                      fontSize="xs"
-                      onClick={function sendQuickEmoji() {
-                        onAddReaction(sentenceHash, em)
-                      }}
-                    >
-                      {em}
-                    </Button>
-                  )
-                })}
-                <IconButton
-                  size="xs"
-                  variant="subtle"
-                  colorPalette="gray"
-                  h="7"
-                  aria-label="More Emojis"
-                  title="Open full emoji picker"
-                  onClick={function openPicker() {
-                    setShowFullPicker(!showFullPicker)
-                  }}
-                >
-                  <Plus size={13} />
-                </IconButton>
-              </Group>
+                <Group attached>
+                  {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
+                    return (
+                      <Button
+                        key={em}
+                        size="xs"
+                        variant="subtle"
+                        colorPalette="gray"
+                        px="1.5"
+                        h="6"
+                        fontSize="xs"
+                        onClick={function sendQuickEmoji() {
+                          onAddReaction(sentenceHash, em)
+                        }}
+                      >
+                        {em}
+                      </Button>
+                    )
+                  })}
+                  <IconButton
+                    size="xs"
+                    variant="subtle"
+                    colorPalette="gray"
+                    h="6"
+                    minW="6"
+                    aria-label="More Emojis"
+                    title="Open full emoji picker"
+                    onClick={function openPicker() {
+                      setShowFullPicker(!showFullPicker)
+                    }}
+                  >
+                    <Plus size={13} />
+                  </IconButton>
+                </Group>
+              </Box>
             </Flex>
-          </Box>
+          )}
 
           {/* Full Emoji Picker Popover */}
           {showFullPicker && (
-            <Box position="absolute" zIndex="popover" mt="2" shadow="xl" rounded="xl" overflow="hidden">
+            <Box position="absolute" right="0" zIndex="popover" mt="1" shadow="xl" rounded="xl" overflow="hidden">
               <EmojiPicker
                 theme={EmojiTheme.AUTO}
                 onEmojiClick={handleEmojiClick}
@@ -570,7 +559,7 @@ export function SentenceRow({
                           variant="solid"
                           colorPalette="ruby"
                           aria-label="Save comment"
-                          title="Save (Ctrl+Enter)"
+                          title="Save note (Ctrl+Enter)"
                           onClick={function saveEdit() {
                             handleSaveEdit(c.id)
                           }}
@@ -662,7 +651,7 @@ export function SentenceRow({
                 <AutoResizeTextarea
                   size="xs"
                   variant="flushed"
-                  placeholder="No comment... (Ctrl+Enter to post)"
+                  placeholder={comments.length > 0 ? 'Add note... (Ctrl+Enter to post)' : 'No comment... (Ctrl+Enter to post)'}
                   value={newCommentText}
                   onFocus={function onFocus() {
                     setIsCommentFocused(true)
@@ -696,8 +685,8 @@ export function SentenceRow({
                     size="2xs"
                     variant="solid"
                     colorPalette="ruby"
-                    aria-label="Submit comment"
-                    title="Submit comment (Ctrl+Enter)"
+                    aria-label="Submit note"
+                    title="Submit note (Ctrl+Enter)"
                     onClick={function submit() {
                       handleCommentSubmit()
                     }}
