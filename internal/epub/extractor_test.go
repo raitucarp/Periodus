@@ -28,6 +28,26 @@ Dan ini adalah paragraf penutup di bab satu.`
 	if blocks[3] != "> Ini adalah sebuah kutipan penting di tengah cerita." {
 		t.Errorf("block 3 unexpected: %q", blocks[3])
 	}
+
+	listMD := `Paragraf pengantar:
+- Item satu
+- Item dua
+- Item tiga
+Paragraf penutup.`
+
+	listBlocks := SplitMarkdownIntoParagraphs(listMD)
+	if len(listBlocks) != 3 {
+		t.Fatalf("expected 3 blocks for list separation, got %d", len(listBlocks))
+	}
+	if listBlocks[0] != "Paragraf pengantar:" {
+		t.Errorf("expected intro block, got %q", listBlocks[0])
+	}
+	if listBlocks[1] != "- Item satu\n- Item dua\n- Item tiga" {
+		t.Errorf("expected list block, got %q", listBlocks[1])
+	}
+	if listBlocks[2] != "Paragraf penutup." {
+		t.Errorf("expected closing block, got %q", listBlocks[2])
+	}
 }
 
 func TestGenerateBookID(t *testing.T) {

@@ -80,6 +80,7 @@ export function ReaderView({ book, onBack, onOpenSettings }: ReaderViewProps) {
           chapters={chapters}
           formatOptionLabel={formatChapterOption}
           onChange={handleChapterSelectChange}
+          onSelectChapter={changeChapter}
         />
       </ReaderTopNav>
       <ReaderMainSplit

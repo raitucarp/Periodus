@@ -7,6 +7,11 @@ import (
 
 var multiNewlineRegex = regexp.MustCompile(`\n{2,}`)
 var frontmatterRegex = regexp.MustCompile(`(?s)^---\s*[\r\n]+([\s\S]*?)[\r\n]+---\s*[\r\n]?`)
+var listLineRegex = regexp.MustCompile(`^\s*([*+-]|\d+[.)])\s+`)
+
+func isListLine(line string) bool {
+	return listLineRegex.MatchString(line)
+}
 
 // ExtractFrontmatterAndBody parses YAML frontmatter (--- ... ---) from markdown text.
 // Returns frontmatter metadata map, stripped markdown body, and extracted title (if any).
@@ -45,10 +50,43 @@ func ExtractFrontmatterAndBody(md string) (map[string]string, string, string) {
 	return meta, body, title
 }
 
-// SplitMarkdownIntoParagraphs splits markdown text into semantic blocks, ignoring frontmatter
+// SplitMarkdownIntoParagraphs splits markdown text into semantic blocks, ignoring frontmatter.
+// It also ensures that list blocks (ul, ol) are isolated into their own paragraph blocks.
 func SplitMarkdownIntoParagraphs(md string) []string {
 	_, body, _ := ExtractFrontmatterAndBody(md)
-	parts := multiNewlineRegex.Split(body, -1)
+	normalized := strings.ReplaceAll(body, "\r\n", "\n")
+	normalized = strings.ReplaceAll(normalized, "\r", "\n")
+
+	lines := strings.Split(normalized, "\n")
+	var formattedLines []string
+	inList := false
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		trimmed := strings.TrimSpace(line)
+
+		if trimmed == "" {
+			inList = false
+			formattedLines = append(formattedLines, line)
+			continue
+		}
+
+		if isListLine(line) {
+			if !inList && len(formattedLines) > 0 && strings.TrimSpace(formattedLines[len(formattedLines)-1]) != "" {
+				formattedLines = append(formattedLines, "")
+			}
+			inList = true
+		} else {
+			if inList && len(formattedLines) > 0 && strings.TrimSpace(formattedLines[len(formattedLines)-1]) != "" {
+				formattedLines = append(formattedLines, "")
+			}
+			inList = false
+		}
+		formattedLines = append(formattedLines, line)
+	}
+
+	rebuilt := strings.Join(formattedLines, "\n")
+	parts := multiNewlineRegex.Split(rebuilt, -1)
 	var blocks []string
 
 	for _, part := range parts {

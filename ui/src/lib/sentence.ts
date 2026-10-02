@@ -19,42 +19,32 @@ export function stripFrontmatter(text: string): { title?: string; content: strin
   return { title, content: remaining }
 }
 
-/**
- * Splits paragraph text into discrete sentences using markdown-aware Intl.Segmenter or regex fallback.
- * Preserves inline markdown formatting (*, **, _, `, ~, links, footnotes) so sentence boundaries
- * do not split across or break markdown markup.
- */
-export function splitIntoSentences(text: string): string[] {
-  const { content } = stripFrontmatter(text)
-  const trimmed = content.trim()
-  if (!trimmed) return []
+const listItemRegex = /^\s*([*+-]|\d+[.)])\s+/
 
-  // Protect markdown links [text](url "title"), images ![alt](url), and footnotes [^id] with safe placeholders
-  const placeholders: { key: string; original: string }[] = []
-  const protectedText = trimmed.replace(
-    /!?\[(?:\\.|[^\]])*\]\((?:\\.|[^)])*\)|\[\^[a-zA-Z0-9_-]+\]/g,
-    (match) => {
-      const key = `__MD_LINK_${placeholders.length}__`
-      placeholders.push({ key, original: match })
-      return key
-    }
-  )
+function isListItemStart(line: string): boolean {
+  return listItemRegex.test(line)
+}
 
+function isIndentedContinuation(line: string): boolean {
+  return /^\s{2,}\S/.test(line)
+}
+
+function splitStandardSentences(
+  text: string,
+  placeholders: { key: string; original: string }[]
+): string[] {
   if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
     try {
       const segmenter = new (Intl as any).Segmenter('en', { granularity: 'sentence' })
-      const raw = Array.from(segmenter.segment(protectedText)).map((s: any) => s.segment)
+      const raw = Array.from(segmenter.segment(text)).map((s: any) => s.segment)
       const stitched: string[] = []
       let buffer = ''
 
       for (let i = 0; i < raw.length; i++) {
         buffer += raw[i]
 
-        // Stitch trailing closing formatting/punctuation and links attached directly to punctuation
         while (i + 1 < raw.length) {
           const next = raw[i + 1]
-          // Match trailing closing delimiters attached directly to punctuation (e.g. `*`, `**`, `”`, `)`, `]`, `__MD_LINK_...`)
-          // followed by whitespace or end of string
           const trailingClosing = next.match(/^((?:[*_~`"')\]]|__MD_LINK_\d+__)+)(?:\s+|$)/)
           if (trailingClosing) {
             const attached = trailingClosing[1]
@@ -87,9 +77,9 @@ export function splitIntoSentences(text: string): string[] {
   }
 
   // Regex fallback matching sentence terminators (. ! ?) followed by any attached closing delimiters or links
-  const rawSentences = protectedText.match(/[^.!?]+[.!?]+(?:[*_~`"')\]]|__MD_LINK_\d+__)*|[^.!?]+$/g)
+  const rawSentences = text.match(/[^.!?]+[.!?]+(?:[*_~`"')\]]|__MD_LINK_\d+__)*|[^.!?]+$/g)
   if (!rawSentences) {
-    let restored = trimmed
+    let restored = text.trim()
     for (const p of placeholders) {
       restored = restored.replace(p.key, p.original)
     }
@@ -105,6 +95,93 @@ export function splitIntoSentences(text: string): string[] {
       return restored
     })
     .filter((s) => s.length > 0)
+}
+
+/**
+ * Splits paragraph text into discrete sentences using markdown-aware Intl.Segmenter or regex fallback.
+ * Preserves inline markdown formatting (*, **, _, `, ~, links, footnotes) so sentence boundaries
+ * do not split across or break markdown markup.
+ * Also treats each markdown list item (ul, ol) as an individual sentence.
+ */
+export function splitIntoSentences(text: string): string[] {
+  const { content } = stripFrontmatter(text)
+  const trimmed = content.trim()
+  if (!trimmed) return []
+
+  // Protect markdown links [text](url "title"), images ![alt](url), and footnotes [^id] with safe placeholders
+  const placeholders: { key: string; original: string }[] = []
+  const protectedText = trimmed.replace(
+    /!?\[(?:\\.|[^\]])*\]\((?:\\.|[^)])*\)|\[\^[a-zA-Z0-9_-]+\]/g,
+    (match) => {
+      const key = `__MD_LINK_${placeholders.length}__`
+      placeholders.push({ key, original: match })
+      return key
+    }
+  )
+
+  const lines = protectedText.split('\n')
+  const hasList = lines.some((l) => isListItemStart(l))
+
+  if (hasList) {
+    const sentences: string[] = []
+    let textBuffer: string[] = []
+
+    function flushTextBuffer() {
+      if (textBuffer.length > 0) {
+        const textChunk = textBuffer.join('\n').trim()
+        if (textChunk) {
+          sentences.push(...splitStandardSentences(textChunk, placeholders))
+        }
+        textBuffer = []
+      }
+    }
+
+    let currentListItem: string[] = []
+
+    function flushCurrentListItem() {
+      if (currentListItem.length > 0) {
+        let itemText = currentListItem.join('\n').trim()
+        if (itemText) {
+          for (const p of placeholders) {
+            itemText = itemText.replace(p.key, p.original)
+          }
+          sentences.push(itemText)
+        }
+        currentListItem = []
+      }
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const lineTrimmed = line.trim()
+
+      if (!lineTrimmed) {
+        flushCurrentListItem()
+        flushTextBuffer()
+        continue
+      }
+
+      if (isListItemStart(line)) {
+        flushTextBuffer()
+        flushCurrentListItem()
+        currentListItem.push(line)
+      } else if (currentListItem.length > 0 && isIndentedContinuation(line)) {
+        currentListItem.push(line)
+      } else {
+        flushCurrentListItem()
+        textBuffer.push(line)
+      }
+    }
+
+    flushCurrentListItem()
+    flushTextBuffer()
+
+    if (sentences.length > 0) {
+      return sentences
+    }
+  }
+
+  return splitStandardSentences(protectedText, placeholders)
 }
 
 /**

@@ -163,6 +163,21 @@ export function BionicSentence({
               {children}
             </Box>
           ),
+          ul: ({ children }) => (
+            <Box as="ul" m="0" pl="4" style={{ listStyleType: 'disc' }}>
+              {children}
+            </Box>
+          ),
+          ol: ({ children }) => (
+            <Box as="ol" m="0" pl="4" style={{ listStyleType: 'decimal' }}>
+              {children}
+            </Box>
+          ),
+          li: ({ children }) => (
+            <Box as="li" m="0" p="0" style={{ display: 'list-item' }}>
+              {effectiveBionic ? transformNodeWithBionic(children) : children}
+            </Box>
+          ),
           hr: () => <Box as="span" display="block" my="2" borderBottom="1px solid var(--chakra-colors-border)" />,
           a: ({ href, children }) => {
             const resolved = href ? resolveChapterTarget(href, chapters) : null

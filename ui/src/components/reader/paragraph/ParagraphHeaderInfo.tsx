@@ -44,8 +44,8 @@ export function ParagraphHeaderInfo({
             <Bookmark size={16} />
           </Box>
           <VStack align="start" gap="0.5">
-            <Text textStyle="xs" fontWeight="medium" color="fg.subtle">
-              Chapter {chapterIndex} of {totalChapters}
+            <Text textStyle="xs" fontWeight="medium" color="fg.muted">
+              #{chapterIndex} of {totalChapters}
             </Text>
             <Text textStyle="md" fontWeight="bold" color="fg" lineClamp={1}>
               {displayTitle}
