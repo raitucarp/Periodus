@@ -3,6 +3,10 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 // migrateSchema inspects existing SQLite tables and performs additive migrations
@@ -15,6 +19,8 @@ func migrateSchema(db *sql.DB) error {
 	if err := migrateNewReadingTables(db); err != nil {
 		return fmt.Errorf("migrate reading tables: %w", err)
 	}
+
+	_ = repairExistingChapterTitlesAndParagraphs(db)
 
 	return nil
 }
@@ -164,5 +170,97 @@ func migratePromptsTable(db *sql.DB) error {
 	// Ensure prompt index exists
 	_, _ = db.Exec("CREATE INDEX IF NOT EXISTS idx_prompts_scope ON prompts(scope, book_id, sort_order);")
 
+	return nil
+}
+
+var migrationFmRegex = regexp.MustCompile(`(?s)^---\s*[\r\n]+([\s\S]*?)[\r\n]+---\s*[\r\n]?`)
+
+func repairExistingChapterTitlesAndParagraphs(db *sql.DB) error {
+	rows, err := db.Query(`SELECT id, file_path, title FROM chapters;`)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	type chItem struct {
+		id       string
+		filePath string
+		title    string
+	}
+	var list []chItem
+	for rows.Next() {
+		var it chItem
+		if err := rows.Scan(&it.id, &it.filePath, &it.title); err == nil {
+			list = append(list, it)
+		}
+	}
+
+	for _, it := range list {
+		if it.filePath == "" {
+			continue
+		}
+		data, err := os.ReadFile(it.filePath)
+		if err != nil {
+			continue
+		}
+		content := string(data)
+		normalized := strings.ReplaceAll(content, "\r\n", "\n")
+		normalized = strings.ReplaceAll(normalized, "\r", "\n")
+
+		extractedTitle := ""
+		loc := migrationFmRegex.FindStringSubmatchIndex(normalized)
+		if loc != nil && loc[0] == 0 {
+			rawMeta := normalized[loc[2]:loc[3]]
+			for _, line := range strings.Split(rawMeta, "\n") {
+				trimmed := strings.TrimSpace(line)
+				if strings.HasPrefix(trimmed, "title:") {
+					extractedTitle = strings.TrimSpace(strings.TrimPrefix(trimmed, "title:"))
+					extractedTitle = strings.Trim(extractedTitle, `"'`)
+					break
+				}
+			}
+		}
+
+		if extractedTitle == "" {
+			for _, line := range strings.Split(normalized, "\n") {
+				trimmed := strings.TrimSpace(line)
+				if strings.HasPrefix(trimmed, "# ") {
+					extractedTitle = strings.TrimPrefix(trimmed, "# ")
+					break
+				} else if strings.HasPrefix(trimmed, "## ") {
+					extractedTitle = strings.TrimPrefix(trimmed, "## ")
+					break
+				} else if strings.HasPrefix(trimmed, "### ") {
+					extractedTitle = strings.TrimPrefix(trimmed, "### ")
+					break
+				}
+			}
+		}
+
+		if extractedTitle != "" && extractedTitle != it.title && strings.HasPrefix(it.title, "Chapter ") {
+			_, _ = db.Exec(`UPDATE chapters SET title = ? WHERE id = ?;`, extractedTitle, it.id)
+		}
+
+		// Also check paragraph_1.md in the same directory
+		dir := filepath.Dir(it.filePath)
+		p1Path := filepath.Join(dir, "paragraph_1.md")
+		if p1Data, err := os.ReadFile(p1Path); err == nil {
+			p1Content := string(p1Data)
+			p1Norm := strings.ReplaceAll(p1Content, "\r\n", "\n")
+			p1Loc := migrationFmRegex.FindStringSubmatchIndex(p1Norm)
+			if p1Loc != nil && p1Loc[0] == 0 {
+				p1Body := strings.TrimSpace(p1Norm[p1Loc[1]:])
+				if p1Body != "" {
+					_ = os.WriteFile(p1Path, []byte(p1Body), 0644)
+					// Update preview in db for this paragraph
+					pPreview := p1Body
+					if len(pPreview) > 120 {
+						pPreview = pPreview[:120] + "..."
+					}
+					_, _ = db.Exec(`UPDATE paragraphs SET content_preview = ? WHERE file_path = ?;`, pPreview, p1Path)
+				}
+			}
+		}
+	}
 	return nil
 }

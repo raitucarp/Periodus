@@ -1,29 +1,109 @@
 /**
- * Splits paragraph text into discrete sentences using Intl.Segmenter or regex fallback.
+ * Strips YAML frontmatter (---\n...\n---) from markdown text, extracting title if present.
+ */
+export function stripFrontmatter(text: string): { title?: string; content: string } {
+  if (!text) return { content: '' }
+  const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  const match = normalized.match(/^---\s*[\r\n]+([\s\S]*?)[\r\n]+---\s*([\r\n]*[\s\S]*)?$/)
+  if (!match) return { content: text.trim() }
+
+  const rawMeta = match[1] || ''
+  const remaining = (match[2] || '').trim()
+
+  let title: string | undefined
+  const titleMatch = rawMeta.match(/^title:\s*(.*)$/im)
+  if (titleMatch) {
+    title = titleMatch[1].trim().replace(/^["']|["']$/g, '')
+  }
+
+  return { title, content: remaining }
+}
+
+/**
+ * Splits paragraph text into discrete sentences using markdown-aware Intl.Segmenter or regex fallback.
+ * Preserves inline markdown formatting (*, **, _, `, ~, links, footnotes) so sentence boundaries
+ * do not split across or break markdown markup.
  */
 export function splitIntoSentences(text: string): string[] {
-  const trimmed = text.trim()
+  const { content } = stripFrontmatter(text)
+  const trimmed = content.trim()
   if (!trimmed) return []
+
+  // Protect markdown links [text](url "title"), images ![alt](url), and footnotes [^id] with safe placeholders
+  const placeholders: { key: string; original: string }[] = []
+  const protectedText = trimmed.replace(
+    /!?\[(?:\\.|[^\]])*\]\((?:\\.|[^)])*\)|\[\^[a-zA-Z0-9_-]+\]/g,
+    (match) => {
+      const key = `__MD_LINK_${placeholders.length}__`
+      placeholders.push({ key, original: match })
+      return key
+    }
+  )
 
   if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
     try {
       const segmenter = new (Intl as any).Segmenter('en', { granularity: 'sentence' })
-      const segments = Array.from(segmenter.segment(trimmed))
-      const results = segments
-        .map((s: any) => s.segment.trim())
-        .filter((s: string) => s.length > 0)
-      if (results.length > 0) return results
+      const raw = Array.from(segmenter.segment(protectedText)).map((s: any) => s.segment)
+      const stitched: string[] = []
+      let buffer = ''
+
+      for (let i = 0; i < raw.length; i++) {
+        buffer += raw[i]
+
+        // Stitch trailing closing formatting/punctuation and links attached directly to punctuation
+        while (i + 1 < raw.length) {
+          const next = raw[i + 1]
+          // Match trailing closing delimiters attached directly to punctuation (e.g. `*`, `**`, `”`, `)`, `]`, `__MD_LINK_...`)
+          // followed by whitespace or end of string
+          const trailingClosing = next.match(/^((?:[*_~`"')\]]|__MD_LINK_\d+__)+)(?:\s+|$)/)
+          if (trailingClosing) {
+            const attached = trailingClosing[1]
+            buffer += attached
+            const rest = next.slice(attached.length)
+            raw[i + 1] = rest
+            if (!rest.trim()) {
+              i++
+            }
+            continue
+          }
+          break
+        }
+
+        const t = buffer.trim()
+        if (t) {
+          let restored = t
+          for (const p of placeholders) {
+            restored = restored.replace(p.key, p.original)
+          }
+          stitched.push(restored)
+        }
+        buffer = ''
+      }
+
+      if (stitched.length > 0) return stitched
     } catch {
       // fallback to regex below
     }
   }
 
-  // Regex fallback matching sentence terminators (. ! ?) followed by whitespace or quote
-  const rawSentences = trimmed.match(/[^.!?]+[.!?]+["']?|[^.!?]+$/g)
-  if (!rawSentences) return [trimmed]
+  // Regex fallback matching sentence terminators (. ! ?) followed by any attached closing delimiters or links
+  const rawSentences = protectedText.match(/[^.!?]+[.!?]+(?:[*_~`"')\]]|__MD_LINK_\d+__)*|[^.!?]+$/g)
+  if (!rawSentences) {
+    let restored = trimmed
+    for (const p of placeholders) {
+      restored = restored.replace(p.key, p.original)
+    }
+    return [restored]
+  }
 
   return rawSentences
-    .map((s) => s.trim())
+    .map((s) => {
+      let restored = s.trim()
+      for (const p of placeholders) {
+        restored = restored.replace(p.key, p.original)
+      }
+      return restored
+    })
     .filter((s) => s.length > 0)
 }
 
@@ -59,9 +139,10 @@ export function calculateParagraphStats(text: string): {
   readingMinutes: number
   sentences: number
 } {
-  const characters = text.length
-  const words = text.trim().split(/\s+/).filter(Boolean).length
-  const sentences = splitIntoSentences(text).length
+  const { content } = stripFrontmatter(text)
+  const characters = content.length
+  const words = content.trim().split(/\s+/).filter(Boolean).length
+  const sentences = splitIntoSentences(content).length
   // Average reading speed: 200 words per minute
   const readingMinutes = Math.max(1, Math.round((words / 200) * 10) / 10)
 
@@ -90,7 +171,7 @@ export function cleanChapterTitle(title: string): string {
   // 4. Strip strikethrough and inline code
   cleaned = cleaned.replace(/~~(.*?)~~/g, '$1')
   cleaned = cleaned.replace(/`([^`]+)`/g, '$1')
-  // 5. Trim
+  // 5. Strip enclosing quotes if any
+  cleaned = cleaned.replace(/^["']|["']$/g, '')
   return cleaned.trim()
 }
-

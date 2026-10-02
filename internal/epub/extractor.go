@@ -108,28 +108,46 @@ func (e *Extractor) Extract(epubPath string) (*ExtractedBookData, error) {
 			continue // Skip completely empty sections
 		}
 
+		// Extract frontmatter metadata and body
+		_, bodyMD, fmTitle := ExtractFrontmatterAndBody(cleanMD)
+		contentToUse := bodyMD
+		if strings.TrimSpace(contentToUse) == "" {
+			contentToUse = cleanMD
+		}
+
 		chapterFolder := filepath.Join(chaptersDir, fmt.Sprintf("ch_%d", chapterIndex))
 		if err := os.MkdirAll(chapterFolder, 0755); err != nil {
 			return nil, err
 		}
 
 		chapterMDPath := filepath.Join(chapterFolder, "chapter.md")
-		if err := os.WriteFile(chapterMDPath, []byte(cleanMD), 0644); err != nil {
+		if err := os.WriteFile(chapterMDPath, []byte(contentToUse), 0644); err != nil {
 			return nil, err
 		}
 
-		// Determine chapter title (e.g. check first header line # Title)
-		chTitle := fmt.Sprintf("Chapter %d", chapterIndex)
-		for _, line := range strings.Split(cleanMD, "\n") {
-			trimmed := strings.TrimSpace(line)
-			if strings.HasPrefix(trimmed, "# ") {
-				chTitle = strings.TrimPrefix(trimmed, "# ")
-				break
+		// Determine chapter title: first try frontmatter title, then headers (#, ##, ###)
+		chTitle := fmTitle
+		if chTitle == "" {
+			for _, line := range strings.Split(contentToUse, "\n") {
+				trimmed := strings.TrimSpace(line)
+				if strings.HasPrefix(trimmed, "# ") {
+					chTitle = strings.TrimPrefix(trimmed, "# ")
+					break
+				} else if strings.HasPrefix(trimmed, "## ") {
+					chTitle = strings.TrimPrefix(trimmed, "## ")
+					break
+				} else if strings.HasPrefix(trimmed, "### ") {
+					chTitle = strings.TrimPrefix(trimmed, "### ")
+					break
+				}
 			}
+		}
+		if chTitle == "" {
+			chTitle = fmt.Sprintf("Chapter %d", chapterIndex)
 		}
 
 		// Split into semantic blocks (paragraph_n.md)
-		rawBlocks := SplitMarkdownIntoParagraphs(cleanMD)
+		rawBlocks := SplitMarkdownIntoParagraphs(contentToUse)
 		var pCountInChapter int64 = 0
 
 		for pIdx, block := range rawBlocks {

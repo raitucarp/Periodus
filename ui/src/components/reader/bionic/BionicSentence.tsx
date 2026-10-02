@@ -2,8 +2,15 @@ import React from 'react'
 import { Box } from '@chakra-ui/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { useAtomValue } from 'jotai'
-import { isBionicEnabledAtom } from '@/state/atoms'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { useNavigate } from '@tanstack/react-router'
+import {
+  isBionicEnabledAtom,
+  chaptersAtom,
+  currentChapterIdxAtom,
+  currentParagraphIdxAtom,
+} from '@/state/atoms'
+import { resolveChapterTarget } from '@/lib/navigation'
 
 export interface BionicSentenceProps {
   sentence: string
@@ -102,6 +109,11 @@ export function BionicSentence({
   const globalBionicEnabled = useAtomValue(isBionicEnabledAtom)
   const effectiveBionic = isBionicEnabled ?? globalBionicEnabled
 
+  const chapters = useAtomValue(chaptersAtom)
+  const setCurrentChapterIdx = useSetAtom(currentChapterIdxAtom)
+  const setCurrentParagraphIdx = useSetAtom(currentParagraphIdxAtom)
+  const navigate = useNavigate()
+
   return (
     <Box
       as="span"
@@ -130,11 +142,63 @@ export function BionicSentence({
               {children}
             </code>
           ),
-          a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>
+          h1: ({ children }) => (
+            <Box as="span" display="block" fontWeight="bold" fontSize="1.35em" my="1" color="fg">
               {effectiveBionic ? transformNodeWithBionic(children) : children}
-            </a>
+            </Box>
           ),
+          h2: ({ children }) => (
+            <Box as="span" display="block" fontWeight="bold" fontSize="1.2em" my="1" color="fg">
+              {effectiveBionic ? transformNodeWithBionic(children) : children}
+            </Box>
+          ),
+          h3: ({ children }) => (
+            <Box as="span" display="block" fontWeight="semibold" fontSize="1.1em" my="0.5" color="fg">
+              {effectiveBionic ? transformNodeWithBionic(children) : children}
+            </Box>
+          ),
+          blockquote: ({ children }) => (
+            <Box as="span" display="block" borderLeft="3px solid var(--chakra-colors-border)" pl="3" my="1" fontStyle="italic" color="fg.muted">
+              {children}
+            </Box>
+          ),
+          hr: () => <Box as="span" display="block" my="2" borderBottom="1px solid var(--chakra-colors-border)" />,
+          a: ({ href, children }) => {
+            const resolved = href ? resolveChapterTarget(href, chapters) : null
+            const isInternal = Boolean(resolved?.type === 'chapter')
+
+            return (
+              <a
+                href={href}
+                target={isInternal ? undefined : '_blank'}
+                rel={isInternal ? undefined : 'noreferrer'}
+                style={{
+                  textDecoration: 'underline',
+                  color: isInternal ? 'var(--chakra-colors-ruby-solid, #e53e3e)' : 'inherit',
+                  cursor: 'pointer',
+                  fontWeight: isInternal ? 600 : 'normal',
+                }}
+                onClick={(e) => {
+                  if (!href) return
+                  if (resolved?.type === 'chapter' && resolved.chapterIndex) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setCurrentChapterIdx(resolved.chapterIndex)
+                    setCurrentParagraphIdx(1)
+                    try {
+                      ;(navigate as any)({
+                        search: (prev: any) => ({ ...prev, chapter: resolved.chapterIndex }),
+                      })
+                    } catch {
+                      // Router search update fallback
+                    }
+                  }
+                }}
+              >
+                {effectiveBionic ? transformNodeWithBionic(children) : children}
+              </a>
+            )
+          },
         }}
       >
         {sentence}

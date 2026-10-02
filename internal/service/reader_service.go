@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/raitucarp/periodus/internal/db"
+	"github.com/raitucarp/periodus/internal/epub"
 )
 
 type ReaderService struct {
@@ -37,7 +39,12 @@ func (s *ReaderService) GetParagraphContent(bookID string, chapterIndex int, par
 			if err != nil {
 				return "", fmt.Errorf("gagal membaca file paragraf: %w", err)
 			}
-			return string(bytes), nil
+			content := string(bytes)
+			_, body, _ := epub.ExtractFrontmatterAndBody(content)
+			if strings.TrimSpace(body) != "" {
+				return body, nil
+			}
+			return content, nil
 		}
 	}
 
