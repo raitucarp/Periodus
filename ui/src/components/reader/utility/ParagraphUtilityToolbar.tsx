@@ -18,7 +18,9 @@ import {
   RotateCcw,
   Bookmark,
   ArrowBigUp,
+  ArrowBigDown,
   Plus,
+  Minus,
   Sparkles,
 } from 'lucide-react'
 import EmojiPicker, { EmojiClickData, Theme as EmojiTheme } from 'emoji-picker-react'
@@ -36,7 +38,9 @@ export interface ParagraphUtilityToolbarProps {
   paragraphStat?: ParagraphStat | null
   onToggleBookmark?: (isBookmarked: boolean) => void
   onIncrementUpvote?: () => void
+  onDecrementUpvote?: () => void
   onAddReaction?: (emoji: string) => void
+  onUpdateReaction?: (emoji: string, delta: number) => void
   onToggleSkip: (isSkipped: boolean) => void
   onUpdateStyle: (fontFamily: string, fontSize: number) => void
 }
@@ -57,7 +61,9 @@ export function ParagraphUtilityToolbar({
   paragraphStat,
   onToggleBookmark,
   onIncrementUpvote,
+  onDecrementUpvote,
   onAddReaction,
+  onUpdateReaction,
   onToggleSkip,
   onUpdateStyle,
 }: ParagraphUtilityToolbarProps) {
@@ -81,7 +87,11 @@ export function ParagraphUtilityToolbar({
   }
 
   function handleEmojiClick(data: EmojiClickData) {
-    onAddReaction?.(data.emoji)
+    if (onUpdateReaction) {
+      onUpdateReaction(data.emoji, 1)
+    } else {
+      onAddReaction?.(data.emoji)
+    }
     setShowEmojiPicker(false)
   }
 
@@ -150,50 +160,48 @@ export function ParagraphUtilityToolbar({
             <Bookmark size={14} fill={isBookmarked ? 'currentColor' : 'none'} />
           </IconButton>
 
-          {/* Paragraph Upvote */}
-          <Button
-            size="xs"
-            variant={upvotes > 0 ? 'subtle' : 'ghost'}
-            colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
-            px="2"
-            h="7"
-            rounded="md"
-            title="Applaud / Upvote paragraph"
-            onClick={function handleUpvote() {
-              onIncrementUpvote?.()
-            }}
-          >
-            <ArrowBigUp size={15} fill={upvotes > 0 ? 'currentColor' : 'none'} />
-            {upvotes > 0 && (
-              <Text textStyle="xs" fontWeight="bold">
-                {upvotes}
-              </Text>
-            )}
-          </Button>
-
-          {/* Existing Reaction Badges */}
-          {reactions.map(function renderReaction(r) {
-            return (
-              <Button
-                key={r.emoji}
-                size="xs"
-                variant="surface"
-                colorPalette="gray"
-                rounded="full"
-                px="2"
-                py="0.5"
-                h="6"
-                onClick={function clickReaction() {
-                  onAddReaction?.(r.emoji)
-                }}
-              >
-                <span>{r.emoji}</span>
-                <Text as="span" textStyle="2xs" fontWeight="semibold" ml="1">
-                  {r.count}
+          {/* Paragraph Upvote & Downvote */}
+          <HStack gap="0.5" align="center">
+            <Button
+              size="xs"
+              variant={upvotes > 0 ? 'subtle' : 'ghost'}
+              colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
+              px="2"
+              h="7"
+              rounded="md"
+              title="Upvote paragraph"
+              onClick={function handleUpvote() {
+                onIncrementUpvote?.()
+              }}
+            >
+              <ArrowBigUp size={15} fill={upvotes > 0 ? 'currentColor' : 'none'} />
+              {upvotes > 0 && (
+                <Text textStyle="xs" fontWeight="bold">
+                  {upvotes}
                 </Text>
-              </Button>
-            )
-          })}
+              )}
+            </Button>
+            <IconButton
+              size="xs"
+              variant={upvotes < 0 ? 'subtle' : 'ghost'}
+              colorPalette={upvotes < 0 ? 'ruby' : 'gray'}
+              h="7"
+              minW="7"
+              rounded="md"
+              aria-label="Downvote paragraph"
+              title="Downvote paragraph"
+              onClick={function handleDownvote() {
+                onDecrementUpvote?.()
+              }}
+            >
+              <ArrowBigDown size={15} fill={upvotes < 0 ? 'currentColor' : 'none'} />
+              {upvotes < 0 && (
+                <Text textStyle="xs" fontWeight="bold">
+                  {Math.abs(upvotes)}
+                </Text>
+              )}
+            </IconButton>
+          </HStack>
 
           {/* Quick Emojis (Grouped and Attached) */}
           <Group attached>
@@ -208,7 +216,11 @@ export function ParagraphUtilityToolbar({
                   h="7"
                   fontSize="xs"
                   onClick={function clickQuickEmoji() {
-                    onAddReaction?.(em)
+                    if (onUpdateReaction) {
+                      onUpdateReaction(em, 1)
+                    } else {
+                      onAddReaction?.(em)
+                    }
                   }}
                 >
                   {em}
@@ -229,24 +241,100 @@ export function ParagraphUtilityToolbar({
               <Plus size={13} />
             </IconButton>
           </Group>
+
+          {/* Added Emoji Badges to the right of emoji buttons */}
+          {reactions.map(function renderReaction(r) {
+            return (
+              <Box
+                key={r.emoji}
+                position="relative"
+                display="inline-flex"
+                alignItems="center"
+                justifyContent="center"
+                px="1"
+                py="0.5"
+                mx="1"
+                cursor="pointer"
+                userSelect="none"
+                title={`${r.emoji} • ${r.count} (Click to increase, - to decrease)`}
+                onClick={function inc() {
+                  if (onUpdateReaction) {
+                    onUpdateReaction(r.emoji, 1)
+                  } else {
+                    onAddReaction?.(r.emoji)
+                  }
+                }}
+              >
+                <Text as="span" fontSize="lg" lineHeight="1">
+                  {r.emoji}
+                </Text>
+                <Box
+                  position="absolute"
+                  top="-4px"
+                  right="-5px"
+                  minW="3.5"
+                  h="3.5"
+                  px="1"
+                  rounded="full"
+                  bg="ruby.solid"
+                  color="white"
+                  fontSize="2xs"
+                  fontWeight="bold"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  lineHeight="1"
+                  zIndex={2}
+                  pointerEvents="none"
+                >
+                  {r.count}
+                </Box>
+                <Box
+                  position="absolute"
+                  bottom="-4px"
+                  right="-5px"
+                  w="3.5"
+                  h="3.5"
+                  rounded="full"
+                  bg="bg.panel"
+                  color="fg.subtle"
+                  borderWidth="1px"
+                  borderColor="border.subtle"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  zIndex={2}
+                  cursor="pointer"
+                  _hover={{ color: 'ruby.fg', borderColor: 'ruby.focus', bg: 'ruby.subtle' }}
+                  title="Decrease (-1, remove if 0)"
+                  onClick={function dec(e) {
+                    e.stopPropagation()
+                    onUpdateReaction?.(r.emoji, -1)
+                  }}
+                >
+                  <Minus size={8} />
+                </Box>
+              </Box>
+            )
+          })}
         </HStack>
 
         <Separator orientation="vertical" h="3.5" borderColor="border.subtle" mx="0.5" flexShrink={0} />
 
-        {/* Utilities: Bionic Reading Toggle, Style Override, Skip */}
+        {/* Utilities: Focus Reading Toggle, Style Override, Skip */}
         <HStack gap="1.5" flexShrink={0}>
-          {/* Bionic Reading Toggle */}
+          {/* Focus Reading Toggle */}
           <Button
             size="xs"
             variant={isBionicEnabled ? 'subtle' : 'ghost'}
             colorPalette={isBionicEnabled ? 'teal' : 'gray'}
-            title="Toggle Bionic Reading (anchor fixation)"
+            title="Toggle Focus Reading (visual fixation guides)"
             onClick={function handleToggleBionic() {
               toggleBionic()
             }}
           >
             <Sparkles size={13} />
-            <Text textStyle="xs">Bionic</Text>
+            <Text textStyle="xs">Focus Read</Text>
           </Button>
 
           {/* Typography Override Toggle */}

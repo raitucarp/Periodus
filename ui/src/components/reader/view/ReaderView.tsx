@@ -9,6 +9,7 @@ import { ReaderTopNav } from './ReaderTopNav'
 import { ReaderChapterSelect } from './ReaderChapterSelect'
 import { ReaderMainSplit } from './ReaderMainSplit'
 import { ReaderLayout } from './ReaderLayout'
+import { cleanChapterTitle } from '@/lib/sentence'
 
 export interface ReaderViewProps {
   book: Book
@@ -56,7 +57,7 @@ export function ReaderView({ book, onBack, onOpenSettings }: ReaderViewProps) {
     })
     return format(t.reader.chapterOption, {
       index: chapter_index,
-      title,
+      title: cleanChapterTitle(title),
       paragraphCountLabel,
     })
   }
@@ -84,7 +85,7 @@ export function ReaderView({ book, onBack, onOpenSettings }: ReaderViewProps) {
         leftPane={
           <ActiveParagraph
             bookId={book.id}
-            chapterTitle={currentChapter?.title || ''}
+            chapterTitle={cleanChapterTitle(currentChapter?.title || '')}
             chapterIndex={currentChapterIdx}
             totalChapters={chapters.length || 1}
             paragraphIndex={currentParagraphIdx}

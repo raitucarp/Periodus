@@ -128,14 +128,36 @@ export function ActiveParagraph({
   }
 
   function handleIncrementParagraphUpvote() {
-    incrementParagraphUpvote({
+    const current = paragraphStat?.upvotes_count || 0
+    updateParagraphStats({
       bookId,
       chapterIndex,
       paragraphIndex,
+      isSkipped: paragraphStat?.is_skipped === 1,
+      customFontFamily: paragraphStat?.custom_font_family || '',
+      customFontSize: paragraphStat?.custom_font_size || 0,
+      isBookmarked: paragraphStat?.is_bookmarked === 1,
+      upvotesCount: current + 1,
+      emojiReactions: paragraphStat?.emoji_reactions || '[]',
     })
   }
 
-  function handleAddParagraphReaction(emoji: string) {
+  function handleDecrementParagraphUpvote() {
+    const current = paragraphStat?.upvotes_count || 0
+    updateParagraphStats({
+      bookId,
+      chapterIndex,
+      paragraphIndex,
+      isSkipped: paragraphStat?.is_skipped === 1,
+      customFontFamily: paragraphStat?.custom_font_family || '',
+      customFontSize: paragraphStat?.custom_font_size || 0,
+      isBookmarked: paragraphStat?.is_bookmarked === 1,
+      upvotesCount: current - 1,
+      emojiReactions: paragraphStat?.emoji_reactions || '[]',
+    })
+  }
+
+  function handleUpdateParagraphReaction(emoji: string, delta: number) {
     let reactions: Array<{ emoji: string; count: number }> = []
     try {
       if (paragraphStat?.emoji_reactions) {
@@ -147,9 +169,12 @@ export function ActiveParagraph({
 
     const idx = reactions.findIndex((r) => r.emoji === emoji)
     if (idx >= 0) {
-      reactions[idx].count += 1
-    } else {
-      reactions.push({ emoji, count: 1 })
+      reactions[idx].count += delta
+      if (reactions[idx].count <= 0) {
+        reactions.splice(idx, 1)
+      }
+    } else if (delta > 0) {
+      reactions.push({ emoji, count: delta })
     }
 
     updateParagraphStats({
@@ -163,6 +188,10 @@ export function ActiveParagraph({
       upvotesCount: paragraphStat?.upvotes_count || 0,
       emojiReactions: JSON.stringify(reactions),
     })
+  }
+
+  function handleAddParagraphReaction(emoji: string) {
+    handleUpdateParagraphReaction(emoji, 1)
   }
 
   function handleToggleBookmark(sentenceHash: string, currentVal: boolean) {
@@ -354,7 +383,9 @@ export function ActiveParagraph({
             paragraphStat={paragraphStat}
             onToggleBookmark={handleToggleParagraphBookmark}
             onIncrementUpvote={handleIncrementParagraphUpvote}
+            onDecrementUpvote={handleDecrementParagraphUpvote}
             onAddReaction={handleAddParagraphReaction}
+            onUpdateReaction={handleUpdateParagraphReaction}
             onToggleSkip={handleToggleSkip}
             onUpdateStyle={handleUpdateStyle}
           />

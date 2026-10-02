@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Flex, HStack, Badge, Text, VStack } from '@chakra-ui/react'
 import { Bookmark } from 'lucide-react'
 import { ParagraphHeatmap } from '../heatmap/ParagraphHeatmap'
+import { cleanChapterTitle } from '@/lib/sentence'
 import type { ParagraphStat } from '@/lib/types'
 
 export interface ParagraphHeaderInfoProps {
@@ -23,6 +24,8 @@ export function ParagraphHeaderInfo({
   paragraphStats = [],
   onSelectParagraph = () => {},
 }: ParagraphHeaderInfoProps) {
+  const displayTitle = cleanChapterTitle(chapterTitle) || `Chapter ${chapterIndex}`
+
   return (
     <Box
       as="header"
@@ -45,7 +48,7 @@ export function ParagraphHeaderInfo({
               Chapter {chapterIndex} of {totalChapters}
             </Text>
             <Text textStyle="md" fontWeight="bold" color="fg" lineClamp={1}>
-              {chapterTitle || `Chapter ${chapterIndex}`}
+              {displayTitle}
             </Text>
           </VStack>
         </HStack>

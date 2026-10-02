@@ -1,5 +1,6 @@
 import React from 'react'
 import { HStack, Box } from '@chakra-ui/react'
+import { cleanChapterTitle } from '@/lib/sentence'
 import type { ChapterHeatmapItem } from '@/lib/types'
 
 export interface ChapterHeatmapProps {
@@ -50,7 +51,8 @@ export function ChapterHeatmap({
           borderColor = 'var(--chakra-colors-grass-border, #20573e)'
         }
 
-        const tooltipText = `Chapter ${chapterIdx}${stat?.title ? ': ' + stat.title : ''} • ${visits} visits (${stat?.visited_paragraphs || 0}/${stat?.paragraph_count || 0} read)`
+        const cleanTitle = stat?.title ? cleanChapterTitle(stat.title) : ''
+        const tooltipText = `Chapter ${chapterIdx}${cleanTitle ? ': ' + cleanTitle : ''} • ${visits} visits (${stat?.visited_paragraphs || 0}/${stat?.paragraph_count || 0} read)`
 
         return (
           <Box

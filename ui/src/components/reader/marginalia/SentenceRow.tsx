@@ -452,76 +452,84 @@ export function SentenceRow({
                   </Group>
                 </Box>
 
-                {/* Added Emoji Badges (on the right of emoji buttons, can be incremented or decremented down to 0/removed) */}
+                {/* Added Emoji Badges (on the right of emoji buttons, no border, large emoji, top-right count badge, bottom-right minus button) */}
                 {reactions.map(function renderActiveReaction(r) {
                   return (
-                    <HStack
+                    <Box
                       key={r.emoji}
-                      gap="1"
-                      px="2"
-                      h="6"
-                      rounded="full"
-                      bg="bg.subtle"
-                      borderWidth="1px"
-                      borderColor="border.subtle"
-                      align="center"
-                      transition="all 0.15s ease"
-                      _hover={{ borderColor: 'border.muted', bg: 'bg.muted' }}
+                      position="relative"
+                      display="inline-flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      px="1"
+                      py="0.5"
+                      mx="1"
+                      cursor="pointer"
+                      userSelect="none"
+                      title={`${r.emoji} • ${r.count} (Click to increase, - to decrease)`}
+                      onClick={function inc() {
+                        if (onUpdateReaction) {
+                          onUpdateReaction(sentenceHash, r.emoji, 1)
+                        } else {
+                          onAddReaction(sentenceHash, r.emoji)
+                        }
+                      }}
                     >
-                      <Text
-                        as="span"
-                        fontSize="xs"
-                        cursor="pointer"
-                        userSelect="none"
-                        title="Click to increase (+1)"
-                        onClick={function inc() {
-                          if (onUpdateReaction) {
-                            onUpdateReaction(sentenceHash, r.emoji, 1)
-                          } else {
-                            onAddReaction(sentenceHash, r.emoji)
-                          }
-                        }}
-                      >
+                      {/* Large Emoji Character */}
+                      <Text as="span" fontSize="lg" lineHeight="1">
                         {r.emoji}
                       </Text>
-                      <Text
-                        as="span"
+
+                      {/* Count Badge in Top Right Corner */}
+                      <Box
+                        position="absolute"
+                        top="-4px"
+                        right="-5px"
+                        minW="3.5"
+                        h="3.5"
+                        px="1"
+                        rounded="full"
+                        bg="ruby.solid"
+                        color="white"
                         fontSize="2xs"
                         fontWeight="bold"
-                        color="fg.muted"
-                        userSelect="none"
-                        cursor="pointer"
-                        title="Click to increase (+1)"
-                        onClick={function inc() {
-                          if (onUpdateReaction) {
-                            onUpdateReaction(sentenceHash, r.emoji, 1)
-                          } else {
-                            onAddReaction(sentenceHash, r.emoji)
-                          }
-                        }}
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        lineHeight="1"
+                        zIndex={2}
+                        pointerEvents="none"
                       >
                         {r.count}
-                      </Text>
-                      <IconButton
-                        size="2xs"
-                        variant="ghost"
-                        colorPalette="gray"
-                        h="3.5"
+                      </Box>
+
+                      {/* Small Minus Button in Bottom Right Corner */}
+                      <Box
+                        position="absolute"
+                        bottom="-4px"
+                        right="-5px"
                         w="3.5"
-                        minW="3.5"
-                        p="0"
+                        h="3.5"
                         rounded="full"
-                        aria-label="Decrease reaction"
+                        bg="bg.panel"
+                        color="fg.subtle"
+                        borderWidth="1px"
+                        borderColor="border.subtle"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        zIndex={2}
+                        cursor="pointer"
+                        _hover={{ color: 'ruby.fg', borderColor: 'ruby.focus', bg: 'ruby.subtle' }}
                         title="Decrease (-1, remove if 0)"
-                        _hover={{ color: 'ruby.fg', bg: 'bg.subtle' }}
                         onClick={function dec(e) {
                           e.stopPropagation()
                           onUpdateReaction?.(sentenceHash, r.emoji, -1)
                         }}
                       >
-                        <Minus size={9} />
-                      </IconButton>
-                    </HStack>
+                        <Minus size={8} />
+                      </Box>
+                    </Box>
                   )
                 })}
               </HStack>

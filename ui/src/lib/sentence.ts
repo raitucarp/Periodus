@@ -72,3 +72,25 @@ export function calculateParagraphStats(text: string): {
     sentences,
   }
 }
+
+/**
+ * Strips markdown links, formatting (bold/italic/code), and HTML tags from a chapter title.
+ * e.g. "[*Chapter One*](toc.xhtml#toc-chapter001)" -> "Chapter One"
+ */
+export function cleanChapterTitle(title: string): string {
+  if (!title) return ''
+  let cleaned = title
+  // 1. Extract markdown links: [link text](url) -> link text
+  cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+  // 2. Strip HTML tags: <tag>text</tag> -> text
+  cleaned = cleaned.replace(/<[^>]*>/g, '')
+  // 3. Strip bold/italics: **text**, *text*, __text__, _text_
+  cleaned = cleaned.replace(/(\*\*|__)(.*?)\1/g, '$2')
+  cleaned = cleaned.replace(/(\*|_)(.*?)\1/g, '$2')
+  // 4. Strip strikethrough and inline code
+  cleaned = cleaned.replace(/~~(.*?)~~/g, '$1')
+  cleaned = cleaned.replace(/`([^`]+)`/g, '$1')
+  // 5. Trim
+  return cleaned.trim()
+}
+

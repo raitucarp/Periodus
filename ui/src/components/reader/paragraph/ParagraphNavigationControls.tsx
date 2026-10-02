@@ -56,7 +56,7 @@ export function ParagraphNavigationControls({
 
       {/* Status Bar (Left) and Navigation Buttons (Right) */}
       <Flex align="center" justify="space-between" gap="4" w="full">
-        {/* Left Side: Word count, chars, paragraph actions, bionic toggle, style, skip */}
+        {/* Left Side: Word count, chars, paragraph actions, focus read toggle, style, skip */}
         <Box flex="1" minW="0" overflowX="auto" className="no-scrollbar">
           {utilityToolbar}
         </Box>
