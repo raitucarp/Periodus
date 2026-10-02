@@ -6,9 +6,9 @@ import {
   Group,
   HStack,
   IconButton,
-  Input,
   Separator,
   Text,
+  Textarea,
   VStack,
 } from '@chakra-ui/react'
 import {
@@ -18,6 +18,9 @@ import {
   Plus,
   Trash2,
   Send,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react'
 import EmojiPicker, { Theme as EmojiTheme, type EmojiClickData } from 'emoji-picker-react'
 import { BionicSentence } from '../bionic/BionicSentence'
@@ -39,6 +42,7 @@ export interface SentenceRowProps {
   onAddReaction: (hash: string, emoji: string) => void
   onAddComment: (hash: string, text: string) => void
   onDeleteComment: (commentId: string, hash: string) => void
+  onUpdateComment?: (commentId: string, hash: string, newContent: string) => void
 }
 
 const QUICK_EMOJIS = ['👍', '❤️', '💡', '🔖', '🔥', '🤯']
@@ -66,6 +70,7 @@ export function SentenceRow({
   onAddReaction,
   onAddComment,
   onDeleteComment,
+  onUpdateComment,
 }: SentenceRowProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [showFullPicker, setShowFullPicker] = useState(false)
@@ -75,6 +80,9 @@ export function SentenceRow({
   const isBookmarked = annotation?.is_bookmarked === 1
   const upvotes = annotation?.upvotes_count || 0
   const highlightColor = annotation?.highlight_color || ''
+
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editCommentText, setEditCommentText] = useState('')
 
   // Parse emoji reactions
   let reactions: SentenceEmojiReaction[] = []
@@ -97,6 +105,14 @@ export function SentenceRow({
     setNewCommentText('')
   }
 
+  function handleSaveEdit(commentId: string) {
+    const trimmed = editCommentText.trim()
+    if (!trimmed) return
+    onUpdateComment?.(commentId, sentenceHash, trimmed)
+    setEditingCommentId(null)
+    setEditCommentText('')
+  }
+
   function handleEmojiClick(emojiData: EmojiClickData) {
     onAddReaction(sentenceHash, emojiData.emoji)
     setShowFullPicker(false)
@@ -104,7 +120,8 @@ export function SentenceRow({
 
   return (
     <Box
-      py="2.5"
+      pt="4.5"
+      pb="3"
       px="3"
       rounded="xl"
       transition="background-color 0.15s ease"
@@ -123,7 +140,7 @@ export function SentenceRow({
         {totalSentences > 1 && (
           <Box
             position="relative"
-            w="2.5"
+            w="3"
             flexShrink={0}
             alignSelf="stretch"
             display="flex"
@@ -134,22 +151,22 @@ export function SentenceRow({
             {sentenceIndex !== 0 && (
               <Box
                 position="absolute"
-                top="-12px"
-                bottom="calc(100% - 9px)"
+                top="-18px"
+                bottom="calc(100% - 10px)"
                 w="1px"
                 bg="fg.subtle"
                 opacity={0.35}
               />
             )}
 
-            {/* Circle dot in front of sentence */}
+            {/* Circle dot in front of sentence (slightly bigger, 10px) */}
             <Box
               position="absolute"
-              top="7px"
-              w="1.5"
-              h="1.5"
+              top="8px"
+              w="2.5"
+              h="2.5"
               rounded="full"
-              borderWidth="1px"
+              borderWidth="1.5px"
               borderColor="fg.subtle"
               bg="bg"
               zIndex={1}
@@ -159,8 +176,8 @@ export function SentenceRow({
             {sentenceIndex !== totalSentences - 1 && (
               <Box
                 position="absolute"
-                top="13px"
-                bottom="-12px"
+                top="18px"
+                bottom="-18px"
                 w="1px"
                 bg="fg.subtle"
                 opacity={0.35}
@@ -390,6 +407,7 @@ export function SentenceRow({
             {/* Existing Comments List */}
             {comments.map(function renderComment(c, cIdx) {
               const isLast = cIdx === comments.length - 1
+              const isEditing = editingCommentId === c.id
 
               return (
                 <Flex key={c.id} align="start" gap="2" position="relative" role="group">
@@ -428,47 +446,127 @@ export function SentenceRow({
                     )}
                   </Box>
 
-                  {/* Comment Text: no border, slightly larger font, Plus Jakarta Sans, thin weight 300 */}
-                  <Text
-                    fontSize="xs"
-                    fontFamily="'Plus Jakarta Sans', sans-serif"
-                    fontWeight="300"
-                    lineHeight="1.5"
-                    color="fg.muted"
-                    flex="1"
-                    wordBreak="break-word"
-                    py="0.5"
-                  >
-                    {c.content}
-                  </Text>
+                  {/* Comment Content / Editor */}
+                  {isEditing ? (
+                    <VStack align="stretch" gap="1" flex="1">
+                      <Textarea
+                        size="xs"
+                        variant="flushed"
+                        value={editCommentText}
+                        onChange={function onEditText(e) {
+                          setEditCommentText(e.target.value)
+                        }}
+                        onKeyDown={function onEditKeyDown(e) {
+                          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                            e.preventDefault()
+                            handleSaveEdit(c.id)
+                          } else if (e.key === 'Escape') {
+                            e.preventDefault()
+                            setEditingCommentId(null)
+                          }
+                        }}
+                        fontSize="xs"
+                        fontFamily="'Plus Jakarta Sans', sans-serif"
+                        fontWeight="300"
+                        color="fg"
+                        rows={2}
+                        p="1"
+                        borderBottomColor="ruby.focus"
+                        _focus={{ borderBottomColor: 'ruby.solid' }}
+                      />
+                      <HStack justify="end" gap="1">
+                        <IconButton
+                          size="2xs"
+                          variant="ghost"
+                          colorPalette="gray"
+                          aria-label="Cancel editing"
+                          title="Cancel (Esc)"
+                          onClick={function cancelEdit() {
+                            setEditingCommentId(null)
+                          }}
+                        >
+                          <X size={11} />
+                        </IconButton>
+                        <IconButton
+                          size="2xs"
+                          variant="solid"
+                          colorPalette="ruby"
+                          aria-label="Save comment"
+                          title="Save (Ctrl+Enter)"
+                          onClick={function saveEdit() {
+                            handleSaveEdit(c.id)
+                          }}
+                        >
+                          <Check size={11} />
+                        </IconButton>
+                      </HStack>
+                    </VStack>
+                  ) : (
+                    <>
+                      {/* Comment Text: no border, slightly larger font, Plus Jakarta Sans, thin weight 300, multiline */}
+                      <Text
+                        fontSize="xs"
+                        fontFamily="'Plus Jakarta Sans', sans-serif"
+                        fontWeight="300"
+                        lineHeight="1.5"
+                        color="fg.muted"
+                        flex="1"
+                        wordBreak="break-word"
+                        whiteSpace="pre-wrap"
+                        py="0.5"
+                      >
+                        {c.content}
+                      </Text>
 
-                  {/* Delete button (visible on hover) */}
-                  <IconButton
-                    size="2xs"
-                    variant="ghost"
-                    colorPalette="gray"
-                    aria-label="Delete comment"
-                    title="Delete marginalia"
-                    opacity={0}
-                    _groupHover={{ opacity: 0.6 }}
-                    _hover={{ opacity: '1 !important', color: 'ruby.fg' }}
-                    onClick={function removeComment() {
-                      onDeleteComment(c.id, sentenceHash)
-                    }}
-                  >
-                    <Trash2 size={11} />
-                  </IconButton>
+                      {/* Hover action group: Edit and Delete */}
+                      <HStack
+                        gap="0.5"
+                        opacity={0}
+                        _groupHover={{ opacity: 0.8 }}
+                        transition="opacity 0.15s ease"
+                      >
+                        <IconButton
+                          size="2xs"
+                          variant="ghost"
+                          colorPalette="gray"
+                          aria-label="Edit comment"
+                          title="Edit marginalia"
+                          _hover={{ color: 'ruby.fg' }}
+                          onClick={function triggerEdit() {
+                            setEditingCommentId(c.id)
+                            setEditCommentText(c.content)
+                          }}
+                        >
+                          <Pencil size={11} />
+                        </IconButton>
+                        <IconButton
+                          size="2xs"
+                          variant="ghost"
+                          colorPalette="gray"
+                          aria-label="Delete comment"
+                          title="Delete marginalia"
+                          _hover={{ color: 'ruby.fg' }}
+                          onClick={function removeComment() {
+                            onDeleteComment(c.id, sentenceHash)
+                          }}
+                        >
+                          <Trash2 size={11} />
+                        </IconButton>
+                      </HStack>
+                    </>
+                  )}
                 </Flex>
               )
             })}
 
-            {/* Seamless Editable Input ("No comment" placeholder, borderless when empty) */}
-            <form onSubmit={handleCommentSubmit} style={{ width: '100%' }}>
-              <HStack gap="1" w="full">
+            {/* Seamless Editable Input ("No comment" placeholder, multiline textarea, Ctrl+Enter to send) */}
+            <Box w="full" position="relative">
+              <HStack gap="1" w="full" align="end">
                 {comments.length === 0 && (
                   <Box
                     w="1.5"
                     h="1.5"
+                    mb="2"
                     rounded="full"
                     borderWidth="1px"
                     borderColor="fg.subtle"
@@ -477,20 +575,21 @@ export function SentenceRow({
                     flexShrink={0}
                   />
                 )}
-                <Input
-                  size="2xs"
+                <Textarea
+                  size="xs"
                   variant="flushed"
-                  placeholder="No comment..."
+                  placeholder="No comment... (Ctrl+Enter to post)"
                   value={newCommentText}
                   onChange={function onTextChange(e) {
                     setNewCommentText(e.target.value)
                   }}
                   onKeyDown={function handleKeyDown(e) {
-                    if (e.key === 'Enter') {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                       e.preventDefault()
                       handleCommentSubmit()
                     }
                   }}
+                  rows={1}
                   fontSize="xs"
                   fontFamily="'Plus Jakarta Sans', sans-serif"
                   fontWeight="300"
@@ -499,21 +598,27 @@ export function SentenceRow({
                   borderBottomColor={newCommentText ? 'ruby.focus' : 'transparent'}
                   _focus={{ borderBottomColor: 'ruby.solid' }}
                   px="1"
+                  py="1"
                   flex="1"
+                  minH="24px"
                 />
                 {newCommentText.trim() && (
                   <IconButton
                     size="2xs"
                     variant="solid"
                     colorPalette="ruby"
-                    type="submit"
                     aria-label="Submit comment"
+                    title="Submit comment (Ctrl+Enter)"
+                    onClick={function submit() {
+                      handleCommentSubmit()
+                    }}
+                    mb="1"
                   >
                     <Send size={11} />
                   </IconButton>
                 )}
               </HStack>
-            </form>
+            </Box>
           </VStack>
         </Box>
       </Flex>

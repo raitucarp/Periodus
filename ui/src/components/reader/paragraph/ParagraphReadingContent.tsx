@@ -22,6 +22,7 @@ export interface ParagraphReadingContentProps {
   onAddReaction: (hash: string, emoji: string) => void
   onAddComment: (hash: string, text: string) => void
   onDeleteComment: (commentId: string, hash: string) => void
+  onUpdateComment?: (commentId: string, hash: string, newContent: string) => void
 }
 
 interface HashedSentence {
@@ -42,6 +43,7 @@ export function ParagraphReadingContent({
   onAddReaction,
   onAddComment,
   onDeleteComment,
+  onUpdateComment,
 }: ParagraphReadingContentProps) {
   const [readingSettings] = useAtom(readingSettingsAtom)
   const [hashedSentences, setHashedSentences] = useState<HashedSentence[]>([])
@@ -78,7 +80,7 @@ export function ParagraphReadingContent({
 
   // Typography settings with per-paragraph overrides
   const activeFontFamily = customFontFamily || readingSettings.fontFamily || 'Literata'
-  const activeFontSize = customFontSize ? `${customFontSize}px` : `${readingSettings.fontSize || 18}px`
+  const activeFontSize = customFontSize ? `${customFontSize}px` : `${readingSettings.fontSize || 21}px`
 
   const lineH =
     readingSettings.lineHeight === 'normal' || readingSettings.lineHeight === 'compact'
@@ -159,6 +161,7 @@ export function ParagraphReadingContent({
                     onAddReaction={onAddReaction}
                     onAddComment={onAddComment}
                     onDeleteComment={onDeleteComment}
+                    onUpdateComment={onUpdateComment}
                   />
                 )
               })}

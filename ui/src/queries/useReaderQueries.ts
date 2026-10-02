@@ -355,3 +355,27 @@ export function useDeleteSentenceCommentMutation() {
     },
   })
 }
+
+export function useUpdateSentenceCommentMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    void,
+    Error,
+    { id: string; sentenceHash: string; bookId?: string; content: string }
+  >({
+    mutationFn: async function performUpdate({ id, content }) {
+      await ReaderService.updateSentenceComment(id, content)
+    },
+    onSuccess: function onUpdated(_data, variables) {
+      if (variables.bookId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.reader.allComments(variables.bookId),
+        })
+      }
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reader.sentenceComments(variables.sentenceHash),
+      })
+    },
+  })
+}

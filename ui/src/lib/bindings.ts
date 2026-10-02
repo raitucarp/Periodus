@@ -196,6 +196,11 @@ export const ReaderService = {
     if (!isWailsEnv()) return
     await WailsReaderService.DeleteSentenceComment(id)
   },
+
+  async updateSentenceComment(id: string, content: string): Promise<void> {
+    if (!isWailsEnv()) return
+    await WailsReaderService.UpdateSentenceComment(id, content)
+  },
 }
 
 const mockDefaultPrompts: Prompt[] = [
@@ -371,7 +376,7 @@ export const SettingsService = {
       return {
         scope: bookId || 'global',
         fontFamily: 'Literata',
-        fontSize: 18,
+        fontSize: 21,
         lineHeight: 'reading',
         maxWidth: '800px',
         textAlign: 'left',
@@ -381,7 +386,7 @@ export const SettingsService = {
     return (res as unknown as ReadingSettings) || {
       scope: bookId || 'global',
       fontFamily: 'Literata',
-      fontSize: 18,
+      fontSize: 21,
       lineHeight: 'reading',
       maxWidth: '800px',
       textAlign: 'left',

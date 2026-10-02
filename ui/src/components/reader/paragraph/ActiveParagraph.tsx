@@ -9,6 +9,7 @@ import { ParagraphUtilityToolbar } from '../utility/ParagraphUtilityToolbar'
 import { calculateParagraphStats } from '@/lib/sentence'
 import {
   useParagraphStatsQuery,
+  useParagraphHeatmapQuery,
   useUpdateParagraphStatsMutation,
   useIncrementParagraphUpvoteMutation,
   useSentenceAnnotationsQuery,
@@ -17,6 +18,7 @@ import {
   useBookCommentsQuery,
   useAddSentenceCommentMutation,
   useDeleteSentenceCommentMutation,
+  useUpdateSentenceCommentMutation,
 } from '@/queries'
 import type { ParagraphStat } from '@/lib/types'
 
@@ -66,8 +68,12 @@ export function ActiveParagraph({
   // Load all marginalia comments for the book
   const { data: allComments = [] } = useBookCommentsQuery(bookId)
 
+  // Live heatmap query
+  const { data: liveHeatmap = [] } = useParagraphHeatmapQuery(bookId, chapterIndex)
+
   const { mutate: addComment } = useAddSentenceCommentMutation()
   const { mutate: deleteComment } = useDeleteSentenceCommentMutation()
+  const { mutate: updateComment } = useUpdateSentenceCommentMutation()
 
   // Reading statistics (words, characters, reading minutes)
   const readingStats = useMemo(
@@ -250,6 +256,15 @@ export function ActiveParagraph({
     })
   }
 
+  function handleUpdateComment(commentId: string, sentenceHash: string, newContent: string) {
+    updateComment({
+      id: commentId,
+      sentenceHash,
+      bookId,
+      content: newContent,
+    })
+  }
+
   const percentCompletedText = format(t.reader.percentCompleted, {
     percent: percentInChapter,
   })
@@ -271,7 +286,7 @@ export function ActiveParagraph({
         chapterTitle={chapterTitle}
         currentParagraphIndex={paragraphIndex}
         totalParagraphs={totalParagraphsInChapter}
-        paragraphStats={chapterStats}
+        paragraphStats={liveHeatmap.length > 0 ? liveHeatmap : chapterStats}
         onSelectParagraph={onSelectParagraph}
       />
 
@@ -290,6 +305,7 @@ export function ActiveParagraph({
         onAddReaction={handleAddReaction}
         onAddComment={handleAddComment}
         onDeleteComment={handleDeleteComment}
+        onUpdateComment={handleUpdateComment}
       />
 
       <ParagraphNavigationControls
