@@ -313,21 +313,22 @@ GROUP BY c.chapter_index, c.title, c.paragraph_count
 ORDER BY c.chapter_index ASC;
 
 -- name: GetSentenceAnnotation :one
-SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, is_collapsed, highlight_color, upvotes_count, emoji_reactions, updated_at
 FROM sentence_annotations
 WHERE sentence_hash = ?;
 
 -- name: ListSentenceAnnotationsByParagraph :many
-SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, is_collapsed, highlight_color, upvotes_count, emoji_reactions, updated_at
 FROM sentence_annotations
 WHERE book_id = ? AND chapter_index = ? AND paragraph_index = ?;
 
 -- name: UpsertSentenceAnnotation :exec
 INSERT INTO sentence_annotations (
-    sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, is_collapsed, highlight_color, upvotes_count, emoji_reactions, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 ON CONFLICT(sentence_hash) DO UPDATE SET
     is_bookmarked = excluded.is_bookmarked,
+    is_collapsed = excluded.is_collapsed,
     highlight_color = excluded.highlight_color,
     upvotes_count = excluded.upvotes_count,
     emoji_reactions = excluded.emoji_reactions,

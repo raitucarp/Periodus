@@ -202,6 +202,24 @@ export function ActiveParagraph({
       chapter_index: chapterIndex,
       paragraph_index: paragraphIndex,
       is_bookmarked: currentVal ? 0 : 1,
+      is_collapsed: existing?.is_collapsed || 0,
+      highlight_color: existing?.highlight_color || '',
+      upvotes_count: existing?.upvotes_count || 0,
+      emoji_reactions: existing?.emoji_reactions || '[]',
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  function handleToggleCollapse(sentenceHash: string) {
+    const existing = annotations.find((a) => a.sentence_hash === sentenceHash)
+    const isCurrentlyCollapsed = existing?.is_collapsed === 1
+    saveAnnotation({
+      sentence_hash: sentenceHash,
+      book_id: bookId,
+      chapter_index: chapterIndex,
+      paragraph_index: paragraphIndex,
+      is_bookmarked: existing?.is_bookmarked || 0,
+      is_collapsed: isCurrentlyCollapsed ? 0 : 1,
       highlight_color: existing?.highlight_color || '',
       upvotes_count: existing?.upvotes_count || 0,
       emoji_reactions: existing?.emoji_reactions || '[]',
@@ -218,6 +236,7 @@ export function ActiveParagraph({
       chapter_index: chapterIndex,
       paragraph_index: paragraphIndex,
       is_bookmarked: existing?.is_bookmarked || 0,
+      is_collapsed: existing?.is_collapsed || 0,
       highlight_color: existing?.highlight_color || '',
       upvotes_count: currentUpvotes + 1,
       emoji_reactions: existing?.emoji_reactions || '[]',
@@ -234,6 +253,7 @@ export function ActiveParagraph({
       chapter_index: chapterIndex,
       paragraph_index: paragraphIndex,
       is_bookmarked: existing?.is_bookmarked || 0,
+      is_collapsed: existing?.is_collapsed || 0,
       highlight_color: existing?.highlight_color || '',
       upvotes_count: currentUpvotes - 1,
       emoji_reactions: existing?.emoji_reactions || '[]',
@@ -249,6 +269,7 @@ export function ActiveParagraph({
       chapter_index: chapterIndex,
       paragraph_index: paragraphIndex,
       is_bookmarked: existing?.is_bookmarked || 0,
+      is_collapsed: existing?.is_collapsed || 0,
       highlight_color: color,
       upvotes_count: existing?.upvotes_count || 0,
       emoji_reactions: existing?.emoji_reactions || '[]',
@@ -283,6 +304,7 @@ export function ActiveParagraph({
       chapter_index: chapterIndex,
       paragraph_index: paragraphIndex,
       is_bookmarked: existing?.is_bookmarked || 0,
+      is_collapsed: existing?.is_collapsed || 0,
       highlight_color: existing?.highlight_color || '',
       upvotes_count: existing?.upvotes_count || 0,
       emoji_reactions: JSON.stringify(reactions),
@@ -367,6 +389,7 @@ export function ActiveParagraph({
         onAddComment={handleAddComment}
         onDeleteComment={handleDeleteComment}
         onUpdateComment={handleUpdateComment}
+        onToggleCollapse={handleToggleCollapse}
       />
 
       <ParagraphNavigationControls

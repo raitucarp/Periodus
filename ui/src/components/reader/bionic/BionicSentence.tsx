@@ -11,6 +11,7 @@ import {
   currentParagraphIdxAtom,
 } from '@/state/atoms'
 import { resolveChapterTarget } from '@/lib/navigation'
+import { RADIX_HEX_MAP } from '@/lib/radixColors'
 
 export interface BionicSentenceProps {
   sentence: string
@@ -123,7 +124,7 @@ export function BionicSentence({
       lineHeight={lineHeight}
       bg={
         highlightColor
-          ? `color-mix(in srgb, var(--chakra-colors-${highlightColor}-subtle, rgba(255,220,100,0.2)) 60%, transparent)`
+          ? `color-mix(in srgb, var(--chakra-colors-${highlightColor}-solid, ${RADIX_HEX_MAP[highlightColor] || '#ffc53d'}) 28%, transparent)`
           : 'transparent'
       }
       px={highlightColor ? '1.5' : '0'}

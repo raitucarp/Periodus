@@ -25,6 +25,7 @@ export interface ParagraphReadingContentProps {
   onAddComment: (hash: string, text: string) => void
   onDeleteComment: (commentId: string, hash: string) => void
   onUpdateComment?: (commentId: string, hash: string, newContent: string) => void
+  onToggleCollapse?: (hash: string) => void
 }
 
 interface HashedSentence {
@@ -48,6 +49,7 @@ export function ParagraphReadingContent({
   onAddComment,
   onDeleteComment,
   onUpdateComment,
+  onToggleCollapse,
 }: ParagraphReadingContentProps) {
   const [readingSettings] = useAtom(readingSettingsAtom)
   const [hashedSentences, setHashedSentences] = useState<HashedSentence[]>([])
@@ -168,6 +170,7 @@ export function ParagraphReadingContent({
                     onAddComment={onAddComment}
                     onDeleteComment={onDeleteComment}
                     onUpdateComment={onUpdateComment}
+                    onToggleCollapse={onToggleCollapse}
                   />
                 )
               })}

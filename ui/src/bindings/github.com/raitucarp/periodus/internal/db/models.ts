@@ -655,6 +655,7 @@ export class SentenceAnnotation {
     "chapter_index": number;
     "paragraph_index": number;
     "is_bookmarked": number;
+    "is_collapsed": number;
     "highlight_color": string;
     "upvotes_count": number;
     "emoji_reactions": string;
@@ -676,6 +677,9 @@ export class SentenceAnnotation {
         }
         if (!("is_bookmarked" in $$source)) {
             this["is_bookmarked"] = 0;
+        }
+        if (!("is_collapsed" in $$source)) {
+            this["is_collapsed"] = 0;
         }
         if (!("highlight_color" in $$source)) {
             this["highlight_color"] = "";

@@ -90,6 +90,7 @@ func (r *Repository) UpsertSentenceAnnotation(ctx context.Context, ann SentenceA
 		ChapterIndex:   ann.ChapterIndex,
 		ParagraphIndex: ann.ParagraphIndex,
 		IsBookmarked:   ann.IsBookmarked,
+		IsCollapsed:    ann.IsCollapsed,
 		HighlightColor: ann.HighlightColor,
 		UpvotesCount:   ann.UpvotesCount,
 		EmojiReactions: ann.EmojiReactions,

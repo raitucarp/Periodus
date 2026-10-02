@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS sentence_annotations (
     chapter_index INTEGER NOT NULL,
     paragraph_index INTEGER NOT NULL,
     is_bookmarked INTEGER NOT NULL DEFAULT 0,
+    is_collapsed INTEGER NOT NULL DEFAULT 0,
     highlight_color TEXT NOT NULL DEFAULT '',
     upvotes_count INTEGER NOT NULL DEFAULT 0,
     emoji_reactions TEXT NOT NULL DEFAULT '[]',

@@ -206,6 +206,7 @@ export function ParagraphUtilityToolbar({
           {/* Quick Emojis (Grouped and Attached) */}
           <Group attached>
             {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
+              const isEmojiActive = reactions.some((r) => r.emoji === em && r.count > 0)
               return (
                 <Button
                   key={em}
@@ -215,6 +216,14 @@ export function ParagraphUtilityToolbar({
                   px="1.5"
                   h="7"
                   fontSize="xs"
+                  filter={isEmojiActive ? 'none' : 'grayscale(100%)'}
+                  opacity={isEmojiActive ? 1 : 0.65}
+                  transition="filter 0.2s ease, opacity 0.2s ease, transform 0.15s ease"
+                  _hover={{
+                    filter: 'none',
+                    opacity: 1,
+                    transform: 'scale(1.15)',
+                  }}
                   onClick={function clickQuickEmoji() {
                     if (onUpdateReaction) {
                       onUpdateReaction(em, 1)

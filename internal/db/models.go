@@ -102,6 +102,7 @@ type SentenceAnnotation struct {
 	ChapterIndex   int64     `json:"chapter_index"`
 	ParagraphIndex int64     `json:"paragraph_index"`
 	IsBookmarked   int64     `json:"is_bookmarked"`
+	IsCollapsed    int64     `json:"is_collapsed"`
 	HighlightColor string    `json:"highlight_color"`
 	UpvotesCount   int64     `json:"upvotes_count"`
 	EmojiReactions string    `json:"emoji_reactions"`

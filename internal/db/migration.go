@@ -101,6 +101,35 @@ func migrateNewReadingTables(db *sql.DB) error {
 		}
 	}
 
+	// Add missing columns to existing sentence_annotations if already created
+	sentCols := []struct {
+		name string
+		def  string
+	}{
+		{"is_collapsed", "INTEGER NOT NULL DEFAULT 0"},
+	}
+
+	rowsS, err := db.Query("PRAGMA table_info(sentence_annotations);")
+	if err == nil {
+		defer rowsS.Close()
+		existingSentCols := make(map[string]bool)
+		for rowsS.Next() {
+			var cid int
+			var name, typ string
+			var notnull, pk int
+			var dflt sql.NullString
+			if err := rowsS.Scan(&cid, &name, &typ, &notnull, &dflt, &pk); err == nil {
+				existingSentCols[name] = true
+			}
+		}
+		for _, col := range sentCols {
+			if !existingSentCols[col.name] {
+				query := fmt.Sprintf("ALTER TABLE sentence_annotations ADD COLUMN %s %s;", col.name, col.def)
+				_, _ = db.Exec(query)
+			}
+		}
+	}
+
 	return nil
 }
 

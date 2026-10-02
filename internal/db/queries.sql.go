@@ -255,7 +255,7 @@ func (q *Queries) GetPromptByID(ctx context.Context, id string) (Prompt, error) 
 }
 
 const getSentenceAnnotation = `-- name: GetSentenceAnnotation :one
-SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, is_collapsed, highlight_color, upvotes_count, emoji_reactions, updated_at
 FROM sentence_annotations
 WHERE sentence_hash = ?
 `
@@ -269,6 +269,7 @@ func (q *Queries) GetSentenceAnnotation(ctx context.Context, sentenceHash string
 		&i.ChapterIndex,
 		&i.ParagraphIndex,
 		&i.IsBookmarked,
+		&i.IsCollapsed,
 		&i.HighlightColor,
 		&i.UpvotesCount,
 		&i.EmojiReactions,
@@ -717,7 +718,7 @@ func (q *Queries) ListPrompts(ctx context.Context, bookID string) ([]Prompt, err
 }
 
 const listSentenceAnnotationsByParagraph = `-- name: ListSentenceAnnotationsByParagraph :many
-SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
+SELECT sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, is_collapsed, highlight_color, upvotes_count, emoji_reactions, updated_at
 FROM sentence_annotations
 WHERE book_id = ? AND chapter_index = ? AND paragraph_index = ?
 `
@@ -743,6 +744,7 @@ func (q *Queries) ListSentenceAnnotationsByParagraph(ctx context.Context, arg Li
 			&i.ChapterIndex,
 			&i.ParagraphIndex,
 			&i.IsBookmarked,
+			&i.IsCollapsed,
 			&i.HighlightColor,
 			&i.UpvotesCount,
 			&i.EmojiReactions,
@@ -1241,10 +1243,11 @@ func (q *Queries) UpsertPrompt(ctx context.Context, arg UpsertPromptParams) erro
 
 const upsertSentenceAnnotation = `-- name: UpsertSentenceAnnotation :exec
 INSERT INTO sentence_annotations (
-    sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, highlight_color, upvotes_count, emoji_reactions, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    sentence_hash, book_id, chapter_index, paragraph_index, is_bookmarked, is_collapsed, highlight_color, upvotes_count, emoji_reactions, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 ON CONFLICT(sentence_hash) DO UPDATE SET
     is_bookmarked = excluded.is_bookmarked,
+    is_collapsed = excluded.is_collapsed,
     highlight_color = excluded.highlight_color,
     upvotes_count = excluded.upvotes_count,
     emoji_reactions = excluded.emoji_reactions,
@@ -1257,6 +1260,7 @@ type UpsertSentenceAnnotationParams struct {
 	ChapterIndex   int64  `json:"chapter_index"`
 	ParagraphIndex int64  `json:"paragraph_index"`
 	IsBookmarked   int64  `json:"is_bookmarked"`
+	IsCollapsed    int64  `json:"is_collapsed"`
 	HighlightColor string `json:"highlight_color"`
 	UpvotesCount   int64  `json:"upvotes_count"`
 	EmojiReactions string `json:"emoji_reactions"`
@@ -1269,6 +1273,7 @@ func (q *Queries) UpsertSentenceAnnotation(ctx context.Context, arg UpsertSenten
 		arg.ChapterIndex,
 		arg.ParagraphIndex,
 		arg.IsBookmarked,
+		arg.IsCollapsed,
 		arg.HighlightColor,
 		arg.UpvotesCount,
 		arg.EmojiReactions,

@@ -132,6 +132,7 @@ export interface SentenceAnnotation {
   chapter_index: number
   paragraph_index: number
   is_bookmarked: number
+  is_collapsed?: number
   highlight_color: string
   upvotes_count: number
   emoji_reactions: string
