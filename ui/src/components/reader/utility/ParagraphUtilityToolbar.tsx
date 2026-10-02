@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   Box,
   Button,
@@ -54,7 +54,7 @@ const FONT_FAMILIES = [
   { value: 'JetBrains Mono', label: 'JetBrains Mono' },
 ]
 
-const QUICK_EMOJIS = ['👍', '❤️', '💡', '🔥', '😮']
+const DEFAULT_QUICK_EMOJIS = ['👍', '❤️', '💡']
 
 export function ParagraphUtilityToolbar({
   stats,
@@ -85,6 +85,26 @@ export function ParagraphUtilityToolbar({
   } catch {
     reactions = []
   }
+
+  // 3 default emoji buttons + 1 dynamic emoji with the highest count (or the last one if tied)
+  const quickEmojisToDisplay = useMemo(() => {
+    const extraCandidates = reactions.filter(
+      (r) => !DEFAULT_QUICK_EMOJIS.includes(r.emoji) && r.count > 0
+    )
+
+    let topExtraEmoji = '🔥' // default 4th emoji if no custom reactions exist
+    if (extraCandidates.length > 0) {
+      let maxCount = -1
+      for (const r of extraCandidates) {
+        if (r.count >= maxCount) {
+          maxCount = r.count
+          topExtraEmoji = r.emoji
+        }
+      }
+    }
+
+    return [...DEFAULT_QUICK_EMOJIS, topExtraEmoji]
+  }, [reactions])
 
   function handleEmojiClick(data: EmojiClickData) {
     if (onUpdateReaction) {
@@ -205,7 +225,7 @@ export function ParagraphUtilityToolbar({
 
           {/* Quick Emojis (Grouped and Attached) */}
           <Group attached>
-            {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
+            {quickEmojisToDisplay.map(function renderQuickEmoji(em) {
               const isEmojiActive = reactions.some((r) => r.emoji === em && r.count > 0)
               return (
                 <Button

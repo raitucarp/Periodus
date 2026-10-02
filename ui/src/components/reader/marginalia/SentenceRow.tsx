@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import {
   Box,
   Button,
@@ -95,7 +95,7 @@ export interface SentenceRowProps {
   onToggleCollapse?: (hash: string) => void
 }
 
-const QUICK_EMOJIS = ['👍', '❤️', '💡', '🔖', '🔥', '🤯']
+const DEFAULT_QUICK_EMOJIS = ['👍', '❤️', '💡']
 
 export function SentenceRow({
   sentence,
@@ -142,6 +142,26 @@ export function SentenceRow({
   } catch {
     reactions = []
   }
+
+  // 3 default emoji buttons + 1 dynamic emoji with the highest count (or the last one if tied)
+  const quickEmojisToDisplay = useMemo(() => {
+    const extraCandidates = reactions.filter(
+      (r) => !DEFAULT_QUICK_EMOJIS.includes(r.emoji) && r.count > 0
+    )
+
+    let topExtraEmoji = '🔥' // default 4th emoji if no custom reactions exist
+    if (extraCandidates.length > 0) {
+      let maxCount = -1
+      for (const r of extraCandidates) {
+        if (r.count >= maxCount) {
+          maxCount = r.count
+          topExtraEmoji = r.emoji
+        }
+      }
+    }
+
+    return [...DEFAULT_QUICK_EMOJIS, topExtraEmoji]
+  }, [reactions])
 
   function handleCommentSubmit(e?: React.FormEvent) {
     if (e) {
@@ -197,7 +217,7 @@ export function SentenceRow({
               position="absolute"
               left="19.25px"
               top="0"
-              h="23px"
+              h="28px"
               w="1.5px"
               bg="fg.subtle"
               opacity={0.35}
@@ -208,7 +228,7 @@ export function SentenceRow({
             <Box
               position="absolute"
               left="19.25px"
-              top="23px"
+              top="28px"
               bottom="0"
               w="1.5px"
               bg="fg.subtle"
@@ -233,7 +253,7 @@ export function SentenceRow({
           {/* Circle dot in front of sentence */}
           <Box
             position="absolute"
-            top="10px"
+            top="15px"
             left="50%"
             transform="translateX(-50%)"
             w="3.5"
@@ -512,9 +532,9 @@ export function SentenceRow({
 
               {/* Right: Borderless Ghost Emoji Bar + Added Badges to its right */}
               <HStack gap="1.5" align="center" m="0" p="0">
-                {/* Borderless Ghost Emoji Buttons with Grayscale Effect */}
+                {/* Borderless Ghost Emoji Buttons with Grayscale Effect (3 default + 1 top/latest reaction) */}
                 <HStack gap="0.5" align="center" m="0" p="0" bg="transparent" borderWidth="0">
-                  {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
+                  {quickEmojisToDisplay.map(function renderQuickEmoji(em) {
                     const isEmojiActive = reactions.some((r) => r.emoji === em && r.count > 0)
                     return (
                       <Button
