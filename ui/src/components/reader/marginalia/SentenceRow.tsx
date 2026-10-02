@@ -117,6 +117,8 @@ export function SentenceRow({
   onUpdateComment,
 }: SentenceRowProps) {
   const [isSentenceHovered, setIsSentenceHovered] = useState(false)
+  const [isRowHovered, setIsRowHovered] = useState(false)
+  const [isCommentFocused, setIsCommentFocused] = useState(false)
   const [showFullPicker, setShowFullPicker] = useState(false)
   const [showHighlightPicker, setShowHighlightPicker] = useState(false)
   const [newCommentText, setNewCommentText] = useState('')
@@ -163,6 +165,7 @@ export function SentenceRow({
   }
 
   const hasActiveActions = isBookmarked || upvotes > 0 || Boolean(highlightColor)
+  const showCommentInput = isSentenceHovered || isRowHovered || isCommentFocused || newCommentText.length > 0 || comments.length > 0
 
   return (
     <Box
@@ -171,6 +174,12 @@ export function SentenceRow({
       rounded="xl"
       transition="background-color 0.15s ease"
       _hover={{ bg: 'bg.subtle' }}
+      onMouseEnter={function onRowEnter() {
+        setIsRowHovered(true)
+      }}
+      onMouseLeave={function onRowLeave() {
+        setIsRowHovered(false)
+      }}
       position="relative"
     >
       {/* Seamless Continuous Timeline Vertical Line (from row top 0 to bottom 0) */}
@@ -233,6 +242,7 @@ export function SentenceRow({
         <Box
           flex="1"
           minW="0"
+          position="relative"
           onMouseEnter={function onEnter() {
             setIsSentenceHovered(true)
           }}
@@ -251,7 +261,7 @@ export function SentenceRow({
             />
           </Box>
 
-          {/* Emoji Reaction Badges */}
+          {/* Emoji Reaction Badges (inline, permanent) */}
           {reactions.length > 0 && (
             <HStack gap="1.5" flexWrap="wrap" mb="1.5">
               {reactions.map(function renderReaction(r) {
@@ -279,158 +289,171 @@ export function SentenceRow({
             </HStack>
           )}
 
-          {/* Action Toolbar (Only rendered when hovered or has active annotations) */}
-          {(isSentenceHovered || hasActiveActions) && (
+          {/* Floating Action Toolbar (Zero layout shift / no movement on hover) */}
+          <Box
+            position="absolute"
+            top="calc(100% + 2px)"
+            left="0"
+            zIndex="dropdown"
+            opacity={isSentenceHovered || hasActiveActions ? 1 : 0}
+            pointerEvents={isSentenceHovered || hasActiveActions ? 'auto' : 'none'}
+            transition="opacity 0.15s ease, transform 0.15s ease"
+            transform={isSentenceHovered || hasActiveActions ? 'translateY(0)' : 'translateY(-4px)'}
+          >
             <Flex
               align="center"
               justify="space-between"
-              w="full"
-              mt="1.5"
-              minH="7"
-              position="relative"
+              gap="2"
+              h="8"
+              px="2"
+              rounded="lg"
+              bg="bg.panel"
+              shadow="md"
+              borderWidth="1px"
+              borderColor="border.subtle"
             >
-            {/* Left Actions: Bookmark, Upvote, Highlight, Separator */}
-            <HStack
-              gap="1.5"
-              align="center"
-              opacity={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 1 : 0}
-              transition="opacity 0.2s ease"
-              pointerEvents={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 'auto' : 'none'}
-            >
-              {/* Bookmark Toggle */}
-              <IconButton
-                size="xs"
-                variant={isBookmarked ? 'solid' : 'ghost'}
-                colorPalette={isBookmarked ? 'ruby' : 'gray'}
-                aria-label="Bookmark"
-                title="Bookmark sentence"
-                onClick={function handleBookmark() {
-                  onToggleBookmark(sentenceHash, isBookmarked)
-                }}
+              {/* Left Actions: Bookmark, Upvote, Highlight, Separator */}
+              <HStack
+                gap="1.5"
+                align="center"
+                opacity={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 1 : 0}
+                transition="opacity 0.2s ease"
+                pointerEvents={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 'auto' : 'none'}
               >
-                <Bookmark size={15} fill={isBookmarked ? 'currentColor' : 'none'} />
-              </IconButton>
-
-              {/* Upvote Button (Repeatable) */}
-              <Button
-                size="xs"
-                variant={upvotes > 0 ? 'subtle' : 'ghost'}
-                colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
-                px="2"
-                h="7"
-                rounded="md"
-                title="Applaud / Upvote sentence"
-                onClick={function handleUpvote() {
-                  onIncrementUpvote(sentenceHash)
-                }}
-              >
-                <ArrowBigUp size={16} fill={upvotes > 0 ? 'currentColor' : 'none'} />
-                {upvotes > 0 && (
-                  <Text textStyle="xs" fontWeight="bold">
-                    {upvotes}
-                  </Text>
-                )}
-              </Button>
-
-              {/* Highlight Color Picker */}
-              <IconButton
-                size="xs"
-                variant={highlightColor ? 'solid' : 'ghost'}
-                colorPalette={highlightColor ? (highlightColor as any) : 'gray'}
-                aria-label="Highlight"
-                title="Highlight sentence"
-                onClick={function toggleHighlightPicker() {
-                  setShowHighlightPicker(!showHighlightPicker)
-                }}
-              >
-                <Highlighter size={15} />
-              </IconButton>
-
-              {showHighlightPicker && (
-                <HStack
-                  position="absolute"
-                  top="-9"
-                  left="0"
-                  bg="bg.panel"
-                  borderWidth="1px"
-                  borderColor="border.subtle"
-                  p="1"
-                  rounded="lg"
-                  shadow="md"
-                  zIndex="dropdown"
-                  gap="1"
+                {/* Bookmark Toggle */}
+                <IconButton
+                  size="xs"
+                  variant={isBookmarked ? 'solid' : 'ghost'}
+                  colorPalette={isBookmarked ? 'ruby' : 'gray'}
+                  aria-label="Bookmark"
+                  title="Bookmark sentence"
+                  onClick={function handleBookmark() {
+                    onToggleBookmark(sentenceHash, isBookmarked)
+                  }}
                 >
-                  {HIGHLIGHT_COLORS.map(function renderColorBtn(hc) {
-                    return (
-                      <Button
-                        key={hc.name}
-                        size="xs"
-                        variant={highlightColor === hc.color ? 'solid' : 'ghost'}
-                        colorPalette={hc.color ? (hc.color as any) : 'gray'}
-                        onClick={function selectColor() {
-                          onSetHighlight(sentenceHash, hc.color)
-                          setShowHighlightPicker(false)
-                        }}
-                      >
-                        {hc.label}
-                      </Button>
-                    )
-                  })}
-                </HStack>
-              )}
+                  <Bookmark size={15} fill={isBookmarked ? 'currentColor' : 'none'} />
+                </IconButton>
 
-              {/* Separator between action buttons and emojis (only when hovered) */}
-              <Separator
-                orientation="vertical"
-                h="3.5"
-                borderColor="border.subtle"
-                mx="0.5"
+                {/* Upvote Button (Repeatable) */}
+                <Button
+                  size="xs"
+                  variant={upvotes > 0 ? 'subtle' : 'ghost'}
+                  colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
+                  px="2"
+                  h="7"
+                  rounded="md"
+                  title="Applaud / Upvote sentence"
+                  onClick={function handleUpvote() {
+                    onIncrementUpvote(sentenceHash)
+                  }}
+                >
+                  <ArrowBigUp size={16} fill={upvotes > 0 ? 'currentColor' : 'none'} />
+                  {upvotes > 0 && (
+                    <Text textStyle="xs" fontWeight="bold">
+                      {upvotes}
+                    </Text>
+                  )}
+                </Button>
+
+                {/* Highlight Color Picker */}
+                <IconButton
+                  size="xs"
+                  variant={highlightColor ? 'solid' : 'ghost'}
+                  colorPalette={highlightColor ? (highlightColor as any) : 'gray'}
+                  aria-label="Highlight"
+                  title="Highlight sentence"
+                  onClick={function toggleHighlightPicker() {
+                    setShowHighlightPicker(!showHighlightPicker)
+                  }}
+                >
+                  <Highlighter size={15} />
+                </IconButton>
+
+                {showHighlightPicker && (
+                  <HStack
+                    position="absolute"
+                    top="-9"
+                    left="0"
+                    bg="bg.panel"
+                    borderWidth="1px"
+                    borderColor="border.subtle"
+                    p="1"
+                    rounded="lg"
+                    shadow="md"
+                    zIndex="dropdown"
+                    gap="1"
+                  >
+                    {HIGHLIGHT_COLORS.map(function renderColorBtn(hc) {
+                      return (
+                        <Button
+                          key={hc.name}
+                          size="xs"
+                          variant={highlightColor === hc.color ? 'solid' : 'ghost'}
+                          colorPalette={hc.color ? (hc.color as any) : 'gray'}
+                          onClick={function selectColor() {
+                            onSetHighlight(sentenceHash, hc.color)
+                            setShowHighlightPicker(false)
+                          }}
+                        >
+                          {hc.label}
+                        </Button>
+                      )
+                    })}
+                  </HStack>
+                )}
+
+                {/* Separator between action buttons and emojis (only when hovered) */}
+                <Separator
+                  orientation="vertical"
+                  h="3.5"
+                  borderColor="border.subtle"
+                  mx="0.5"
+                  opacity={isSentenceHovered ? 1 : 0}
+                  transition="opacity 0.2s ease"
+                />
+              </HStack>
+
+              {/* Right: Grouped & Attached Emoji Bar (ONLY visible when hovered) */}
+              <Group
+                attached
                 opacity={isSentenceHovered ? 1 : 0}
                 transition="opacity 0.2s ease"
-              />
-            </HStack>
-
-            {/* Right: Grouped & Attached Emoji Bar (ONLY visible when hovered) */}
-            <Group
-              attached
-              opacity={isSentenceHovered ? 1 : 0}
-              transition="opacity 0.2s ease"
-              pointerEvents={isSentenceHovered ? 'auto' : 'none'}
-            >
-              {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
-                return (
-                  <Button
-                    key={em}
-                    size="xs"
-                    variant="subtle"
-                    colorPalette="gray"
-                    px="1.5"
-                    h="7"
-                    fontSize="xs"
-                    onClick={function sendQuickEmoji() {
-                      onAddReaction(sentenceHash, em)
-                    }}
-                  >
-                    {em}
-                  </Button>
-                )
-              })}
-              <IconButton
-                size="xs"
-                variant="subtle"
-                colorPalette="gray"
-                h="7"
-                aria-label="More Emojis"
-                title="Open full emoji picker"
-                onClick={function openPicker() {
-                  setShowFullPicker(!showFullPicker)
-                }}
+                pointerEvents={isSentenceHovered ? 'auto' : 'none'}
               >
-                <Plus size={13} />
-              </IconButton>
-            </Group>
-          </Flex>
-        )}
+                {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
+                  return (
+                    <Button
+                      key={em}
+                      size="xs"
+                      variant="subtle"
+                      colorPalette="gray"
+                      px="1.5"
+                      h="7"
+                      fontSize="xs"
+                      onClick={function sendQuickEmoji() {
+                        onAddReaction(sentenceHash, em)
+                      }}
+                    >
+                      {em}
+                    </Button>
+                  )
+                })}
+                <IconButton
+                  size="xs"
+                  variant="subtle"
+                  colorPalette="gray"
+                  h="7"
+                  aria-label="More Emojis"
+                  title="Open full emoji picker"
+                  onClick={function openPicker() {
+                    setShowFullPicker(!showFullPicker)
+                  }}
+                >
+                  <Plus size={13} />
+                </IconButton>
+              </Group>
+            </Flex>
+          </Box>
 
           {/* Full Emoji Picker Popover */}
           {showFullPicker && (
@@ -451,7 +474,7 @@ export function SentenceRow({
           h="1px"
           mt="4.5"
           bg="fg.subtle"
-          opacity={isSentenceHovered || comments.length > 0 ? 0.45 : 0.15}
+          opacity={showCommentInput ? 0.45 : 0}
           transition="opacity 0.2s ease"
           flexShrink={0}
         />
@@ -614,8 +637,14 @@ export function SentenceRow({
               )
             })}
 
-            {/* Seamless Editable Input ("No comment" placeholder, multiline auto-resizing textarea, JetBrains Mono font) */}
-            <Box w="full" position="relative">
+            {/* Seamless Editable Input ("No comment" placeholder, only visible on hover or when comments exist) */}
+            <Box
+              w="full"
+              position="relative"
+              opacity={showCommentInput ? 1 : 0}
+              pointerEvents={showCommentInput ? 'auto' : 'none'}
+              transition="opacity 0.2s ease"
+            >
               <HStack gap="1" w="full" align="end">
                 {comments.length === 0 && (
                   <Box
@@ -635,6 +664,12 @@ export function SentenceRow({
                   variant="flushed"
                   placeholder="No comment... (Ctrl+Enter to post)"
                   value={newCommentText}
+                  onFocus={function onFocus() {
+                    setIsCommentFocused(true)
+                  }}
+                  onBlur={function onBlur() {
+                    setIsCommentFocused(false)
+                  }}
                   onChange={function onTextChange(e: any) {
                     setNewCommentText(e.target.value)
                   }}
