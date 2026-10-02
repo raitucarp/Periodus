@@ -192,7 +192,7 @@ export function SentenceRow({
   }
 
   const hasActiveActions = isBookmarked || upvotes !== 0 || Boolean(highlightColor) || reactions.length > 0
-  const showCommentInput = isSentenceHovered || isRowHovered || isCommentFocused || newCommentText.length > 0 || comments.length > 0
+  const showCommentInput = isSentenceHovered || isRowHovered || isCommentFocused || newCommentText.length > 0
 
   return (
     <Box
@@ -215,10 +215,10 @@ export function SentenceRow({
           {sentenceIndex !== 0 && (
             <Box
               position="absolute"
-              left="19.25px"
+              left="19.5px"
               top="0"
               h="22px"
-              w="1.5px"
+              w="1px"
               bg="fg.subtle"
               opacity={0.35}
               zIndex={1}
@@ -227,10 +227,10 @@ export function SentenceRow({
           {sentenceIndex !== totalSentences - 1 && (
             <Box
               position="absolute"
-              left="19.25px"
+              left="19.5px"
               top="34px"
               bottom="0"
-              w="1.5px"
+              w="1px"
               bg="fg.subtle"
               opacity={0.35}
               zIndex={1}
@@ -704,7 +704,7 @@ export function SentenceRow({
         {/* Right Column: Marginalia / Comments (Aligned with first line via pt="2.5", JetBrains Mono monospace font, larger text) */}
         {!isCollapsed && (
           <Box w="38%" minW="14rem" maxW="22rem" flexShrink={0} pt="2.5">
-          <VStack align="stretch" gap="2">
+          <VStack align="stretch" gap="1.5">
             {/* Existing Comments List */}
             {comments.map(function renderComment(c, cIdx) {
               const isLast = cIdx === comments.length - 1
@@ -729,9 +729,8 @@ export function SentenceRow({
                         h="1.5"
                         mt="1.5"
                         rounded="full"
-                        borderWidth="1px"
-                        borderColor="fg.subtle"
-                        bg="bg"
+                        bg="fg.subtle"
+                        opacity={0.35}
                         zIndex={1}
                       />
 
@@ -740,7 +739,7 @@ export function SentenceRow({
                         <Box
                           position="absolute"
                           top="12px"
-                          bottom="-8px"
+                          bottom="-6px"
                           w="1px"
                           bg="fg.subtle"
                           opacity={0.35}

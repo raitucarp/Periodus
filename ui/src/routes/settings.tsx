@@ -1,11 +1,12 @@
 import React from 'react'
-import { createFileRoute, Link, Outlet, useNavigate, useLocation } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useNavigate, useRouter, useLocation } from '@tanstack/react-router'
 import {
   Box,
   Button,
   Flex,
   HStack,
   Heading,
+  IconButton,
   Square,
   Text,
   VStack,
@@ -20,11 +21,16 @@ export const Route = createFileRoute('/settings')({
 
 function SettingsLayoutRoute() {
   const navigate = useNavigate()
+  const router = useRouter()
   const location = useLocation()
   const { t } = useTranslation()
 
   function handleBack() {
-    navigate({ to: '/' })
+    if (window.history.length > 1) {
+      router.history.back()
+    } else {
+      navigate({ to: '/' })
+    }
   }
 
   const currentPath = location.pathname
@@ -75,17 +81,16 @@ function SettingsLayoutRoute() {
         style={{ '--wails-draggable': 'drag' } as React.CSSProperties}
       >
         <HStack gap="3" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
-          <Button
+          <IconButton
             variant="outline"
             colorPalette="gray"
             size="sm"
+            aria-label="Back"
+            title="Back"
             onClick={handleBack}
           >
             <ArrowLeft size={16} />
-            <Text textStyle="xs" fontWeight="medium">
-              {t.reader.backToCatalog}
-            </Text>
-          </Button>
+          </IconButton>
 
           <HStack gap="2" ml="2">
             <Square size="1.75rem" rounded="md" bg="ruby.subtle" color="ruby.fg">
@@ -146,7 +151,7 @@ function SettingsLayoutRoute() {
                   color: item.isActive ? 'white' : 'fg',
                 }}
               >
-                <Link to={item.to}>
+                <Link to={item.to} replace>
                   {item.icon}
                   <Text textStyle="sm">{item.label}</Text>
                 </Link>
