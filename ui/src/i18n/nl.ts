@@ -31,7 +31,7 @@ export const nl: TranslationSchema = {
     deleteButtonAria: 'Boek verwijderen',
   },
   reader: {
-    backToCatalog: 'Catalogus',
+    backToCatalog: 'Alle boeken',
     chapterLabel: 'Hoofdstuk {index} / {total}: {title}',
     chapterOption: 'Hoofdstuk {index}: {title} {paragraphCountLabel}',
     paragraphCountLabel: '({count} alinea\'s)',

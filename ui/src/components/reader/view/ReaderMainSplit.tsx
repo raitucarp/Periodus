@@ -23,7 +23,17 @@ export function ReaderMainSplit({ leftPane, rightPane }: ReaderMainSplitProps) {
         layerStyle="glassContainer"
         overflow="hidden"
       >
-        <Flex flex="1" h="full" direction="column" overflow="hidden">
+        <Flex
+          flex="1"
+          h="full"
+          direction="column"
+          overflow="hidden"
+          bg={{
+            _light: 'rgba(255, 255, 255, 0.45)',
+            _dark: 'rgba(15, 17, 21, 0.45)',
+          }}
+          backdropFilter="blur(20px)"
+        >
           {leftPane}
         </Flex>
         <Flex

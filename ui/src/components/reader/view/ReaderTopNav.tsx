@@ -2,6 +2,8 @@ import React from 'react'
 import { Flex, HStack, Button, Text, Square, Separator, VStack } from '@chakra-ui/react'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 import { WindowControls } from '@/components/common/window'
+import { LanguageButton, ThemeToggleButton, SettingsButton } from '@/components/common/header'
+import { useTranslation } from '@/i18n'
 import { ChapterHeatmap } from '../heatmap/ChapterHeatmap'
 import type { ChapterHeatmapItem } from '@/lib/types'
 
@@ -14,6 +16,7 @@ export interface ReaderTopNavProps {
   onSelectChapter?: (idx: number) => void
   backLabel: string
   onBack: () => void
+  onOpenSettings?: () => void
   children?: React.ReactNode
 }
 
@@ -26,8 +29,10 @@ export function ReaderTopNav({
   onSelectChapter = () => {},
   backLabel,
   onBack,
+  onOpenSettings,
   children,
 }: ReaderTopNavProps) {
+  const { locale, changeLocale, t } = useTranslation()
   return (
     <Flex
       as="header"
@@ -96,8 +101,20 @@ export function ReaderTopNav({
       </HStack>
 
       {/* Right Area: Chapter Selector, Additional Tools & Window Controls */}
-      <HStack gap="3" align="center" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+      <HStack gap="2" align="center" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
         {children}
+        <ThemeToggleButton label={t.header.themeToggleLabel} />
+        <LanguageButton
+          locale={locale}
+          label={t.header.languageLabel}
+          onSelectLocale={changeLocale}
+        />
+        {onOpenSettings && (
+          <SettingsButton
+            label={t.header.settingsTitle}
+            onClick={onOpenSettings}
+          />
+        )}
         <Separator orientation="vertical" h="dividerHeight" borderColor="border.subtle" mx="1" />
         <WindowControls />
       </HStack>

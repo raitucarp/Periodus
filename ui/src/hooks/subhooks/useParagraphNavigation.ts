@@ -34,7 +34,10 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
         setParagraphs(data || [])
         setChapterStats(stats || [])
         setCurrentParagraphIdx(function boundIndex(prev) {
-          if (prev <= (data?.length || 1)) return prev
+          if (data && data.length > 0) {
+            if (prev <= data.length) return prev
+            return data.length
+          }
           return 1
         })
       } catch (error) {
@@ -105,9 +108,21 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
     if (target >= 1) {
       setCurrentParagraphIdx(target)
     } else if (currentChapterIdx > 1) {
-      setCurrentChapterIdx(function prevChapter(ch) {
-        return ch - 1
-      })
+      const prevChIdx = currentChapterIdx - 1
+      const prevCh = chapters.find((c) => c.chapter_index === prevChIdx)
+      const lastP = prevCh?.paragraph_count && prevCh.paragraph_count > 0 ? prevCh.paragraph_count : 1
+
+      // Verify and set accurate paragraph count if available
+      ReaderService.getParagraphs(id, prevChIdx)
+        .then((prevParas) => {
+          if (prevParas && prevParas.length > 0) {
+            setCurrentParagraphIdx(prevParas.length)
+          }
+        })
+        .catch(() => {})
+
+      setCurrentChapterIdx(prevChIdx)
+      setCurrentParagraphIdx(lastP)
     }
   }
 
@@ -122,9 +137,7 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
     if (target <= paragraphs.length) {
       setCurrentParagraphIdx(target)
     } else if (currentChapterIdx < chapters.length) {
-      setCurrentChapterIdx(function nextChapter(ch) {
-        return ch + 1
-      })
+      setCurrentChapterIdx(currentChapterIdx + 1)
       setCurrentParagraphIdx(1)
     }
   }

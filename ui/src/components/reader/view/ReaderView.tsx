@@ -73,6 +73,7 @@ export function ReaderView({ book, onBack, onOpenSettings }: ReaderViewProps) {
         onSelectChapter={changeChapter}
         backLabel={t.reader.backToCatalog}
         onBack={handleBackClick}
+        onOpenSettings={handleOpenSettings}
       >
         <ReaderChapterSelect
           currentChapterIdx={currentChapterIdx}

@@ -30,19 +30,33 @@ function ReaderRoute() {
   const { data: book, isLoading } = useBookQuery(bookId)
 
   const [currentChapterIdx, setCurrentChapterIdx] = useAtom(currentChapterIdxAtom)
-  const [, setCurrentParagraphIdx] = useAtom(currentParagraphIdxAtom)
+  const [currentParagraphIdx, setCurrentParagraphIdx] = useAtom(currentParagraphIdxAtom)
 
   // Sync TanStack Router URL search params -> reader atom
   useEffect(() => {
     if (search.chapter && search.chapter !== currentChapterIdx) {
       setCurrentChapterIdx(search.chapter)
-      if (search.paragraph) {
-        setCurrentParagraphIdx(search.paragraph)
-      } else {
-        setCurrentParagraphIdx(1)
+      setCurrentParagraphIdx(search.paragraph || 1)
+    } else if (search.paragraph && search.paragraph !== currentParagraphIdx) {
+      setCurrentParagraphIdx(search.paragraph)
+    }
+  }, [search.chapter, search.paragraph])
+
+  // Sync reader atom -> TanStack Router URL search params
+  useEffect(() => {
+    if (currentChapterIdx > 0 && currentParagraphIdx > 0) {
+      if (search.chapter !== currentChapterIdx || search.paragraph !== currentParagraphIdx) {
+        ;(navigate as any)({
+          search: (prev: any) => ({
+            ...prev,
+            chapter: currentChapterIdx,
+            paragraph: currentParagraphIdx,
+          }),
+          replace: true,
+        })
       }
     }
-  }, [search.chapter, search.paragraph, currentChapterIdx, setCurrentChapterIdx, setCurrentParagraphIdx])
+  }, [currentChapterIdx, currentParagraphIdx, search.chapter, search.paragraph, navigate])
 
   function handleBack() {
     navigate({ to: '/' })

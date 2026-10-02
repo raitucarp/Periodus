@@ -271,107 +271,134 @@ export function SentenceRow({
             />
           </Box>
 
-          {/* In-flow Action Toolbar (m="0" p="0", left actions & right emojis) */}
-          {(isSentenceHovered || hasActiveActions) && (
-            <Flex
-              align="center"
-              justify="space-between"
-              w="full"
-              m="0"
-              p="0"
-              h="6"
-              minH="6"
-              position="relative"
-            >
-              {/* Left Actions: Bookmark, Upvote, Downvote, Highlight */}
-              <HStack
-                gap="1"
-                align="center"
-                m="0"
-                p="0"
-                opacity={isSentenceHovered || isBookmarked || upvotes !== 0 || Boolean(highlightColor) ? 1 : 0}
-                transition="opacity 0.2s ease"
-                pointerEvents={isSentenceHovered || isBookmarked || upvotes !== 0 || Boolean(highlightColor) ? 'auto' : 'none'}
+          {/* In-flow Action Toolbar (always visible, no mouse hover effect) */}
+          <Flex
+            align="center"
+            justify="space-between"
+            w="full"
+            m="0"
+            p="0"
+            h="7"
+            minH="7"
+            position="relative"
+          >
+            {/* Left Actions: Bookmark, Upvote, Downvote, Highlight (Twitter/X style subtle circular hover & colored icon) */}
+            <HStack gap="2" align="center" m="0" p="0">
+              {/* Bookmark Toggle */}
+              <IconButton
+                size="xs"
+                h="7"
+                minW="7"
+                w="7"
+                rounded="full"
+                variant="ghost"
+                bg="transparent"
+                color={isBookmarked ? 'blue.fg' : 'fg.muted'}
+                _hover={{
+                  bg: 'color-mix(in srgb, var(--chakra-colors-blue-solid, #1d9bf0) 14%, transparent)',
+                  color: 'blue.fg',
+                }}
+                aria-label="Bookmark"
+                title="Bookmark sentence"
+                onClick={function handleBookmark() {
+                  onToggleBookmark(sentenceHash, isBookmarked)
+                }}
               >
-                {/* Bookmark Toggle */}
-                <IconButton
+                <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
+              </IconButton>
+
+              {/* Upvote & Downvote Controls */}
+              <HStack gap="1" align="center">
+                <Button
                   size="xs"
-                  h="6"
-                  minW="6"
-                  variant={isBookmarked ? 'solid' : 'ghost'}
-                  colorPalette={isBookmarked ? 'ruby' : 'gray'}
-                  aria-label="Bookmark"
-                  title="Bookmark sentence"
-                  onClick={function handleBookmark() {
-                    onToggleBookmark(sentenceHash, isBookmarked)
+                  h="7"
+                  px="2"
+                  rounded="full"
+                  variant="ghost"
+                  bg="transparent"
+                  color={upvotes > 0 ? 'green.fg' : 'fg.muted'}
+                  _hover={{
+                    bg: 'color-mix(in srgb, var(--chakra-colors-green-solid, #00ba7c) 14%, transparent)',
+                    color: 'green.fg',
+                  }}
+                  title="Upvote sentence"
+                  onClick={function handleUpvote() {
+                    onIncrementUpvote(sentenceHash)
                   }}
                 >
-                  <Bookmark size={14} fill={isBookmarked ? 'currentColor' : 'none'} />
-                </IconButton>
+                  <ArrowBigUp size={17} fill={upvotes > 0 ? 'currentColor' : 'none'} />
+                  {upvotes > 0 && (
+                    <Text textStyle="xs" fontWeight="bold">
+                      {upvotes}
+                    </Text>
+                  )}
+                </Button>
 
-                {/* Upvote & Downvote Controls */}
-                <HStack gap="0.5" align="center">
-                  <Button
-                    size="xs"
-                    h="6"
-                    px="1.5"
-                    variant={upvotes > 0 ? 'subtle' : 'ghost'}
-                    colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
-                    rounded="md"
-                    title="Upvote sentence"
-                    onClick={function handleUpvote() {
-                      onIncrementUpvote(sentenceHash)
-                    }}
-                  >
-                    <ArrowBigUp size={15} fill={upvotes > 0 ? 'currentColor' : 'none'} />
-                    {upvotes > 0 && (
-                      <Text textStyle="2xs" fontWeight="bold">
-                        {upvotes}
-                      </Text>
-                    )}
-                  </Button>
-                  <IconButton
-                    size="xs"
-                    h="6"
-                    minW="6"
-                    variant={upvotes < 0 ? 'subtle' : 'ghost'}
-                    colorPalette={upvotes < 0 ? 'ruby' : 'gray'}
-                    rounded="md"
-                    aria-label="Downvote sentence"
-                    title="Downvote sentence"
-                    onClick={function handleDownvote() {
-                      onDecrementUpvote?.(sentenceHash)
-                    }}
-                  >
-                    <ArrowBigDown size={15} fill={upvotes < 0 ? 'currentColor' : 'none'} />
-                    {upvotes < 0 && (
-                      <Text textStyle="2xs" fontWeight="bold">
-                        {Math.abs(upvotes)}
-                      </Text>
-                    )}
-                  </IconButton>
-                </HStack>
+                <Button
+                  size="xs"
+                  h="7"
+                  px={upvotes < 0 ? '2' : '1'}
+                  minW={upvotes < 0 ? undefined : '7'}
+                  w={upvotes < 0 ? undefined : '7'}
+                  rounded="full"
+                  variant="ghost"
+                  bg="transparent"
+                  color={upvotes < 0 ? 'red.fg' : 'fg.muted'}
+                  _hover={{
+                    bg: 'color-mix(in srgb, var(--chakra-colors-red-solid, #f91880) 14%, transparent)',
+                    color: 'red.fg',
+                  }}
+                  aria-label="Downvote sentence"
+                  title="Downvote sentence"
+                  onClick={function handleDownvote() {
+                    onDecrementUpvote?.(sentenceHash)
+                  }}
+                >
+                  <ArrowBigDown size={17} fill={upvotes < 0 ? 'currentColor' : 'none'} />
+                  {upvotes < 0 && (
+                    <Text textStyle="xs" fontWeight="bold">
+                      {Math.abs(upvotes)}
+                    </Text>
+                  )}
+                </Button>
+              </HStack>
 
-                {/* Highlight Color Picker */}
+              {/* Highlight Color Picker */}
+              <Box position="relative">
                 <IconButton
                   size="xs"
-                  h="6"
-                  minW="6"
-                  variant={highlightColor ? 'solid' : 'ghost'}
-                  colorPalette={highlightColor ? (highlightColor as any) : 'gray'}
+                  h="7"
+                  minW="7"
+                  w="7"
+                  rounded="full"
+                  variant="ghost"
+                  bg="transparent"
+                  color={
+                    highlightColor
+                      ? highlightColor === 'amber'
+                        ? 'amber.fg'
+                        : highlightColor === 'ruby'
+                        ? 'ruby.fg'
+                        : 'yellow.fg'
+                      : 'fg.muted'
+                  }
+                  _hover={{
+                    bg: 'color-mix(in srgb, var(--chakra-colors-amber-solid, #f59e0b) 16%, transparent)',
+                    color: 'amber.fg',
+                  }}
                   aria-label="Highlight"
                   title="Highlight sentence"
                   onClick={function toggleHighlightPicker() {
                     setShowHighlightPicker(!showHighlightPicker)
                   }}
                 >
-                  <Highlighter size={14} />
+                  <Highlighter size={16} />
                 </IconButton>
 
                 {showHighlightPicker && (
                   <HStack
                     position="absolute"
-                    bottom="calc(100% + 4px)"
+                    bottom="calc(100% + 6px)"
                     left="0"
                     bg="bg.panel"
                     borderWidth="1px"
@@ -400,57 +427,57 @@ export function SentenceRow({
                     })}
                   </HStack>
                 )}
-              </HStack>
+              </Box>
+            </HStack>
 
-              {/* Right: Grouped & Attached Emoji Bar + Added Badges to its right */}
-              <HStack gap="1.5" align="center" m="0" p="0">
-                {/* Grouped & Attached Emoji Bar (ONLY visible when hovered) */}
-                <Box
-                  m="0"
-                  p="0"
-                  opacity={isSentenceHovered ? 1 : 0}
-                  transition="opacity 0.2s ease"
-                  pointerEvents={isSentenceHovered ? 'auto' : 'none'}
-                >
-                  <Group attached>
-                    {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
-                      return (
-                        <Button
-                          key={em}
-                          size="xs"
-                          variant="subtle"
-                          colorPalette="gray"
-                          px="1.5"
-                          h="6"
-                          fontSize="xs"
-                          onClick={function sendQuickEmoji() {
-                            if (onUpdateReaction) {
-                              onUpdateReaction(sentenceHash, em, 1)
-                            } else {
-                              onAddReaction(sentenceHash, em)
-                            }
-                          }}
-                        >
-                          {em}
-                        </Button>
-                      )
-                    })}
-                    <IconButton
+            {/* Right: Borderless Ghost Emoji Bar + Added Badges to its right */}
+            <HStack gap="1.5" align="center" m="0" p="0">
+              {/* Borderless Ghost Emoji Buttons (always visible) */}
+              <HStack gap="0.5" align="center" m="0" p="0" bg="transparent" borderWidth="0">
+                {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
+                  return (
+                    <Button
+                      key={em}
                       size="xs"
-                      variant="subtle"
-                      colorPalette="gray"
-                      h="6"
-                      minW="6"
-                      aria-label="More Emojis"
-                      title="Open full emoji picker"
-                      onClick={function openPicker() {
-                        setShowFullPicker(!showFullPicker)
+                      variant="ghost"
+                      px="1.5"
+                      h="7"
+                      minW="7"
+                      fontSize="sm"
+                      bg="transparent"
+                      borderWidth="0"
+                      _hover={{ bg: 'bg.subtle' }}
+                      onClick={function sendQuickEmoji() {
+                        if (onUpdateReaction) {
+                          onUpdateReaction(sentenceHash, em, 1)
+                        } else {
+                          onAddReaction(sentenceHash, em)
+                        }
                       }}
                     >
-                      <Plus size={13} />
-                    </IconButton>
-                  </Group>
-                </Box>
+                      {em}
+                    </Button>
+                  )
+                })}
+                <IconButton
+                  size="xs"
+                  variant="ghost"
+                  h="7"
+                  minW="7"
+                  rounded="full"
+                  bg="transparent"
+                  borderWidth="0"
+                  color="fg.muted"
+                  _hover={{ bg: 'bg.subtle', color: 'fg' }}
+                  aria-label="More Emojis"
+                  title="Open full emoji picker"
+                  onClick={function openPicker() {
+                    setShowFullPicker(!showFullPicker)
+                  }}
+                >
+                  <Plus size={15} />
+                </IconButton>
+              </HStack>
 
                 {/* Added Emoji Badges (on the right of emoji buttons, no border, large emoji, top-right count badge, bottom-right minus button) */}
                 {reactions.map(function renderActiveReaction(r) {
@@ -534,7 +561,7 @@ export function SentenceRow({
                 })}
               </HStack>
             </Flex>
-          )}
+
 
           {/* Full Emoji Picker Popover */}
           {showFullPicker && (

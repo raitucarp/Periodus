@@ -31,7 +31,7 @@ export const ja: TranslationSchema = {
     deleteButtonAria: '書籍を削除',
   },
   reader: {
-    backToCatalog: 'カタログへ',
+    backToCatalog: 'すべての本',
     chapterLabel: '第{index}章 / 全{total}章: {title}',
     chapterOption: '第{index}章: {title} {paragraphCountLabel}',
     paragraphCountLabel: '({count}段落)',

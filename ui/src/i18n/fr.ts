@@ -31,7 +31,7 @@ export const fr: TranslationSchema = {
     deleteButtonAria: 'Supprimer le livre',
   },
   reader: {
-    backToCatalog: 'Catalogue',
+    backToCatalog: 'Tous les livres',
     chapterLabel: 'Chapitre {index} / {total} : {title}',
     chapterOption: 'Chapitre {index} : {title} {paragraphCountLabel}',
     paragraphCountLabel: '({count} paragraphes)',
