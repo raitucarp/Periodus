@@ -140,6 +140,13 @@ export function UpdateParagraphStats(bookID: string, chapterIndex: number, parag
     return $Call.ByID(3170170515, bookID, chapterIndex, paragraphIndex, isSkipped, customFontFamily, customFontSize, isBookmarked, upvotesCount, emojiReactions);
 }
 
+/**
+ * UpdateSentenceComment edits the content of an existing marginalia comment
+ */
+export function UpdateSentenceComment(id: string, content: string): $CancellablePromise<void> {
+    return $Call.ByID(300112200, id, content);
+}
+
 // Private type creation functions
 const $$createType0 = db$0.ListChapterStatsByBookRow.createFrom;
 const $$createType1 = $Create.Array($$createType0);

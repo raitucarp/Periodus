@@ -360,3 +360,8 @@ VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP);
 
 -- name: DeleteSentenceComment :exec
 DELETE FROM sentence_comments WHERE id = ?;
+
+-- name: UpdateSentenceComment :exec
+UPDATE sentence_comments
+SET content = ?
+WHERE id = ?;

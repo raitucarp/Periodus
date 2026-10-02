@@ -137,3 +137,8 @@ func (s *ReaderService) AddSentenceComment(id, sentenceHash, bookID, content str
 func (s *ReaderService) DeleteSentenceComment(id string) error {
 	return s.repo.DeleteSentenceComment(context.Background(), id)
 }
+
+// UpdateSentenceComment edits the content of an existing marginalia comment
+func (s *ReaderService) UpdateSentenceComment(id, content string) error {
+	return s.repo.UpdateSentenceComment(context.Background(), id, content)
+}

@@ -130,3 +130,11 @@ func (r *Repository) CreateSentenceComment(ctx context.Context, id, sentenceHash
 func (r *Repository) DeleteSentenceComment(ctx context.Context, id string) error {
 	return r.queries.DeleteSentenceComment(ctx, id)
 }
+
+// UpdateSentenceComment updates a comment's content by its unique ID
+func (r *Repository) UpdateSentenceComment(ctx context.Context, id, content string) error {
+	return r.queries.UpdateSentenceComment(ctx, UpdateSentenceCommentParams{
+		Content: content,
+		ID:      id,
+	})
+}

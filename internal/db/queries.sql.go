@@ -995,6 +995,22 @@ func (q *Queries) UpdateParagraphStats(ctx context.Context, arg UpdateParagraphS
 	return err
 }
 
+const updateSentenceComment = `-- name: UpdateSentenceComment :exec
+UPDATE sentence_comments
+SET content = ?
+WHERE id = ?
+`
+
+type UpdateSentenceCommentParams struct {
+	Content string `json:"content"`
+	ID      string `json:"id"`
+}
+
+func (q *Queries) UpdateSentenceComment(ctx context.Context, arg UpdateSentenceCommentParams) error {
+	_, err := q.db.ExecContext(ctx, updateSentenceComment, arg.Content, arg.ID)
+	return err
+}
+
 const upsertBook = `-- name: UpsertBook :exec
 INSERT INTO books (
     id, title, author, description, publisher, language, 

@@ -39,6 +39,7 @@ type Querier interface {
 	SeedDefaultPrompts(ctx context.Context) error
 	SetSetting(ctx context.Context, arg SetSettingParams) error
 	UpdateParagraphStats(ctx context.Context, arg UpdateParagraphStatsParams) error
+	UpdateSentenceComment(ctx context.Context, arg UpdateSentenceCommentParams) error
 	UpsertBook(ctx context.Context, arg UpsertBookParams) error
 	UpsertChapter(ctx context.Context, arg UpsertChapterParams) error
 	UpsertParagraph(ctx context.Context, arg UpsertParagraphParams) error
