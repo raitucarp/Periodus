@@ -162,17 +162,49 @@ export function SentenceRow({
     setShowFullPicker(false)
   }
 
+  const hasActiveActions = isBookmarked || upvotes > 0 || Boolean(highlightColor)
+
   return (
     <Box
-      py="3.5"
+      py="2"
       px="3"
       rounded="xl"
       transition="background-color 0.15s ease"
       _hover={{ bg: 'bg.subtle' }}
       position="relative"
     >
+      {/* Seamless Continuous Timeline Vertical Line (from row top 0 to bottom 0) */}
+      {totalSentences > 1 && (
+        <>
+          {sentenceIndex !== 0 && (
+            <Box
+              position="absolute"
+              left="17.5px"
+              top="0"
+              h="27px"
+              w="1.5px"
+              bg="fg.subtle"
+              opacity={0.35}
+              zIndex={1}
+            />
+          )}
+          {sentenceIndex !== totalSentences - 1 && (
+            <Box
+              position="absolute"
+              left="17.5px"
+              top="27px"
+              bottom="0"
+              w="1.5px"
+              bg="fg.subtle"
+              opacity={0.35}
+              zIndex={1}
+            />
+          )}
+        </>
+      )}
+
       <Flex align="start" gap="3" w="full" position="relative">
-        {/* Sentence Timeline Connector (Only if totalSentences > 1) */}
+        {/* Timeline Marker Column */}
         {totalSentences > 1 && (
           <Box
             position="relative"
@@ -183,41 +215,17 @@ export function SentenceRow({
             flexDirection="column"
             alignItems="center"
           >
-            {/* Vertical connector line from top */}
-            {sentenceIndex !== 0 && (
-              <Box
-                position="absolute"
-                top="0"
-                bottom="calc(100% - 19px)"
-                w="1.5px"
-                bg="fg.subtle"
-                opacity={0.35}
-              />
-            )}
-
-            {/* Circle dot in front of sentence (solid white, vertically centered on first line of text) */}
+            {/* Circle dot in front of sentence (softer tone matching vertical line, harmonic in light & dark modes) */}
             <Box
               position="absolute"
-              top="13px"
-              w="3"
-              h="3"
+              top="14px"
+              w="2.5"
+              h="2.5"
               rounded="full"
-              bg="white"
-              shadow="sm"
+              bg="fg.muted"
+              border="1.5px solid var(--chakra-colors-bg)"
               zIndex={2}
             />
-
-            {/* Vertical connector line to bottom */}
-            {sentenceIndex !== totalSentences - 1 && (
-              <Box
-                position="absolute"
-                top="19px"
-                bottom="0"
-                w="1.5px"
-                bg="fg.subtle"
-                opacity={0.35}
-              />
-            )}
           </Box>
         )}
 
@@ -271,15 +279,16 @@ export function SentenceRow({
             </HStack>
           )}
 
-          {/* Action Toolbar */}
-          <Flex
-            align="center"
-            justify="space-between"
-            w="full"
-            mt="1.5"
-            minH="7"
-            position="relative"
-          >
+          {/* Action Toolbar (Only rendered when hovered or has active annotations) */}
+          {(isSentenceHovered || hasActiveActions) && (
+            <Flex
+              align="center"
+              justify="space-between"
+              w="full"
+              mt="1.5"
+              minH="7"
+              position="relative"
+            >
             {/* Left Actions: Bookmark, Upvote, Highlight, Separator */}
             <HStack
               gap="1.5"
@@ -421,6 +430,7 @@ export function SentenceRow({
               </IconButton>
             </Group>
           </Flex>
+        )}
 
           {/* Full Emoji Picker Popover */}
           {showFullPicker && (
@@ -446,8 +456,8 @@ export function SentenceRow({
           flexShrink={0}
         />
 
-        {/* Right Column: Marginalia / Comments (No border, circle marker, thin Plus Jakarta Sans font) */}
-        <Box w="38%" minW="14rem" maxW="22rem" flexShrink={0}>
+        {/* Right Column: Marginalia / Comments (Aligned with first line via pt="2.5", JetBrains Mono monospace font, larger text) */}
+        <Box w="38%" minW="14rem" maxW="22rem" flexShrink={0} pt="2.5">
           <VStack align="stretch" gap="2">
             {/* Existing Comments List */}
             {comments.map(function renderComment(c, cIdx) {
@@ -511,9 +521,9 @@ export function SentenceRow({
                           }
                         }}
                         minHeight={36}
-                        fontSize="xs"
-                        fontFamily="'Plus Jakarta Sans', sans-serif"
-                        fontWeight="300"
+                        fontSize="sm"
+                        fontFamily="'JetBrains Mono', monospace"
+                        fontWeight="400"
                         color="fg"
                         p="1"
                         borderBottomColor="ruby.focus"
@@ -548,11 +558,11 @@ export function SentenceRow({
                     </VStack>
                   ) : (
                     <>
-                      {/* Comment Text: no border, slightly larger font, Plus Jakarta Sans, thin weight 300, multiline */}
+                      {/* Comment Text: monospace JetBrains Mono, enlarged fontSize="sm", thin weight, multiline */}
                       <Text
-                        fontSize="xs"
-                        fontFamily="'Plus Jakarta Sans', sans-serif"
-                        fontWeight="300"
+                        fontSize="sm"
+                        fontFamily="'JetBrains Mono', monospace"
+                        fontWeight="400"
                         lineHeight="1.5"
                         color="fg.muted"
                         flex="1"
@@ -604,7 +614,7 @@ export function SentenceRow({
               )
             })}
 
-            {/* Seamless Editable Input ("No comment" placeholder, multiline auto-resizing textarea, Ctrl+Enter to send) */}
+            {/* Seamless Editable Input ("No comment" placeholder, multiline auto-resizing textarea, JetBrains Mono font) */}
             <Box w="full" position="relative">
               <HStack gap="1" w="full" align="end">
                 {comments.length === 0 && (
@@ -634,12 +644,12 @@ export function SentenceRow({
                       handleCommentSubmit()
                     }
                   }}
-                  minHeight={28}
-                  fontSize="xs"
-                  fontFamily="'Plus Jakarta Sans', sans-serif"
-                  fontWeight="300"
+                  minHeight={32}
+                  fontSize="sm"
+                  fontFamily="'JetBrains Mono', monospace"
+                  fontWeight="400"
                   color="fg.muted"
-                  _placeholder={{ color: 'fg.subtle', fontStyle: 'italic', fontWeight: '300' }}
+                  _placeholder={{ color: 'fg.subtle', fontStyle: 'italic', fontFamily: "'JetBrains Mono', monospace", fontSize: 'sm' }}
                   borderBottomColor={newCommentText ? 'ruby.focus' : 'transparent'}
                   _focus={{ borderBottomColor: 'ruby.solid' }}
                   px="1"
