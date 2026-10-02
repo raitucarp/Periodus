@@ -217,7 +217,7 @@ export function SentenceRow({
               position="absolute"
               left="19.25px"
               top="0"
-              h="28px"
+              h="22px"
               w="1.5px"
               bg="fg.subtle"
               opacity={0.35}
@@ -228,7 +228,7 @@ export function SentenceRow({
             <Box
               position="absolute"
               left="19.25px"
-              top="28px"
+              top="34px"
               bottom="0"
               w="1.5px"
               bg="fg.subtle"
@@ -259,8 +259,9 @@ export function SentenceRow({
             w="3.5"
             h="3.5"
             rounded="full"
-            bg={isCollapsed ? 'red.solid' : 'fg.muted'}
-            border={isCollapsed ? '2px solid var(--chakra-colors-red-subtle)' : '1.5px solid var(--chakra-colors-bg)'}
+            bg={isCollapsed ? 'red.solid' : 'fg.subtle'}
+            opacity={isCollapsed ? 1 : 0.35}
+            border={isCollapsed ? '2px solid var(--chakra-colors-red-subtle)' : 'none'}
             boxShadow={isCollapsed ? '0 0 8px var(--chakra-colors-red-focus)' : 'none'}
             zIndex={2}
             cursor="pointer"
@@ -268,6 +269,7 @@ export function SentenceRow({
             _hover={{
               transform: 'translateX(-50%) scale(1.3)',
               bg: isCollapsed ? 'red.focus' : 'ruby.solid',
+              opacity: 1,
             }}
             title={isCollapsed ? 'Expand sentence' : 'Collapse sentence'}
             onClick={(e) => {
