@@ -56,8 +56,16 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
         )
         setParagraphContent(text)
 
-        // Increment visit counter in background
+        // Increment visit counter in background and update local chapterStats
         ReaderService.incrementParagraphVisit(id, currentChapterIdx, currentParagraphIdx)
+          .then((updatedStat) => {
+            if (updatedStat) {
+              setChapterStats((prev) => {
+                const filtered = prev.filter((s) => s.paragraph_index !== currentParagraphIdx)
+                return [...filtered, updatedStat]
+              })
+            }
+          })
           .catch((err) => console.error('Failed to increment visit:', err))
 
         const totalP = total_paragraphs || 1

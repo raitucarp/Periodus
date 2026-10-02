@@ -36,16 +36,18 @@ export function ParagraphHeatmap({
     >
       {Array.from({ length: count }, function renderBox(_, i) {
         const pIdx = i + 1
+        const isCurrent = pIdx === currentParagraphIndex
         const stat = statsMap.get(pIdx)
         const visits = stat?.visit_count || 0
+        const hasInteractions = stat?.is_bookmarked === 1 || (stat?.upvotes_count || 0) > 0
+        const isVisited = visits > 0 || isCurrent || hasInteractions
         const isSkipped = stat?.is_skipped === 1
-        const isCurrent = pIdx === currentParagraphIndex
 
-        // Radix Blue scale:
-        // 0 visits -> subtle tomato-gray tile with visible border (matches ChapterHeatmap)
-        // 1-2 visits -> soft blue subtle
-        // 3-5 visits -> medium blue muted
-        // >5 visits -> vivid blue solid
+        // Blue scale for visited paragraphs / hits:
+        // 0 visits -> subtle tomato-gray tile with visible border
+        // 1-2 visits (or visited/current) -> vibrant medium blue (#1a5699)
+        // 3-5 visits -> bright electric blue (#0070f3)
+        // >5 visits -> solid vivid neon blue (#0091ff)
         let bg = 'color-mix(in srgb, var(--chakra-colors-gray-subtle, #1f1f1f) 85%, var(--chakra-colors-tomato-muted, #e54d2e) 15%)'
         let border = '1px solid var(--chakra-colors-border-subtle, rgba(255, 255, 255, 0.12))'
 
@@ -56,11 +58,11 @@ export function ParagraphHeatmap({
           bg = 'var(--chakra-colors-blue-solid, #0091ff)'
           border = '1px solid var(--chakra-colors-blue-solid, #0091ff)'
         } else if (visits >= 3) {
-          bg = 'var(--chakra-colors-blue-muted, #104278)'
-          border = '1px solid var(--chakra-colors-blue-a8, #185fab)'
-        } else if (visits >= 1) {
-          bg = 'var(--chakra-colors-blue-subtle, #0d2847)'
-          border = '1px solid var(--chakra-colors-blue-a5, #0f3d6c)'
+          bg = '#0070f3'
+          border = '1px solid #3291ff'
+        } else if (isVisited) {
+          bg = '#1a5699'
+          border = '1px solid var(--chakra-colors-blue-focus, #0070f3)'
         }
 
         const tooltip = `Paragraph ${pIdx} • ${visits} visits${isSkipped ? ' (Skipped)' : ''}`
