@@ -14,8 +14,10 @@ import {
 import {
   Bookmark,
   ArrowBigUp,
+  ArrowBigDown,
   Highlighter,
   Plus,
+  Minus,
   Trash2,
   Send,
   Pencil,
@@ -82,8 +84,10 @@ export interface SentenceRowProps {
   lineHeight?: string | number
   onToggleBookmark: (hash: string, currentVal: boolean) => void
   onIncrementUpvote: (hash: string) => void
+  onDecrementUpvote?: (hash: string) => void
   onSetHighlight: (hash: string, color: string) => void
   onAddReaction: (hash: string, emoji: string) => void
+  onUpdateReaction?: (hash: string, emoji: string, delta: number) => void
   onAddComment: (hash: string, text: string) => void
   onDeleteComment: (commentId: string, hash: string) => void
   onUpdateComment?: (commentId: string, hash: string, newContent: string) => void
@@ -110,8 +114,10 @@ export function SentenceRow({
   lineHeight,
   onToggleBookmark,
   onIncrementUpvote,
+  onDecrementUpvote,
   onSetHighlight,
   onAddReaction,
+  onUpdateReaction,
   onAddComment,
   onDeleteComment,
   onUpdateComment,
@@ -160,11 +166,15 @@ export function SentenceRow({
   }
 
   function handleEmojiClick(emojiData: EmojiClickData) {
-    onAddReaction(sentenceHash, emojiData.emoji)
+    if (onUpdateReaction) {
+      onUpdateReaction(sentenceHash, emojiData.emoji, 1)
+    } else {
+      onAddReaction(sentenceHash, emojiData.emoji)
+    }
     setShowFullPicker(false)
   }
 
-  const hasActiveActions = isBookmarked || upvotes > 0 || Boolean(highlightColor)
+  const hasActiveActions = isBookmarked || upvotes !== 0 || Boolean(highlightColor) || reactions.length > 0
   const showCommentInput = isSentenceHovered || isRowHovered || isCommentFocused || newCommentText.length > 0 || comments.length > 0
 
   return (
@@ -261,34 +271,6 @@ export function SentenceRow({
             />
           </Box>
 
-          {/* Emoji Reaction Badges (inline, permanent) */}
-          {reactions.length > 0 && (
-            <HStack gap="1.5" flexWrap="wrap" mb="1.5">
-              {reactions.map(function renderReaction(r) {
-                return (
-                  <Button
-                    key={r.emoji}
-                    size="xs"
-                    variant="surface"
-                    colorPalette="gray"
-                    rounded="full"
-                    px="2.5"
-                    py="1"
-                    h="auto"
-                    onClick={function incrementReaction() {
-                      onAddReaction(sentenceHash, r.emoji)
-                    }}
-                  >
-                    <span>{r.emoji}</span>
-                    <Text as="span" textStyle="xs" fontWeight="semibold" ml="1">
-                      {r.count}
-                    </Text>
-                  </Button>
-                )
-              })}
-            </HStack>
-          )}
-
           {/* In-flow Action Toolbar (m="0" p="0", left actions & right emojis) */}
           {(isSentenceHovered || hasActiveActions) && (
             <Flex
@@ -301,15 +283,15 @@ export function SentenceRow({
               minH="6"
               position="relative"
             >
-              {/* Left Actions: Bookmark, Upvote, Highlight */}
+              {/* Left Actions: Bookmark, Upvote, Downvote, Highlight */}
               <HStack
                 gap="1"
                 align="center"
                 m="0"
                 p="0"
-                opacity={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 1 : 0}
+                opacity={isSentenceHovered || isBookmarked || upvotes !== 0 || Boolean(highlightColor) ? 1 : 0}
                 transition="opacity 0.2s ease"
-                pointerEvents={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 'auto' : 'none'}
+                pointerEvents={isSentenceHovered || isBookmarked || upvotes !== 0 || Boolean(highlightColor) ? 'auto' : 'none'}
               >
                 {/* Bookmark Toggle */}
                 <IconButton
@@ -327,26 +309,48 @@ export function SentenceRow({
                   <Bookmark size={14} fill={isBookmarked ? 'currentColor' : 'none'} />
                 </IconButton>
 
-                {/* Upvote Button (Repeatable) */}
-                <Button
-                  size="xs"
-                  h="6"
-                  px="1.5"
-                  variant={upvotes > 0 ? 'subtle' : 'ghost'}
-                  colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
-                  rounded="md"
-                  title="Applaud / Upvote sentence"
-                  onClick={function handleUpvote() {
-                    onIncrementUpvote(sentenceHash)
-                  }}
-                >
-                  <ArrowBigUp size={15} fill={upvotes > 0 ? 'currentColor' : 'none'} />
-                  {upvotes > 0 && (
-                    <Text textStyle="2xs" fontWeight="bold">
-                      {upvotes}
-                    </Text>
-                  )}
-                </Button>
+                {/* Upvote & Downvote Controls */}
+                <HStack gap="0.5" align="center">
+                  <Button
+                    size="xs"
+                    h="6"
+                    px="1.5"
+                    variant={upvotes > 0 ? 'subtle' : 'ghost'}
+                    colorPalette={upvotes > 0 ? 'ruby' : 'gray'}
+                    rounded="md"
+                    title="Upvote sentence"
+                    onClick={function handleUpvote() {
+                      onIncrementUpvote(sentenceHash)
+                    }}
+                  >
+                    <ArrowBigUp size={15} fill={upvotes > 0 ? 'currentColor' : 'none'} />
+                    {upvotes > 0 && (
+                      <Text textStyle="2xs" fontWeight="bold">
+                        {upvotes}
+                      </Text>
+                    )}
+                  </Button>
+                  <IconButton
+                    size="xs"
+                    h="6"
+                    minW="6"
+                    variant={upvotes < 0 ? 'subtle' : 'ghost'}
+                    colorPalette={upvotes < 0 ? 'ruby' : 'gray'}
+                    rounded="md"
+                    aria-label="Downvote sentence"
+                    title="Downvote sentence"
+                    onClick={function handleDownvote() {
+                      onDecrementUpvote?.(sentenceHash)
+                    }}
+                  >
+                    <ArrowBigDown size={15} fill={upvotes < 0 ? 'currentColor' : 'none'} />
+                    {upvotes < 0 && (
+                      <Text textStyle="2xs" fontWeight="bold">
+                        {Math.abs(upvotes)}
+                      </Text>
+                    )}
+                  </IconButton>
+                </HStack>
 
                 {/* Highlight Color Picker */}
                 <IconButton
@@ -398,49 +402,129 @@ export function SentenceRow({
                 )}
               </HStack>
 
-              {/* Right: Grouped & Attached Emoji Bar (ONLY visible when hovered) */}
-              <Box
-                m="0"
-                p="0"
-                opacity={isSentenceHovered ? 1 : 0}
-                transition="opacity 0.2s ease"
-                pointerEvents={isSentenceHovered ? 'auto' : 'none'}
-              >
-                <Group attached>
-                  {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
-                    return (
-                      <Button
-                        key={em}
-                        size="xs"
-                        variant="subtle"
-                        colorPalette="gray"
-                        px="1.5"
-                        h="6"
+              {/* Right: Grouped & Attached Emoji Bar + Added Badges to its right */}
+              <HStack gap="1.5" align="center" m="0" p="0">
+                {/* Grouped & Attached Emoji Bar (ONLY visible when hovered) */}
+                <Box
+                  m="0"
+                  p="0"
+                  opacity={isSentenceHovered ? 1 : 0}
+                  transition="opacity 0.2s ease"
+                  pointerEvents={isSentenceHovered ? 'auto' : 'none'}
+                >
+                  <Group attached>
+                    {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
+                      return (
+                        <Button
+                          key={em}
+                          size="xs"
+                          variant="subtle"
+                          colorPalette="gray"
+                          px="1.5"
+                          h="6"
+                          fontSize="xs"
+                          onClick={function sendQuickEmoji() {
+                            if (onUpdateReaction) {
+                              onUpdateReaction(sentenceHash, em, 1)
+                            } else {
+                              onAddReaction(sentenceHash, em)
+                            }
+                          }}
+                        >
+                          {em}
+                        </Button>
+                      )
+                    })}
+                    <IconButton
+                      size="xs"
+                      variant="subtle"
+                      colorPalette="gray"
+                      h="6"
+                      minW="6"
+                      aria-label="More Emojis"
+                      title="Open full emoji picker"
+                      onClick={function openPicker() {
+                        setShowFullPicker(!showFullPicker)
+                      }}
+                    >
+                      <Plus size={13} />
+                    </IconButton>
+                  </Group>
+                </Box>
+
+                {/* Added Emoji Badges (on the right of emoji buttons, can be incremented or decremented down to 0/removed) */}
+                {reactions.map(function renderActiveReaction(r) {
+                  return (
+                    <HStack
+                      key={r.emoji}
+                      gap="1"
+                      px="2"
+                      h="6"
+                      rounded="full"
+                      bg="bg.subtle"
+                      borderWidth="1px"
+                      borderColor="border.subtle"
+                      align="center"
+                      transition="all 0.15s ease"
+                      _hover={{ borderColor: 'border.muted', bg: 'bg.muted' }}
+                    >
+                      <Text
+                        as="span"
                         fontSize="xs"
-                        onClick={function sendQuickEmoji() {
-                          onAddReaction(sentenceHash, em)
+                        cursor="pointer"
+                        userSelect="none"
+                        title="Click to increase (+1)"
+                        onClick={function inc() {
+                          if (onUpdateReaction) {
+                            onUpdateReaction(sentenceHash, r.emoji, 1)
+                          } else {
+                            onAddReaction(sentenceHash, r.emoji)
+                          }
                         }}
                       >
-                        {em}
-                      </Button>
-                    )
-                  })}
-                  <IconButton
-                    size="xs"
-                    variant="subtle"
-                    colorPalette="gray"
-                    h="6"
-                    minW="6"
-                    aria-label="More Emojis"
-                    title="Open full emoji picker"
-                    onClick={function openPicker() {
-                      setShowFullPicker(!showFullPicker)
-                    }}
-                  >
-                    <Plus size={13} />
-                  </IconButton>
-                </Group>
-              </Box>
+                        {r.emoji}
+                      </Text>
+                      <Text
+                        as="span"
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color="fg.muted"
+                        userSelect="none"
+                        cursor="pointer"
+                        title="Click to increase (+1)"
+                        onClick={function inc() {
+                          if (onUpdateReaction) {
+                            onUpdateReaction(sentenceHash, r.emoji, 1)
+                          } else {
+                            onAddReaction(sentenceHash, r.emoji)
+                          }
+                        }}
+                      >
+                        {r.count}
+                      </Text>
+                      <IconButton
+                        size="2xs"
+                        variant="ghost"
+                        colorPalette="gray"
+                        h="3.5"
+                        w="3.5"
+                        minW="3.5"
+                        p="0"
+                        rounded="full"
+                        aria-label="Decrease reaction"
+                        title="Decrease (-1, remove if 0)"
+                        _hover={{ color: 'ruby.fg', bg: 'bg.subtle' }}
+                        onClick={function dec(e) {
+                          e.stopPropagation()
+                          onUpdateReaction?.(sentenceHash, r.emoji, -1)
+                        }}
+                      >
+                        <Minus size={9} />
+                      </IconButton>
+                    </HStack>
+                  )
+                })}
+              </HStack>
             </Flex>
           )}
 
@@ -478,40 +562,42 @@ export function SentenceRow({
 
               return (
                 <Flex key={c.id} align="start" gap="2" position="relative" role="group">
-                  {/* Circle indicator in front of comment & vertical connector for multiple comments */}
-                  <Box
-                    position="relative"
-                    w="2"
-                    flexShrink={0}
-                    alignSelf="stretch"
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                  >
-                    {/* Circle dot marker */}
+                  {/* Circle indicator in front of comment & vertical connector for multiple comments (only if > 1 note) */}
+                  {comments.length > 1 && (
                     <Box
-                      w="1.5"
-                      h="1.5"
-                      mt="1.5"
-                      rounded="full"
-                      borderWidth="1px"
-                      borderColor="fg.subtle"
-                      bg="bg"
-                      zIndex={1}
-                    />
-
-                    {/* Vertical connector line between comments */}
-                    {!isLast && (
+                      position="relative"
+                      w="2"
+                      flexShrink={0}
+                      alignSelf="stretch"
+                      display="flex"
+                      flexDirection="column"
+                      alignItems="center"
+                    >
+                      {/* Circle dot marker */}
                       <Box
-                        position="absolute"
-                        top="12px"
-                        bottom="-8px"
-                        w="1px"
-                        bg="fg.subtle"
-                        opacity={0.35}
+                        w="1.5"
+                        h="1.5"
+                        mt="1.5"
+                        rounded="full"
+                        borderWidth="1px"
+                        borderColor="fg.subtle"
+                        bg="bg"
+                        zIndex={1}
                       />
-                    )}
-                  </Box>
+
+                      {/* Vertical connector line between comments */}
+                      {!isLast && (
+                        <Box
+                          position="absolute"
+                          top="12px"
+                          bottom="-8px"
+                          w="1px"
+                          bg="fg.subtle"
+                          opacity={0.35}
+                        />
+                      )}
+                    </Box>
+                  )}
 
                   {/* Comment Content / Editor */}
                   {isEditing ? (
@@ -635,23 +721,10 @@ export function SentenceRow({
               transition="opacity 0.2s ease"
             >
               <HStack gap="1" w="full" align="end">
-                {comments.length === 0 && (
-                  <Box
-                    w="1.5"
-                    h="1.5"
-                    mb="2"
-                    rounded="full"
-                    borderWidth="1px"
-                    borderColor="fg.subtle"
-                    bg="transparent"
-                    opacity={0.3}
-                    flexShrink={0}
-                  />
-                )}
                 <AutoResizeTextarea
                   size="xs"
                   variant="flushed"
-                  placeholder={comments.length > 0 ? 'Add note... (Ctrl+Enter to post)' : 'No comment... (Ctrl+Enter to post)'}
+                  placeholder={comments.length > 0 ? 'Add note... (Ctrl+Enter to post)' : 'No note... (Ctrl+Enter to post)'}
                   value={newCommentText}
                   onFocus={function onFocus() {
                     setIsCommentFocused(true)

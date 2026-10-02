@@ -181,11 +181,34 @@ export function ActiveParagraph({
   }
 
   function handleIncrementUpvote(sentenceHash: string) {
-    incrementUpvote({
-      sentenceHash,
-      bookId,
-      chapterIndex,
-      paragraphIndex,
+    const existing = annotations.find((a) => a.sentence_hash === sentenceHash)
+    const currentUpvotes = existing?.upvotes_count || 0
+    saveAnnotation({
+      sentence_hash: sentenceHash,
+      book_id: bookId,
+      chapter_index: chapterIndex,
+      paragraph_index: paragraphIndex,
+      is_bookmarked: existing?.is_bookmarked || 0,
+      highlight_color: existing?.highlight_color || '',
+      upvotes_count: currentUpvotes + 1,
+      emoji_reactions: existing?.emoji_reactions || '[]',
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  function handleDecrementUpvote(sentenceHash: string) {
+    const existing = annotations.find((a) => a.sentence_hash === sentenceHash)
+    const currentUpvotes = existing?.upvotes_count || 0
+    saveAnnotation({
+      sentence_hash: sentenceHash,
+      book_id: bookId,
+      chapter_index: chapterIndex,
+      paragraph_index: paragraphIndex,
+      is_bookmarked: existing?.is_bookmarked || 0,
+      highlight_color: existing?.highlight_color || '',
+      upvotes_count: currentUpvotes - 1,
+      emoji_reactions: existing?.emoji_reactions || '[]',
+      updated_at: new Date().toISOString(),
     })
   }
 
@@ -204,7 +227,7 @@ export function ActiveParagraph({
     })
   }
 
-  function handleAddReaction(sentenceHash: string, emoji: string) {
+  function handleUpdateReaction(sentenceHash: string, emoji: string, delta: number) {
     const existing = annotations.find((a) => a.sentence_hash === sentenceHash)
     let reactions: Array<{ emoji: string; count: number }> = []
     try {
@@ -217,9 +240,12 @@ export function ActiveParagraph({
 
     const idx = reactions.findIndex((r) => r.emoji === emoji)
     if (idx >= 0) {
-      reactions[idx].count += 1
-    } else {
-      reactions.push({ emoji, count: 1 })
+      reactions[idx].count += delta
+      if (reactions[idx].count <= 0) {
+        reactions.splice(idx, 1)
+      }
+    } else if (delta > 0) {
+      reactions.push({ emoji, count: delta })
     }
 
     saveAnnotation({
@@ -233,6 +259,10 @@ export function ActiveParagraph({
       emoji_reactions: JSON.stringify(reactions),
       updated_at: new Date().toISOString(),
     })
+  }
+
+  function handleAddReaction(sentenceHash: string, emoji: string) {
+    handleUpdateReaction(sentenceHash, emoji, 1)
   }
 
   function handleAddComment(sentenceHash: string, text: string) {
@@ -301,8 +331,10 @@ export function ActiveParagraph({
         comments={allComments}
         onToggleBookmark={handleToggleBookmark}
         onIncrementUpvote={handleIncrementUpvote}
+        onDecrementUpvote={handleDecrementUpvote}
         onSetHighlight={handleSetHighlight}
         onAddReaction={handleAddReaction}
+        onUpdateReaction={handleUpdateReaction}
         onAddComment={handleAddComment}
         onDeleteComment={handleDeleteComment}
         onUpdateComment={handleUpdateComment}

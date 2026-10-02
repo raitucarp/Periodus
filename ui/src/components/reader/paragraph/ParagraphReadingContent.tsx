@@ -18,8 +18,10 @@ export interface ParagraphReadingContentProps {
   comments?: SentenceComment[]
   onToggleBookmark: (hash: string, currentVal: boolean) => void
   onIncrementUpvote: (hash: string) => void
+  onDecrementUpvote?: (hash: string) => void
   onSetHighlight: (hash: string, color: string) => void
   onAddReaction: (hash: string, emoji: string) => void
+  onUpdateReaction?: (hash: string, emoji: string, delta: number) => void
   onAddComment: (hash: string, text: string) => void
   onDeleteComment: (commentId: string, hash: string) => void
   onUpdateComment?: (commentId: string, hash: string, newContent: string) => void
@@ -39,8 +41,10 @@ export function ParagraphReadingContent({
   comments = [],
   onToggleBookmark,
   onIncrementUpvote,
+  onDecrementUpvote,
   onSetHighlight,
   onAddReaction,
+  onUpdateReaction,
   onAddComment,
   onDeleteComment,
   onUpdateComment,
@@ -157,8 +161,10 @@ export function ParagraphReadingContent({
                     lineHeight={lineH}
                     onToggleBookmark={onToggleBookmark}
                     onIncrementUpvote={onIncrementUpvote}
+                    onDecrementUpvote={onDecrementUpvote}
                     onSetHighlight={onSetHighlight}
                     onAddReaction={onAddReaction}
+                    onUpdateReaction={onUpdateReaction}
                     onAddComment={onAddComment}
                     onDeleteComment={onDeleteComment}
                     onUpdateComment={onUpdateComment}
