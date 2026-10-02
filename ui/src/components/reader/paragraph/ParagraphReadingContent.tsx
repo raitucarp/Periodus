@@ -138,7 +138,7 @@ export function ParagraphReadingContent({
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
           >
-            <VStack align="stretch" gap="3">
+            <VStack align="stretch" gap="0">
               {hashedSentences.map(function renderSentenceItem(item, idx) {
                 const ann = annotationMap.get(item.hash)
                 const sentenceComments = commentsByHash.get(item.hash) || []

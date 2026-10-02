@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   Box,
   Button,
@@ -25,6 +25,50 @@ import {
 import EmojiPicker, { Theme as EmojiTheme, type EmojiClickData } from 'emoji-picker-react'
 import { BionicSentence } from '../bionic/BionicSentence'
 import type { SentenceAnnotation, SentenceComment, SentenceEmojiReaction } from '@/lib/types'
+
+interface AutoResizeTextareaProps {
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
+  placeholder?: string
+  minHeight?: number
+  maxHeight?: number
+  [key: string]: any
+}
+
+function AutoResizeTextarea({
+  value,
+  onChange,
+  onKeyDown,
+  placeholder,
+  minHeight = 28,
+  maxHeight = 240,
+  ...rest
+}: AutoResizeTextareaProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    const newH = Math.min(maxHeight, Math.max(minHeight, el.scrollHeight))
+    el.style.height = `${newH}px`
+  }, [value, minHeight, maxHeight])
+
+  return (
+    <Textarea
+      ref={textareaRef}
+      value={value}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      placeholder={placeholder}
+      rows={1}
+      resize="none"
+      overflowY={textareaRef.current && textareaRef.current.scrollHeight > maxHeight ? 'auto' : 'hidden'}
+      {...rest}
+    />
+  )
+}
 
 export interface SentenceRowProps {
   sentence: string
@@ -72,7 +116,7 @@ export function SentenceRow({
   onDeleteComment,
   onUpdateComment,
 }: SentenceRowProps) {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isSentenceHovered, setIsSentenceHovered] = useState(false)
   const [showFullPicker, setShowFullPicker] = useState(false)
   const [showHighlightPicker, setShowHighlightPicker] = useState(false)
   const [newCommentText, setNewCommentText] = useState('')
@@ -120,19 +164,11 @@ export function SentenceRow({
 
   return (
     <Box
-      pt="4.5"
-      pb="3"
+      py="3.5"
       px="3"
       rounded="xl"
       transition="background-color 0.15s ease"
       _hover={{ bg: 'bg.subtle' }}
-      onMouseEnter={function onEnter() {
-        setIsHovered(true)
-      }}
-      onMouseLeave={function onLeave() {
-        setIsHovered(false)
-        setShowHighlightPicker(false)
-      }}
       position="relative"
     >
       <Flex align="start" gap="3" w="full" position="relative">
@@ -151,34 +187,33 @@ export function SentenceRow({
             {sentenceIndex !== 0 && (
               <Box
                 position="absolute"
-                top="-18px"
-                bottom="calc(100% - 10px)"
-                w="1px"
+                top="0"
+                bottom="calc(100% - 19px)"
+                w="1.5px"
                 bg="fg.subtle"
                 opacity={0.35}
               />
             )}
 
-            {/* Circle dot in front of sentence (slightly bigger, 10px) */}
+            {/* Circle dot in front of sentence (solid white, vertically centered on first line of text) */}
             <Box
               position="absolute"
-              top="8px"
-              w="2.5"
-              h="2.5"
+              top="13px"
+              w="3"
+              h="3"
               rounded="full"
-              borderWidth="1.5px"
-              borderColor="fg.subtle"
-              bg="bg"
-              zIndex={1}
+              bg="white"
+              shadow="sm"
+              zIndex={2}
             />
 
             {/* Vertical connector line to bottom */}
             {sentenceIndex !== totalSentences - 1 && (
               <Box
                 position="absolute"
-                top="18px"
-                bottom="-18px"
-                w="1px"
+                top="19px"
+                bottom="0"
+                w="1.5px"
                 bg="fg.subtle"
                 opacity={0.35}
               />
@@ -186,8 +221,18 @@ export function SentenceRow({
           </Box>
         )}
 
-        {/* Left Column: Sentence & Action Bar */}
-        <Box flex="1" minW="0">
+        {/* Left Column: Sentence & Action Bar (hovering here only reveals the action toolbar) */}
+        <Box
+          flex="1"
+          minW="0"
+          onMouseEnter={function onEnter() {
+            setIsSentenceHovered(true)
+          }}
+          onMouseLeave={function onLeave() {
+            setIsSentenceHovered(false)
+            setShowHighlightPicker(false)
+          }}
+        >
           <Box mb="1.5">
             <BionicSentence
               sentence={sentence}
@@ -239,9 +284,9 @@ export function SentenceRow({
             <HStack
               gap="1.5"
               align="center"
-              opacity={isHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 1 : 0}
+              opacity={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 1 : 0}
               transition="opacity 0.2s ease"
-              pointerEvents={isHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 'auto' : 'none'}
+              pointerEvents={isSentenceHovered || isBookmarked || upvotes > 0 || Boolean(highlightColor) ? 'auto' : 'none'}
             >
               {/* Bookmark Toggle */}
               <IconButton
@@ -331,7 +376,7 @@ export function SentenceRow({
                 h="3.5"
                 borderColor="border.subtle"
                 mx="0.5"
-                opacity={isHovered ? 1 : 0}
+                opacity={isSentenceHovered ? 1 : 0}
                 transition="opacity 0.2s ease"
               />
             </HStack>
@@ -339,9 +384,9 @@ export function SentenceRow({
             {/* Right: Grouped & Attached Emoji Bar (ONLY visible when hovered) */}
             <Group
               attached
-              opacity={isHovered ? 1 : 0}
+              opacity={isSentenceHovered ? 1 : 0}
               transition="opacity 0.2s ease"
-              pointerEvents={isHovered ? 'auto' : 'none'}
+              pointerEvents={isSentenceHovered ? 'auto' : 'none'}
             >
               {QUICK_EMOJIS.map(function renderQuickEmoji(em) {
                 return (
@@ -394,9 +439,9 @@ export function SentenceRow({
         <Box
           w="6"
           h="1px"
-          mt="2.5"
+          mt="4.5"
           bg="fg.subtle"
-          opacity={isHovered || comments.length > 0 ? 0.45 : 0.15}
+          opacity={isSentenceHovered || comments.length > 0 ? 0.45 : 0.15}
           transition="opacity 0.2s ease"
           flexShrink={0}
         />
@@ -449,14 +494,14 @@ export function SentenceRow({
                   {/* Comment Content / Editor */}
                   {isEditing ? (
                     <VStack align="stretch" gap="1" flex="1">
-                      <Textarea
+                      <AutoResizeTextarea
                         size="xs"
                         variant="flushed"
                         value={editCommentText}
-                        onChange={function onEditText(e) {
+                        onChange={function onEditText(e: any) {
                           setEditCommentText(e.target.value)
                         }}
-                        onKeyDown={function onEditKeyDown(e) {
+                        onKeyDown={function onEditKeyDown(e: any) {
                           if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                             e.preventDefault()
                             handleSaveEdit(c.id)
@@ -465,11 +510,11 @@ export function SentenceRow({
                             setEditingCommentId(null)
                           }
                         }}
+                        minHeight={36}
                         fontSize="xs"
                         fontFamily="'Plus Jakarta Sans', sans-serif"
                         fontWeight="300"
                         color="fg"
-                        rows={2}
                         p="1"
                         borderBottomColor="ruby.focus"
                         _focus={{ borderBottomColor: 'ruby.solid' }}
@@ -559,7 +604,7 @@ export function SentenceRow({
               )
             })}
 
-            {/* Seamless Editable Input ("No comment" placeholder, multiline textarea, Ctrl+Enter to send) */}
+            {/* Seamless Editable Input ("No comment" placeholder, multiline auto-resizing textarea, Ctrl+Enter to send) */}
             <Box w="full" position="relative">
               <HStack gap="1" w="full" align="end">
                 {comments.length === 0 && (
@@ -575,21 +620,21 @@ export function SentenceRow({
                     flexShrink={0}
                   />
                 )}
-                <Textarea
+                <AutoResizeTextarea
                   size="xs"
                   variant="flushed"
                   placeholder="No comment... (Ctrl+Enter to post)"
                   value={newCommentText}
-                  onChange={function onTextChange(e) {
+                  onChange={function onTextChange(e: any) {
                     setNewCommentText(e.target.value)
                   }}
-                  onKeyDown={function handleKeyDown(e) {
+                  onKeyDown={function handleKeyDown(e: any) {
                     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                       e.preventDefault()
                       handleCommentSubmit()
                     }
                   }}
-                  rows={1}
+                  minHeight={28}
                   fontSize="xs"
                   fontFamily="'Plus Jakarta Sans', sans-serif"
                   fontWeight="300"
@@ -600,7 +645,6 @@ export function SentenceRow({
                   px="1"
                   py="1"
                   flex="1"
-                  minH="24px"
                 />
                 {newCommentText.trim() && (
                   <IconButton
