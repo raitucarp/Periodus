@@ -68,20 +68,20 @@ export function ParagraphHeaderInfo({
           />
         </Box>
 
-        {/* Right Side: Paragraph Badge tucked towards right corner */}
-        <Badge
-          flexShrink={0}
-          colorPalette="blue"
-          variant="subtle"
-          px="2.5"
-          py="1"
-          rounded="full"
-          textStyle="2xs"
-          fontWeight="semibold"
-          letterSpacing="tight"
-        >
-          Paragraph {currentParagraphIndex} of {totalParagraphs}
-        </Badge>
+        {/* Right Side: 2-line Paragraph Status */}
+        <VStack align="end" gap="0.5" flexShrink={0}>
+          <Text textStyle="xs" fontWeight="medium" color="fg.subtle">
+            Paragraph
+          </Text>
+          <HStack gap="0" align="baseline">
+            <Text textStyle="md" fontWeight="bold" color="fg">
+              {currentParagraphIndex}
+            </Text>
+            <Text textStyle="xs" fontWeight="medium" color="fg.muted">
+              /{totalParagraphs}
+            </Text>
+          </HStack>
+        </VStack>
       </Flex>
     </Box>
   )
