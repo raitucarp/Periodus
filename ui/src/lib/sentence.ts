@@ -51,15 +51,17 @@ export async function computeSentenceHash(sentence: string): Promise<string> {
 }
 
 /**
- * Calculates paragraph reading statistics (words, characters, reading time).
+ * Calculates paragraph reading statistics (words, characters, reading time, sentences).
  */
 export function calculateParagraphStats(text: string): {
   words: number
   characters: number
   readingMinutes: number
+  sentences: number
 } {
   const characters = text.length
   const words = text.trim().split(/\s+/).filter(Boolean).length
+  const sentences = splitIntoSentences(text).length
   // Average reading speed: 200 words per minute
   const readingMinutes = Math.max(1, Math.round((words / 200) * 10) / 10)
 
@@ -67,5 +69,6 @@ export function calculateParagraphStats(text: string): {
     words,
     characters,
     readingMinutes,
+    sentences,
   }
 }

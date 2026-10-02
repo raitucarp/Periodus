@@ -31,6 +31,7 @@ export interface ParagraphUtilityToolbarProps {
     words: number
     characters: number
     readingMinutes: number
+    sentences?: number
   }
   paragraphStat?: ParagraphStat | null
   onToggleBookmark?: (isBookmarked: boolean) => void
@@ -87,10 +88,25 @@ export function ParagraphUtilityToolbar({
   return (
     <Box position="relative">
       <HStack align="center" gap="2.5" flexWrap="nowrap">
-        {/* Stats: Word count, Char count, Reading time */}
+        {/* Stats: Sentence count, Word count, Char count, Reading time */}
         <HStack gap="2" color="fg.muted" flexShrink={0}>
+          {stats.sentences !== undefined && (
+            <>
+              <HStack gap="1">
+                <FileText size={13} />
+                <Text textStyle="xs">
+                  <Text as="span" fontWeight="semibold" color="fg">
+                    {stats.sentences}
+                  </Text>{' '}
+                  sentences
+                </Text>
+              </HStack>
+              <Separator orientation="vertical" h="3" borderColor="border.subtle" />
+            </>
+          )}
+
           <HStack gap="1">
-            <FileText size={13} />
+            {stats.sentences === undefined && <FileText size={13} />}
             <Text textStyle="xs">
               <Text as="span" fontWeight="semibold" color="fg">
                 {stats.words}
