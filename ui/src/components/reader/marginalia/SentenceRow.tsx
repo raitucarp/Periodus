@@ -24,10 +24,49 @@ import {
   Check,
   X,
 } from 'lucide-react'
+import { MdOutlineTextFields, MdAbc } from 'react-icons/md'
 import EmojiPicker, { Theme as EmojiTheme, type EmojiClickData } from 'emoji-picker-react'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { useColorMode } from '@/components/ui/color-mode'
 import { BionicSentence } from '../bionic/BionicSentence'
 import { RADIX_COLORS_ROW_1, RADIX_COLORS_ROW_2, RADIX_HEX_MAP } from '@/lib/radixColors'
+import { sentenceFocusedLettersAtom, toggleSentenceLetterAtom } from '@/state/atoms'
 import type { SentenceAnnotation, SentenceComment, SentenceEmojiReaction } from '@/lib/types'
+
+const ALPHABET = [
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+  'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+]
+
+function getLetterColor(count: number, max: number, isDark: boolean): { bg: string; border: string } {
+  if (count <= 0) {
+    return {
+      bg: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+      border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.06)',
+    }
+  }
+  const ratio = count / Math.max(max, 1)
+  if (isDark) {
+    // Subtle, low-distraction scale: from 0.12 (soft dark-gray) to 0.44 (medium gray)
+    // Never pure white (1.0), so reading sentence text remains comfortable and distraction-free
+    const alpha = (0.12 + ratio * 0.32).toFixed(2)
+    const borderAlpha = (parseFloat(alpha) * 0.6).toFixed(2)
+    return {
+      bg: `rgba(255, 255, 255, ${alpha})`,
+      border: `1px solid rgba(255, 255, 255, ${borderAlpha})`,
+    }
+  } else {
+    // Subtle, low-distraction scale: from 0.10 (soft light-gray) to 0.42 (medium gray)
+    // Never pitch black (1.0), readable gradient without stark contrast
+    const alpha = (0.10 + ratio * 0.32).toFixed(2)
+    const borderAlpha = (parseFloat(alpha) * 0.6).toFixed(2)
+    return {
+      bg: `rgba(0, 0, 0, ${alpha})`,
+      border: `1px solid rgba(0, 0, 0, ${borderAlpha})`,
+    }
+  }
+}
+
 
 interface AutoResizeTextareaProps {
   value: string
@@ -78,6 +117,7 @@ export interface SentenceRowProps {
   sentenceHash: string
   sentenceIndex?: number
   totalSentences?: number
+  showSeparator?: boolean
   annotation?: SentenceAnnotation
   comments: SentenceComment[]
   fontFamily?: string
@@ -102,6 +142,7 @@ export function SentenceRow({
   sentenceHash,
   sentenceIndex = 0,
   totalSentences = 1,
+  showSeparator = false,
   annotation,
   comments,
   fontFamily,
@@ -132,6 +173,9 @@ export function SentenceRow({
 
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
   const [editCommentText, setEditCommentText] = useState('')
+  const sentenceFocusedMap = useAtomValue(sentenceFocusedLettersAtom)
+  const toggleSentenceLetter = useSetAtom(toggleSentenceLetterAtom)
+  const focusedLetters = sentenceFocusedMap[sentenceHash] || []
 
   // Parse emoji reactions
   let reactions: SentenceEmojiReaction[] = []
@@ -162,6 +206,26 @@ export function SentenceRow({
 
     return [...DEFAULT_QUICK_EMOJIS, topExtraEmoji]
   }, [reactions])
+
+  const { colorMode } = useColorMode()
+  const wordsCount = useMemo(() => sentence.trim().split(/\s+/).filter(Boolean).length, [sentence])
+  const charsCount = sentence.length
+
+  const alphabetStats = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (let i = 0; i < 26; i++) {
+      counts[String.fromCharCode(65 + i)] = 0
+    }
+    let max = 0
+    for (const char of sentence.toUpperCase()) {
+      if (char >= 'A' && char <= 'Z') {
+        counts[char] = (counts[char] || 0) + 1
+        if (counts[char] > max) max = counts[char]
+      }
+    }
+    return { counts, max }
+  }, [sentence])
+
 
   function handleCommentSubmit(e?: React.FormEvent) {
     if (e) {
@@ -209,7 +273,7 @@ export function SentenceRow({
       }}
       position="relative"
     >
-      {/* Seamless Continuous Timeline Vertical Line (from row top 0 to bottom 0) */}
+      {/* Seamless Continuous Timeline Vertical Line (from row top 0 to bottom 0 without gaps) */}
       {totalSentences > 1 && (
         <>
           {sentenceIndex !== 0 && (
@@ -217,7 +281,7 @@ export function SentenceRow({
               position="absolute"
               left="19.5px"
               top="0"
-              h="22px"
+              h="16px"
               w="1px"
               bg="fg.subtle"
               opacity={0.35}
@@ -228,7 +292,7 @@ export function SentenceRow({
             <Box
               position="absolute"
               left="19.5px"
-              top="34px"
+              top="28px"
               bottom="0"
               w="1px"
               bg="fg.subtle"
@@ -237,6 +301,20 @@ export function SentenceRow({
             />
           )}
         </>
+      )}
+
+      {/* Horizontal Sentence Separator with clear gap from connector line */}
+      {showSeparator && (
+        <Box
+          position="absolute"
+          left="44px"
+          right="12px"
+          bottom="0"
+          h="1px"
+          bg="border.subtle"
+          opacity={0.5}
+          zIndex={1}
+        />
       )}
 
       <Flex align="start" gap="3" w="full" position="relative">
@@ -250,7 +328,7 @@ export function SentenceRow({
           flexDirection="column"
           alignItems="center"
         >
-          {/* Circle dot in front of sentence */}
+          {/* Circle dot in front of sentence (non-transparent, higher z-index than vertical line) */}
           <Box
             position="absolute"
             top="15px"
@@ -259,17 +337,16 @@ export function SentenceRow({
             w="3.5"
             h="3.5"
             rounded="full"
-            bg={isCollapsed ? 'red.solid' : 'fg.subtle'}
-            opacity={isCollapsed ? 1 : 0.35}
+            bg={isCollapsed ? 'red.solid' : 'border.emphasized'}
+            opacity={1}
             border={isCollapsed ? '2px solid var(--chakra-colors-red-subtle)' : 'none'}
             boxShadow={isCollapsed ? '0 0 8px var(--chakra-colors-red-focus)' : 'none'}
-            zIndex={2}
+            zIndex={3}
             cursor="pointer"
             transition="all 0.18s cubic-bezier(0.4, 0, 0.2, 1)"
             _hover={{
               transform: 'translateX(-50%) scale(1.3)',
               bg: isCollapsed ? 'red.focus' : 'ruby.solid',
-              opacity: 1,
             }}
             title={isCollapsed ? 'Expand sentence' : 'Collapse sentence'}
             onClick={(e) => {
@@ -311,6 +388,7 @@ export function SentenceRow({
               fontFamily={fontFamily}
               fontSize={fontSize}
               lineHeight={lineHeight}
+              focusedLetters={focusedLetters}
             />
           </Box>
 
@@ -325,8 +403,10 @@ export function SentenceRow({
               h="8"
               minH="8"
               position="relative"
+              opacity={isSentenceHovered || isRowHovered ? 1 : 0.82}
+              transition="opacity 0.2s ease"
             >
-              {/* Left Actions: Bookmark, Upvote, Downvote, Highlight (Twitter/X style subtle circular hover & colored icon, larger size) */}
+              {/* Left Actions: Bookmark, Upvote, Downvote, Highlight (Twitter/X style subtle circular hover & colored icon) */}
               <HStack gap="2" align="center" m="0" p="0">
                 {/* Bookmark Toggle */}
                 <IconButton
@@ -337,8 +417,10 @@ export function SentenceRow({
                   rounded="full"
                   variant="ghost"
                   bg="transparent"
-                  color={isBookmarked ? 'blue.fg' : 'fg.muted'}
+                  color={isBookmarked ? 'blue.fg' : 'fg.subtle'}
+                  opacity={isBookmarked ? 1 : 0.65}
                   _hover={{
+                    opacity: 1,
                     bg: 'color-mix(in srgb, var(--chakra-colors-blue-solid, #1d9bf0) 14%, transparent)',
                     color: 'blue.fg',
                   }}
@@ -362,8 +444,10 @@ export function SentenceRow({
                     rounded="full"
                     variant="ghost"
                     bg="transparent"
-                    color={upvotes > 0 ? 'green.fg' : 'fg.muted'}
+                    color={upvotes > 0 ? 'green.fg' : 'fg.subtle'}
+                    opacity={upvotes > 0 ? 1 : 0.65}
                     _hover={{
+                      opacity: 1,
                       bg: 'color-mix(in srgb, var(--chakra-colors-green-solid, #00ba7c) 14%, transparent)',
                       color: 'green.fg',
                     }}
@@ -389,8 +473,10 @@ export function SentenceRow({
                     rounded="full"
                     variant="ghost"
                     bg="transparent"
-                    color={upvotes < 0 ? 'red.fg' : 'fg.muted'}
+                    color={upvotes < 0 ? 'red.fg' : 'fg.subtle'}
+                    opacity={upvotes < 0 ? 1 : 0.65}
                     _hover={{
+                      opacity: 1,
                       bg: 'color-mix(in srgb, var(--chakra-colors-red-solid, #f91880) 14%, transparent)',
                       color: 'red.fg',
                     }}
@@ -422,9 +508,11 @@ export function SentenceRow({
                     color={
                       highlightColor
                         ? RADIX_HEX_MAP[highlightColor] || 'amber.fg'
-                        : 'fg.muted'
+                        : 'fg.subtle'
                     }
+                    opacity={highlightColor ? 1 : 0.65}
                     _hover={{
+                      opacity: 1,
                       bg: 'color-mix(in srgb, var(--chakra-colors-amber-solid, #f59e0b) 16%, transparent)',
                       color: highlightColor ? RADIX_HEX_MAP[highlightColor] || 'amber.fg' : 'amber.fg',
                     }}
@@ -532,6 +620,102 @@ export function SentenceRow({
                 </Box>
               </HStack>
 
+              {/* Middle: Sentence Stats (words, chars) & 1-row Alphabet Heatmap */}
+              <HStack gap="3.5" align="center" mx="auto" px="2" py="0.5" flexShrink={0} userSelect="none">
+                {/* Sentence Word & Char Stats - Readable yet non-distracting scale, no wrapping */}
+                <HStack
+                  gap="2.5"
+                  color="fg.subtle"
+                  opacity={0.75}
+                  _hover={{ opacity: 1 }}
+                  transition="opacity 0.15s ease"
+                  flexShrink={0}
+                  whiteSpace="nowrap"
+                >
+                  <HStack gap="1.5" align="center" flexShrink={0} whiteSpace="nowrap">
+                    <MdOutlineTextFields size={16} />
+                    <Text fontSize="xs" color="fg.subtle" whiteSpace="nowrap">
+                      <Text as="span" fontWeight="semibold" color="fg.muted">
+                        {wordsCount}
+                      </Text>{' '}
+                      words
+                    </Text>
+                  </HStack>
+
+                  <Separator orientation="vertical" h="3.5" borderColor="border.subtle" opacity={0.4} flexShrink={0} />
+
+                  <HStack gap="1.5" align="center" flexShrink={0} whiteSpace="nowrap">
+                    <MdAbc size={19} />
+                    <Text fontSize="xs" color="fg.subtle" whiteSpace="nowrap">
+                      <Text as="span" fontWeight="semibold" color="fg.muted">
+                        {charsCount}
+                      </Text>{' '}
+                      chars
+                    </Text>
+                  </HStack>
+                </HStack>
+
+                <Separator orientation="vertical" h="3.5" borderColor="border.subtle" opacity={0.4} flexShrink={0} />
+
+                {/* 1-row Alphabet Heatmap (26 letters A-Z, compact size, clickable only if letter exists in sentence) */}
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(26, 7.5px)"
+                  gridTemplateRows="7px"
+                  gap="1px"
+                  alignItems="center"
+                  p="0.5"
+                  rounded="1px"
+                  flexShrink={0}
+                >
+                  {ALPHABET.map((letter) => {
+                    const count = alphabetStats.counts[letter] || 0
+                    const hasOccurrences = count > 0
+                    const { bg, border } = getLetterColor(count, alphabetStats.max, colorMode === 'dark')
+                    const isFocused = focusedLetters.includes(letter)
+
+                    return (
+                      <Box
+                        key={letter}
+                        w="7.5px"
+                        h="7px"
+                        rounded="1px"
+                        style={{
+                          backgroundColor: bg,
+                          border,
+                          boxShadow: isFocused ? '0 0 0 1.5px var(--chakra-colors-blue-solid, #3b82f6)' : 'none',
+                          transform: isFocused ? 'scale(1.25)' : undefined,
+                          zIndex: isFocused ? 5 : undefined,
+                          transition: 'transform 0.12s ease, box-shadow 0.12s ease',
+                        }}
+                        cursor={hasOccurrences ? 'pointer' : 'default'}
+                        title={
+                          hasOccurrences
+                            ? `${letter}: ${count} occurrence${count === 1 ? '' : 's'}${isFocused ? ' (Active: click to deselect)' : ' (Click to toggle bold in sentence)'}`
+                            : `${letter}: 0 occurrences`
+                        }
+                        _hover={
+                          hasOccurrences
+                            ? {
+                                transform: 'scale(1.3)',
+                                zIndex: 10,
+                              }
+                            : undefined
+                        }
+                        onClick={
+                          hasOccurrences
+                            ? (e) => {
+                                e.stopPropagation()
+                                toggleSentenceLetter({ sentenceHash, letter })
+                              }
+                            : undefined
+                        }
+                      />
+                    )
+                  })}
+                </Box>
+              </HStack>
+
               {/* Right: Borderless Ghost Emoji Bar + Added Badges to its right */}
               <HStack gap="1.5" align="center" m="0" p="0">
                 {/* Borderless Ghost Emoji Buttons with Grayscale Effect (3 default + 1 top/latest reaction) */}
@@ -550,7 +734,7 @@ export function SentenceRow({
                         bg="transparent"
                         borderWidth="0"
                         filter={isEmojiActive ? 'none' : 'grayscale(100%)'}
-                        opacity={isEmojiActive ? 1 : 0.65}
+                        opacity={isEmojiActive ? 1 : 0.45}
                         transition="filter 0.2s ease, opacity 0.2s ease, transform 0.15s ease"
                         _hover={{
                           filter: 'none',
@@ -578,8 +762,9 @@ export function SentenceRow({
                     rounded="full"
                     bg="transparent"
                     borderWidth="0"
-                    color="fg.muted"
-                    _hover={{ bg: 'bg.subtle', color: 'fg' }}
+                    color="fg.subtle"
+                    opacity={0.55}
+                    _hover={{ bg: 'bg.subtle', color: 'fg', opacity: 1 }}
                     aria-label="More Emojis"
                     title="Open full emoji picker"
                     onClick={function openPicker() {

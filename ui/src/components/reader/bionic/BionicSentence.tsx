@@ -20,6 +20,7 @@ export interface BionicSentenceProps {
   fontSize?: string | number
   fontFamily?: string
   lineHeight?: string | number
+  focusedLetters?: string[]
 }
 
 function applyBionicToText(text: string): React.ReactNode {
@@ -99,6 +100,63 @@ function transformNodeWithBionic(children: React.ReactNode): React.ReactNode {
   return children
 }
 
+function applyLettersFocusToText(text: string, letters: string[]): React.ReactNode {
+  if (!text) return null
+  if (!letters || letters.length === 0) return text
+
+  const targetSet = new Set(letters.map((l) => l.toUpperCase()))
+  const escapedLetters = Array.from(targetSet).map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  const regex = new RegExp(`(${escapedLetters.join('|')})`, 'gi')
+  const parts = text.split(regex)
+
+  return parts.map((part, index) => {
+    if (!part) return null
+    if (targetSet.has(part.toUpperCase())) {
+      return (
+        <span
+          key={index}
+          style={{
+            fontWeight: 800,
+            opacity: 1,
+            color: 'var(--chakra-colors-fg, inherit)',
+          }}
+        >
+          {part}
+        </span>
+      )
+    }
+    return (
+      <span
+        key={index}
+        style={{
+          opacity: 0.25,
+          fontWeight: 400,
+          transition: 'opacity 0.15s ease',
+        }}
+      >
+        {part}
+      </span>
+    )
+  })
+}
+
+function transformNodeWithLettersFocus(children: React.ReactNode, letters: string[]): React.ReactNode {
+  if (typeof children === 'string') {
+    return applyLettersFocusToText(children, letters)
+  }
+  if (Array.isArray(children)) {
+    return children.map((c, i) => (
+      <React.Fragment key={i}>{transformNodeWithLettersFocus(c, letters)}</React.Fragment>
+    ))
+  }
+  if (React.isValidElement(children) && (children.props as any)?.children) {
+    return React.cloneElement(children as React.ReactElement<any>, {
+      children: transformNodeWithLettersFocus((children.props as any).children, letters),
+    })
+  }
+  return children
+}
+
 export function BionicSentence({
   sentence,
   highlightColor,
@@ -106,6 +164,7 @@ export function BionicSentence({
   fontSize,
   fontFamily,
   lineHeight,
+  focusedLetters,
 }: BionicSentenceProps) {
   const globalBionicEnabled = useAtomValue(isBionicEnabledAtom)
   const effectiveBionic = isBionicEnabled ?? globalBionicEnabled
@@ -114,6 +173,16 @@ export function BionicSentence({
   const setCurrentChapterIdx = useSetAtom(currentChapterIdxAtom)
   const setCurrentParagraphIdx = useSetAtom(currentParagraphIdxAtom)
   const navigate = useNavigate()
+
+  function renderContent(node: React.ReactNode): React.ReactNode {
+    if (focusedLetters && focusedLetters.length > 0) {
+      return transformNodeWithLettersFocus(node, focusedLetters)
+    }
+    if (effectiveBionic) {
+      return transformNodeWithBionic(node)
+    }
+    return node
+  }
 
   return (
     <Box
@@ -135,32 +204,32 @@ export function BionicSentence({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          p: ({ children }) => <>{effectiveBionic ? transformNodeWithBionic(children) : children}</>,
-          em: ({ children }) => <em>{effectiveBionic ? transformNodeWithBionic(children) : children}</em>,
-          strong: ({ children }) => <strong>{children}</strong>,
+          p: ({ children }) => <>{renderContent(children)}</>,
+          em: ({ children }) => <em>{renderContent(children)}</em>,
+          strong: ({ children }) => <strong>{renderContent(children)}</strong>,
           code: ({ children }) => (
             <code style={{ background: 'var(--chakra-colors-bg-muted)', padding: '0.1em 0.3em', borderRadius: '4px' }}>
-              {children}
+              {renderContent(children)}
             </code>
           ),
           h1: ({ children }) => (
             <Box as="span" display="block" fontWeight="bold" fontSize="1.35em" my="1" color="fg">
-              {effectiveBionic ? transformNodeWithBionic(children) : children}
+              {renderContent(children)}
             </Box>
           ),
           h2: ({ children }) => (
             <Box as="span" display="block" fontWeight="bold" fontSize="1.2em" my="1" color="fg">
-              {effectiveBionic ? transformNodeWithBionic(children) : children}
+              {renderContent(children)}
             </Box>
           ),
           h3: ({ children }) => (
             <Box as="span" display="block" fontWeight="semibold" fontSize="1.1em" my="0.5" color="fg">
-              {effectiveBionic ? transformNodeWithBionic(children) : children}
+              {renderContent(children)}
             </Box>
           ),
           blockquote: ({ children }) => (
             <Box as="span" display="block" borderLeft="3px solid var(--chakra-colors-border)" pl="3" my="1" fontStyle="italic" color="fg.muted">
-              {children}
+              {renderContent(children)}
             </Box>
           ),
           ul: ({ children }) => (
@@ -175,7 +244,7 @@ export function BionicSentence({
           ),
           li: ({ children }) => (
             <Box as="li" m="0" p="0" style={{ display: 'list-item' }}>
-              {effectiveBionic ? transformNodeWithBionic(children) : children}
+              {renderContent(children)}
             </Box>
           ),
           hr: () => <Box as="span" display="block" my="2" borderBottom="1px solid var(--chakra-colors-border)" />,
@@ -211,7 +280,7 @@ export function BionicSentence({
                   }
                 }}
               >
-                {effectiveBionic ? transformNodeWithBionic(children) : children}
+                {renderContent(children)}
               </a>
             )
           },

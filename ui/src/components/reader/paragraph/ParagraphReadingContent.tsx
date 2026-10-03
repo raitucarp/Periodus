@@ -148,30 +148,33 @@ export function ParagraphReadingContent({
               {hashedSentences.map(function renderSentenceItem(item, idx) {
                 const ann = annotationMap.get(item.hash)
                 const sentenceComments = commentsByHash.get(item.hash) || []
+                const isNotLast = idx < hashedSentences.length - 1
 
                 return (
-                  <SentenceRow
-                    key={item.hash}
-                    sentence={item.text}
-                    sentenceHash={item.hash}
-                    sentenceIndex={idx}
-                    totalSentences={hashedSentences.length}
-                    annotation={ann}
-                    comments={sentenceComments}
-                    fontFamily={activeFontFamily}
-                    fontSize={activeFontSize}
-                    lineHeight={lineH}
-                    onToggleBookmark={onToggleBookmark}
-                    onIncrementUpvote={onIncrementUpvote}
-                    onDecrementUpvote={onDecrementUpvote}
-                    onSetHighlight={onSetHighlight}
-                    onAddReaction={onAddReaction}
-                    onUpdateReaction={onUpdateReaction}
-                    onAddComment={onAddComment}
-                    onDeleteComment={onDeleteComment}
-                    onUpdateComment={onUpdateComment}
-                    onToggleCollapse={onToggleCollapse}
-                  />
+                  <React.Fragment key={item.hash}>
+                    <SentenceRow
+                      sentence={item.text}
+                      sentenceHash={item.hash}
+                      sentenceIndex={idx}
+                      totalSentences={hashedSentences.length}
+                      showSeparator={hashedSentences.length >= 2 && isNotLast}
+                      annotation={ann}
+                      comments={sentenceComments}
+                      fontFamily={activeFontFamily}
+                      fontSize={activeFontSize}
+                      lineHeight={lineH}
+                      onToggleBookmark={onToggleBookmark}
+                      onIncrementUpvote={onIncrementUpvote}
+                      onDecrementUpvote={onDecrementUpvote}
+                      onSetHighlight={onSetHighlight}
+                      onAddReaction={onAddReaction}
+                      onUpdateReaction={onUpdateReaction}
+                      onAddComment={onAddComment}
+                      onDeleteComment={onDeleteComment}
+                      onUpdateComment={onUpdateComment}
+                      onToggleCollapse={onToggleCollapse}
+                    />
+                  </React.Fragment>
                 )
               })}
             </VStack>

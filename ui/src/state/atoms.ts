@@ -151,7 +151,56 @@ export const setParagraphColorAtom = atom(
   }
 )
 
+const loadStoredSentenceLetters = (): Record<string, string[]> => {
+  if (typeof window === 'undefined') return {}
+  try {
+    const raw = localStorage.getItem('periodus_sentence_selected_letters')
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
 
+export const sentenceFocusedLettersAtom = atom<Record<string, string[]>>(loadStoredSentenceLetters())
+
+export const toggleSentenceLetterAtom = atom(
+  null,
+  (
+    get,
+    set,
+    {
+      sentenceHash,
+      letter,
+    }: {
+      sentenceHash: string
+      letter: string
+    }
+  ) => {
+    const prev = get(sentenceFocusedLettersAtom)
+    const currentList = prev[sentenceHash] || []
+    const upper = letter.toUpperCase()
+    let nextList: string[]
+    if (currentList.includes(upper)) {
+      nextList = currentList.filter((l) => l !== upper)
+    } else {
+      nextList = [...currentList, upper]
+    }
+    const nextMap = { ...prev }
+    if (nextList.length === 0) {
+      delete nextMap[sentenceHash]
+    } else {
+      nextMap[sentenceHash] = nextList
+    }
+    set(sentenceFocusedLettersAtom, nextMap)
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('periodus_sentence_selected_letters', JSON.stringify(nextMap))
+      } catch (e) {
+        console.error('Failed to save sentence selected letters to localStorage', e)
+      }
+    }
+  }
+)
 
 // --- Derived Atoms ---
 
