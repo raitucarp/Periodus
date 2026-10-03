@@ -117,6 +117,9 @@ export const semanticColorTokens = {
   aura: {
     gridDot: { value: { _light: '{colors.blackA.2}', _dark: '{colors.whiteA.2}' } },
   },
+  heatmap: {
+    empty: { value: { _light: '{colors.blackA.2}', _dark: '{colors.whiteA.2}' } },
+  },
   gradient: {
     brandPrimary: {
       value: 'linear-gradient(135deg, {colors.ruby.9} 0%, {colors.ruby.10} 100%)',
