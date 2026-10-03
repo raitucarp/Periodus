@@ -1,0 +1,26 @@
+version: '3'
+
+info:
+  companyName: "raitucarp"
+  productName: "Periodus"
+  productIdentifier: "com.raitucarp.periodus"
+  description: "Modern EPUB Reader with AI text insights"
+  version: "0.1.0"
+
+dev_mode:
+  root_path: .
+  log_level: info
+  debounce: 1000
+  ignore:
+    dir:
+      - .git
+      - node_modules
+      - bin
+    watched_extension:
+      - "*.go"
+    git_ignore: true
+  executes:
+    - cmd: wails3 task build
+      type: blocking
+    - cmd: wails3 task run
+      type: primary

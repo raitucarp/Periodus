@@ -5,6 +5,7 @@ import { filter, find, includes, toLower, trim, isEmpty } from 'lodash-es'
 // Primitive Base Atoms
 export const booksAtom = atom<Book[]>([])
 export const isBooksLoadingAtom = atom<boolean>(true)
+export const hasLoadedBooksAtom = atom<boolean>(false)
 export const isImportingAtom = atom<boolean>(false)
 export const searchQueryAtom = atom<string>('')
 

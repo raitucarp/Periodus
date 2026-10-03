@@ -19,7 +19,14 @@ import type {
 
 // Check if running inside Wails desktop environment
 export function isWailsEnv(): boolean {
-  return typeof window !== 'undefined' && ('_wails' in window || '__wails' in window)
+  if (typeof window === 'undefined') return false
+  const w = window as any
+  return Boolean(
+    w._wails?.environment ||
+    w.chrome?.webview ||
+    w.__wails ||
+    (w._wails && 'flags' in w._wails && 'environment' in w._wails)
+  )
 }
 
 export const BookService = {
