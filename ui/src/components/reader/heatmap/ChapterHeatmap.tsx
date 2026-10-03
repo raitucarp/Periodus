@@ -1,5 +1,5 @@
 import React from 'react'
-import { HStack, Box } from '@chakra-ui/react'
+import { Grid, Box } from '@chakra-ui/react'
 import { useColorMode } from '@/components/ui/color-mode'
 import { cleanChapterTitle } from '@/lib/sentence'
 import type { ChapterHeatmapItem } from '@/lib/types'
@@ -28,7 +28,16 @@ export function ChapterHeatmap({
   }
 
   return (
-    <HStack gap="1" align="center" overflowX="auto" py="1" maxW="36rem" className="no-scrollbar">
+    <Grid
+      autoFlow="column"
+      autoColumns="max-content"
+      gap="2px"
+      alignItems="center"
+      overflowX="auto"
+      py="1"
+      maxW="36rem"
+      className="no-scrollbar"
+    >
       {Array.from({ length: count }, function renderBox(_, i) {
         const chapterIdx = i + 1
         const stat = statsMap.get(chapterIdx)
@@ -63,7 +72,10 @@ export function ChapterHeatmap({
             key={chapterIdx}
             w={isShort ? '4px' : '10px'}
             minW={isShort ? '4px' : '10px'}
+            maxW={isShort ? '4px' : '10px'}
             h="4"
+            flexShrink={0}
+            boxSizing="border-box"
             rounded="1px"
             cursor="pointer"
             title={tooltipText}
@@ -83,6 +95,6 @@ export function ChapterHeatmap({
           />
         )
       })}
-    </HStack>
+    </Grid>
   )
 }
