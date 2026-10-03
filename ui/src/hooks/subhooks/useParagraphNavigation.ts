@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAtom } from 'jotai'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/queryClient'
 import {
   currentChapterIdxAtom,
   currentParagraphIdxAtom,
@@ -12,6 +14,7 @@ import { ReaderService } from '@/lib/bindings'
 import type { Book, ParagraphStat } from '@/lib/types'
 
 export function useParagraphNavigation({ id, current_paragraph_index, total_paragraphs }: Book) {
+  const queryClient = useQueryClient()
   const [currentChapterIdx, setCurrentChapterIdx] = useAtom(currentChapterIdxAtom)
   const [currentParagraphIdx, setCurrentParagraphIdx] = useAtom(currentParagraphIdxAtom)
   const [paragraphs, setParagraphs] = useAtom(paragraphsAtom)
@@ -59,7 +62,7 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
         )
         setParagraphContent(text)
 
-        // Increment visit counter in background and update local chapterStats
+        // Increment visit counter in background and update local chapterStats & query cache
         ReaderService.incrementParagraphVisit(id, currentChapterIdx, currentParagraphIdx)
           .then((updatedStat) => {
             if (updatedStat) {
@@ -67,7 +70,22 @@ export function useParagraphNavigation({ id, current_paragraph_index, total_para
                 const filtered = prev.filter((s) => s.paragraph_index !== currentParagraphIdx)
                 return [...filtered, updatedStat]
               })
+
+              // Immediately update React Query cache for paragraphHeatmap so it lights up without delay
+              queryClient.setQueryData<ParagraphStat[]>(
+                queryKeys.reader.paragraphHeatmap(id, currentChapterIdx),
+                (old = []) => {
+                  const filtered = old.filter((s) => s.paragraph_index !== currentParagraphIdx)
+                  return [...filtered, updatedStat]
+                }
+              )
             }
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.reader.paragraphHeatmap(id, currentChapterIdx),
+            })
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.reader.chapterHeatmap(id),
+            })
           })
           .catch((err) => console.error('Failed to increment visit:', err))
 

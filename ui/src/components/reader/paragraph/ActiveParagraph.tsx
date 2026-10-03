@@ -71,6 +71,21 @@ export function ActiveParagraph({
   // Live heatmap query
   const { data: liveHeatmap = [] } = useParagraphHeatmapQuery(bookId, chapterIndex)
 
+  // Unified live paragraph stats (merges liveHeatmap query and immediate local chapterStats updates)
+  const mergedParagraphStats = useMemo(() => {
+    const map = new Map<number, ParagraphStat>()
+    for (const stat of liveHeatmap) {
+      map.set(stat.paragraph_index, stat)
+    }
+    for (const stat of chapterStats) {
+      const existing = map.get(stat.paragraph_index)
+      if (!existing || (stat.visit_count || 0) >= (existing.visit_count || 0)) {
+        map.set(stat.paragraph_index, { ...existing, ...stat })
+      }
+    }
+    return Array.from(map.values())
+  }, [liveHeatmap, chapterStats])
+
   const { mutate: addComment } = useAddSentenceCommentMutation()
   const { mutate: deleteComment } = useDeleteSentenceCommentMutation()
   const { mutate: updateComment } = useUpdateSentenceCommentMutation()
@@ -368,7 +383,7 @@ export function ActiveParagraph({
         chapterTitle={chapterTitle}
         currentParagraphIndex={paragraphIndex}
         totalParagraphs={totalParagraphsInChapter}
-        paragraphStats={liveHeatmap.length > 0 ? liveHeatmap : chapterStats}
+        paragraphStats={mergedParagraphStats}
         onSelectParagraph={onSelectParagraph}
       />
 
