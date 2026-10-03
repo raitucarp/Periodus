@@ -23,7 +23,9 @@ import {
   Minus,
   Sparkles,
 } from 'lucide-react'
+import { MdOutlineTextFields, MdAbc } from 'react-icons/md'
 import EmojiPicker, { EmojiClickData, Theme as EmojiTheme } from 'emoji-picker-react'
+
 import { useAtom } from 'jotai'
 import { toggleBionicAtom } from '@/state/atoms'
 import type { ParagraphStat, SentenceEmojiReaction } from '@/lib/types'
@@ -136,7 +138,7 @@ export function ParagraphUtilityToolbar({
           )}
 
           <HStack gap="1">
-            {stats.sentences === undefined && <FileText size={13} />}
+            <MdOutlineTextFields size={14} />
             <Text textStyle="xs">
               <Text as="span" fontWeight="semibold" color="fg">
                 {stats.words}
@@ -147,12 +149,15 @@ export function ParagraphUtilityToolbar({
 
           <Separator orientation="vertical" h="3" borderColor="border.subtle" />
 
-          <Text textStyle="xs">
-            <Text as="span" fontWeight="semibold" color="fg">
-              {stats.characters}
-            </Text>{' '}
-            chars
-          </Text>
+          <HStack gap="1">
+            <MdAbc size={16} />
+            <Text textStyle="xs">
+              <Text as="span" fontWeight="semibold" color="fg">
+                {stats.characters}
+              </Text>{' '}
+              chars
+            </Text>
+          </HStack>
 
           <Separator orientation="vertical" h="3" borderColor="border.subtle" />
 

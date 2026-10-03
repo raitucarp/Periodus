@@ -72,8 +72,10 @@ function SettingsLayoutRoute() {
         top="0"
         zIndex="sticky"
         layerStyle="glassHeader"
-        px="6"
-        py="3"
+        pl="6"
+        pr="0"
+        py="0"
+        h="14"
         align="center"
         justify="space-between"
         w="full"
@@ -102,7 +104,7 @@ function SettingsLayoutRoute() {
           </HStack>
         </HStack>
 
-        <HStack gap="3" align="center" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+        <HStack gap="3" align="center" h="full" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
           <WindowControls />
         </HStack>
       </Flex>
