@@ -231,10 +231,11 @@ export function ReaderChapterSelect({
           <Box
             maxH="18rem"
             overflowY="auto"
-            p="1.5"
+            py="1"
+            px="0"
             display="flex"
             flexDirection="column"
-            gap="1"
+            gap="0"
             className="no-scrollbar"
           >
             {filteredChapters.length === 0 ? (
@@ -245,6 +246,7 @@ export function ReaderChapterSelect({
               filteredChapters.map((ch) => {
                 const isActive = ch.chapter_index === currentChapterIdx
                 const cleanTitle = cleanChapterTitle(ch.title) || `Chapter ${ch.chapter_index}`
+                const isShortChapter = (ch.paragraph_count ?? 0) <= 15
 
                 return (
                   <Box
@@ -254,45 +256,62 @@ export function ReaderChapterSelect({
                     tabIndex={0}
                     w="full"
                     textAlign="left"
-                    p="2"
-                    rounded="lg"
-                    bg={isActive ? 'ruby.subtle' : 'transparent'}
-                    borderLeftWidth={isActive ? '3px' : '0px'}
-                    borderLeftColor="ruby.solid"
+                    px="3"
+                    py={isShortChapter ? '1.5' : '2'}
+                    m="0"
+                    rounded="none"
+                    borderWidth="0"
+                    bg={
+                      isActive
+                        ? 'ruby.subtle'
+                        : isShortChapter
+                          ? 'bg.surface'
+                          : 'transparent'
+                    }
                     cursor="pointer"
-                    transition="all 0.15s ease"
+                    transition="background-color 0.15s ease"
                     _hover={{
                       bg: isActive ? 'ruby.subtle' : 'bg.muted',
                     }}
                     onClick={() => handleSelect(ch)}
                   >
                     <Flex justify="space-between" align="center" gap="2">
-                      <VStack align="start" gap="0.5" minW="0" flex="1">
-                        {/* Baris 1: #1 . 3 paragraphs (teks lebih kecil, warna subtle) */}
-                        <HStack gap="1.5" align="center" lineHeight="1">
-                          <Text
-                            fontSize="2xs"
-                            fontWeight="semibold"
-                            color={isActive ? 'ruby.fg' : 'fg.subtle'}
-                          >
-                            #{ch.chapter_index}
-                          </Text>
-                          <Text fontSize="2xs" color="fg.subtle">
-                            ·
-                          </Text>
-                          <Text
-                            fontSize="2xs"
-                            color={isActive ? 'ruby.fg' : 'fg.subtle'}
-                          >
-                            {ch.paragraph_count} paragraphs
-                          </Text>
-                        </HStack>
+                      <VStack align="start" gap={isShortChapter ? '0' : '0.5'} minW="0" flex="1">
+                        {/* Baris 1: Ditampilkan hanya jika paragraph > 15 */}
+                        {!isShortChapter && (
+                          <HStack gap="1.5" align="center" lineHeight="1">
+                            <Text
+                              fontSize="2xs"
+                              fontWeight="semibold"
+                              color={isActive ? 'ruby.fg' : 'fg.subtle'}
+                            >
+                              #{ch.chapter_index}
+                            </Text>
+                            <Text fontSize="2xs" color="fg.subtle">
+                              ·
+                            </Text>
+                            <Text
+                              fontSize="2xs"
+                              color={isActive ? 'ruby.fg' : 'fg.subtle'}
+                            >
+                              {ch.paragraph_count} paragraphs
+                            </Text>
+                          </HStack>
+                        )}
 
-                        {/* Baris 2: Judul bersih tanpa markdown syntax */}
+                        {/* Baris 2 / Judul: Ukuran lebih kecil & tidak terlalu tebal untuk <= 15 paragraf */}
                         <Text
-                          fontSize="sm"
-                          fontWeight={isActive ? 'bold' : 'medium'}
-                          color={isActive ? 'ruby.fg' : 'fg'}
+                          fontSize={isShortChapter ? 'xs' : 'sm'}
+                          fontWeight={
+                            isShortChapter
+                              ? isActive
+                                ? 'semibold'
+                                : 'normal'
+                              : isActive
+                                ? 'bold'
+                                : 'medium'
+                          }
+                          color={isActive ? 'ruby.fg' : isShortChapter ? 'fg.muted' : 'fg'}
                           lineClamp={1}
                           wordBreak="break-word"
                         >
