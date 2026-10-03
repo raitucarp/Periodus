@@ -41,8 +41,10 @@ export function ReaderTopNav({
       zIndex="sticky"
       align="center"
       justify="space-between"
-      px="6"
-      py="2.5"
+      pl="6"
+      pr="0"
+      py="0"
+      h="12"
       layerStyle="glassHeader"
       w="full"
       userSelect="none"
@@ -101,7 +103,7 @@ export function ReaderTopNav({
       </HStack>
 
       {/* Right Area: Chapter Selector, Additional Tools & Window Controls */}
-      <HStack gap="2" align="center" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+      <HStack gap="2" align="center" h="full" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
         {children}
         <ThemeToggleButton label={t.header.themeToggleLabel} />
         <LanguageButton
@@ -115,7 +117,7 @@ export function ReaderTopNav({
             onClick={onOpenSettings}
           />
         )}
-        <Separator orientation="vertical" h="dividerHeight" borderColor="border.subtle" mx="1" />
+        <Separator orientation="vertical" h="4" borderColor="border.subtle" mx="1" />
         <WindowControls />
       </HStack>
     </Flex>

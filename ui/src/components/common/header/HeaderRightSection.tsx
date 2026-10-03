@@ -31,7 +31,7 @@ export function HeaderRightSection({
   onSettings,
 }: HeaderRightSectionProps) {
   return (
-    <HStack gap="3" align="center" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+    <HStack gap="3" align="center" h="full" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
       <ThemeToggleButton label={themeToggleLabel} />
       <LanguageButton
         locale={locale}

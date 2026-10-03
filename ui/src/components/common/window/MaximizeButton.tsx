@@ -20,17 +20,18 @@ export function MaximizeButton({ label = 'Maximize' }: MaximizeButtonProps) {
       aria-label={label}
       variant="ghost"
       size="xs"
-      rounded="md"
+      rounded="none"
+      m="0"
       color="fg.muted"
-      h="windowControl"
-      w="windowControl"
-      minW="windowControl"
+      h="full"
+      w="11"
+      minW="11"
       _hover={{
-        bg: 'whiteA.2',
+        bg: 'whiteA.3',
         color: 'fg',
       }}
       _active={{
-        bg: 'whiteA.3',
+        bg: 'whiteA.4',
       }}
       onClick={handleMaximizeClick}
       style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}

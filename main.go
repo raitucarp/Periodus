@@ -73,13 +73,14 @@ func main() {
 	})
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:     "Periodus",
-		Width:     1280,
-		Height:    840,
-		MinWidth:  900,
-		MinHeight: 600,
-		Frameless: true,
-		URL:       "/",
+		Title:      "Periodus",
+		Width:      1440,
+		Height:     900,
+		MinWidth:   1200,
+		MinHeight:  800,
+		StartState: application.WindowStateMaximised,
+		Frameless:  true,
+		URL:        "/",
 	})
 
 	if err := app.Run(); err != nil {

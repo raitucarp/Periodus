@@ -19,7 +19,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+import { useEffect } from 'react'
+import { Window } from '@wailsio/runtime'
+import { isWailsEnv } from '@/lib/bindings'
+
 export function App() {
+  useEffect(() => {
+    if (isWailsEnv()) {
+      try {
+        Window.Maximise()
+      } catch {
+        // ignore
+      }
+    }
+  }, [])
+
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />

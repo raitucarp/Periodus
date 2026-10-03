@@ -20,17 +20,18 @@ export function CloseButton({ label = 'Close' }: CloseButtonProps) {
       aria-label={label}
       variant="ghost"
       size="xs"
-      rounded="md"
+      rounded="none"
+      m="0"
       color="fg.muted"
-      h="windowControl"
-      w="windowControl"
-      minW="windowControl"
+      h="full"
+      w="12"
+      minW="12"
       _hover={{
-        bg: 'redA.4',
-        color: 'redA.11',
+        bg: 'red.solid',
+        color: 'white',
       }}
       _active={{
-        bg: 'redA.5',
+        bg: 'red.focus',
       }}
       onClick={handleCloseClick}
       style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}
