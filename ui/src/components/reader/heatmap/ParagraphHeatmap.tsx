@@ -1,5 +1,9 @@
 import React from 'react'
-import { Box } from '@chakra-ui/react'
+import { Grid, Box } from '@chakra-ui/react'
+import { useAtomValue } from 'jotai'
+import { heatmapColorAtom, paragraphColorsAtom } from '@/state/atoms'
+import { getRadixScale } from '@/lib/radixColors'
+import { useColorMode } from '@/components/ui/color-mode'
 import type { ParagraphStat } from '@/lib/types'
 
 export interface ParagraphHeatmapProps {
@@ -7,6 +11,8 @@ export interface ParagraphHeatmapProps {
   stats: ParagraphStat[]
   currentParagraphIndex: number
   onSelectParagraph: (index: number) => void
+  bookId?: string
+  chapterIndex?: number
 }
 
 export function ParagraphHeatmap({
@@ -14,7 +20,14 @@ export function ParagraphHeatmap({
   stats,
   currentParagraphIndex,
   onSelectParagraph,
+  bookId = '',
+  chapterIndex = 1,
 }: ParagraphHeatmapProps) {
+  const defaultHeatmapColor = useAtomValue(heatmapColorAtom)
+  const paragraphColors = useAtomValue(paragraphColorsAtom)
+  const { colorMode } = useColorMode()
+  const isDark = colorMode === 'dark'
+
   const count = Math.max(totalParagraphs, stats.length, 1)
 
   // Map paragraph_index -> ParagraphStat
@@ -24,11 +37,11 @@ export function ParagraphHeatmap({
   }
 
   return (
-    <Box
-      display="grid"
-      gridTemplateRows="repeat(3, 10px)"
-      gridAutoFlow="column"
-      gap="1.5px"
+    <Grid
+      templateRows="repeat(3, 10px)"
+      autoFlow="column"
+      autoColumns="10px"
+      gap="2px"
       alignItems="center"
       p="1"
       maxW="full"
@@ -43,26 +56,33 @@ export function ParagraphHeatmap({
         const isVisited = visits > 0 || isCurrent || hasInteractions
         const isSkipped = stat?.is_skipped === 1
 
-        // Blue scale for visited paragraphs / hits:
-        // 0 visits -> subtle tomato-gray tile with visible border
-        // 1-2 visits (or visited/current) -> vibrant medium blue (#1a5699)
-        // 3-5 visits -> bright electric blue (#0070f3)
-        // >5 visits -> solid vivid neon blue (#0091ff)
-        let bg = 'color-mix(in srgb, var(--chakra-colors-gray-subtle, #1f1f1f) 85%, var(--chakra-colors-tomato-muted, #e54d2e) 15%)'
-        let border = '1px solid var(--chakra-colors-border-subtle, rgba(255, 255, 255, 0.12))'
+        const pKey = `${bookId}_${chapterIndex}_${pIdx}`
+        const pColor = paragraphColors[pKey] || defaultHeatmapColor || 'blue'
+        const scale = getRadixScale(pColor, isDark)
+
+        const solidColor = scale[`${pColor}9`] || '#0090ff'
+        const strongColor = scale[`${pColor}8`] || '#0070f3'
+        const mediumColor = scale[`${pColor}6`] || '#1a5699'
+        const mediumBorder = scale[`${pColor}7`] || '#0070f3'
+        const strongBorder = scale[`${pColor}9`] || '#3291ff'
+        const solidBorder = scale[`${pColor}10`] || '#0091ff'
+
+        // Background for unvisited paragraphs (unified design token with chapter heatmap):
+        let bg = 'var(--chakra-colors-heatmap-empty)'
+        let border = '1px solid transparent'
 
         if (isSkipped) {
           bg = 'var(--chakra-colors-gray-muted, #333)'
           border = '1px dashed var(--chakra-colors-gray-8, #555)'
         } else if (visits > 5) {
-          bg = 'var(--chakra-colors-blue-solid, #0091ff)'
-          border = '1px solid var(--chakra-colors-blue-solid, #0091ff)'
+          bg = solidColor
+          border = `1px solid ${solidBorder}`
         } else if (visits >= 3) {
-          bg = '#0070f3'
-          border = '1px solid #3291ff'
+          bg = strongColor
+          border = `1px solid ${strongBorder}`
         } else if (isVisited) {
-          bg = '#1a5699'
-          border = '1px solid var(--chakra-colors-blue-focus, #0070f3)'
+          bg = mediumColor
+          border = `1px solid ${mediumBorder}`
         }
 
         const tooltip = `Paragraph ${pIdx} • ${visits} visits${isSkipped ? ' (Skipped)' : ''}`
@@ -72,14 +92,17 @@ export function ParagraphHeatmap({
             key={pIdx}
             w="10px"
             h="10px"
-            rounded="xs"
+            minW="10px"
+            minH="10px"
+            boxSizing="border-box"
+            rounded="1px"
             cursor="pointer"
             title={tooltip}
             style={{
               backgroundColor: bg,
-              border: isCurrent ? '1.5px solid var(--chakra-colors-blue-solid, #0091ff)' : border,
+              border: isCurrent ? `1px solid ${solidColor}` : border,
               boxShadow: isCurrent
-                ? '0 0 0 1.5px var(--chakra-colors-blue-solid, #0091ff), 0 0 6px rgba(0, 145, 255, 0.6)'
+                ? `0 0 0 1.5px ${solidColor}, 0 0 6px ${solidColor}99`
                 : 'none',
               opacity: isSkipped ? 0.35 : 1,
               transition: 'transform 0.12s ease, background-color 0.15s ease',
@@ -94,7 +117,7 @@ export function ParagraphHeatmap({
           />
         )
       })}
-    </Box>
+    </Grid>
   )
 }
 

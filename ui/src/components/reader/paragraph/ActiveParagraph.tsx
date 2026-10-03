@@ -362,6 +362,7 @@ export function ActiveParagraph({
   return (
     <ActiveParagraphLayout>
       <ParagraphHeaderInfo
+        bookId={bookId}
         chapterIndex={chapterIndex}
         totalChapters={totalChapters}
         chapterTitle={chapterTitle}

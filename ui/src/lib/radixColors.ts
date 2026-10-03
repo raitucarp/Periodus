@@ -41,3 +41,17 @@ export const ALL_RADIX_COLORS = [...RADIX_COLORS_ROW_1, ...RADIX_COLORS_ROW_2]
 export const RADIX_HEX_MAP: Record<string, string> = Object.fromEntries(
   ALL_RADIX_COLORS.map((c) => [c.name, c.hex])
 )
+
+import * as RadixAllColors from '@radix-ui/colors'
+
+export function getRadixScale(colorName: string, isDark: boolean): Record<string, string> {
+  const all = RadixAllColors as Record<string, Record<string, string>>
+  const key = isDark ? `${colorName}Dark` : colorName
+  return all[key] || all[colorName] || (isDark ? all.blueDark : all.blue)
+}
+
+export function getRadixStep(colorName: string, step: number, isDark: boolean): string {
+  const scale = getRadixScale(colorName, isDark)
+  return scale[`${colorName}${step}`] || scale[`blue${step}`] || '#0090ff'
+}
+

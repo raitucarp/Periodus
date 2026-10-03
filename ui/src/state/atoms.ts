@@ -96,6 +96,63 @@ export const toggleBionicAtom = atom(
   }
 )
 
+const storedHeatmapColor = typeof window !== 'undefined' ? localStorage.getItem('periodus_heatmap_color') : null
+export const heatmapColorAtom = atom<string>(storedHeatmapColor || 'blue')
+export const setHeatmapColorAtom = atom(
+  (get) => get(heatmapColorAtom),
+  (get, set, newColor: string) => {
+    set(heatmapColorAtom, newColor)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('periodus_heatmap_color', newColor)
+    }
+  }
+)
+
+const loadStoredParagraphColors = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {}
+  try {
+    const raw = localStorage.getItem('periodus_paragraph_colors')
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+export const paragraphColorsAtom = atom<Record<string, string>>(loadStoredParagraphColors())
+
+export const setParagraphColorAtom = atom(
+  null,
+  (
+    get,
+    set,
+    {
+      bookId,
+      chapterIndex,
+      paragraphIndex,
+      color,
+    }: {
+      bookId: string
+      chapterIndex: number
+      paragraphIndex: number
+      color: string
+    }
+  ) => {
+    const prev = get(paragraphColorsAtom)
+    const key = `${bookId}_${chapterIndex}_${paragraphIndex}`
+    const updated = { ...prev, [key]: color }
+    set(paragraphColorsAtom, updated)
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('periodus_paragraph_colors', JSON.stringify(updated))
+      } catch (e) {
+        console.error('Failed to save paragraph colors to localStorage', e)
+      }
+    }
+  }
+)
+
+
+
 // --- Derived Atoms ---
 
 export const selectedBookAtom = atom<Book | null>(function computeSelectedBook(get) {
